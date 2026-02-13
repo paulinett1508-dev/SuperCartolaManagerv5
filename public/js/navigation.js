@@ -67,12 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   });
-  const parciaisBtn = document.getElementById("parciaisBtn");
-  if (parciaisBtn) {
-    parciaisBtn.addEventListener("click", () => {
-      window.location.href = `parciais.html?id=${ligaId}`;
-    });
-  }
+  // REMOVIDO: parciaisBtn - módulo substituído por Raio-X da Rodada
 
   // ✅ v1.1: Suporte a section via URL (para redirect externo)
   const sectionFromUrl = urlParams.get("section");

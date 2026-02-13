@@ -1,11 +1,10 @@
 // =====================================================================
-// QUICK ACCESS BAR v2.8 - Menu Dinâmico + Ao Vivo Robusto
+// QUICK ACCESS BAR v3.0 - Menu Dinâmico
 // =====================================================================
 // 4 botões: Início (home), Ranking, Menu (sheet), Financeiro
 // GPU-accelerated, 60fps guaranteed, DOM caching
-// v2.8: Fix "Ao Vivo" - polling robusto aguarda selecionarRodada (até 3s)
+// v3.0: Botão "Ao Vivo" removido - substituído por Raio-X da Rodada (acessível via módulo Rodadas)
 // v2.7: Módulo inicial agora é "home" (temporada 2026 em andamento - rodada 1+)
-// v2.6: Botão "Ao Vivo" funcional - navega para rodadas com parciais
 // v2.5: Menu dinâmico baseado em modulosAtivos e isLigaEstreante
 //       - Hall da Fama oculto para ligas estreantes
 //       - Módulos não configurados mostram "Aguarde"
@@ -283,19 +282,7 @@ class QuickAccessBar {
                 .replace(/&/g, '&amp;')
                 .replace(/"/g, '&quot;');
         const mercadoAberto = this.mercadoAberto === true;
-        const aoVivoMessageEnabled = 'Acompanhar a rodada atual em tempo real.';
-        const aoVivoMessageDisabled = 'Ao Vivo só fica ativo quando o mercado estiver fechado e a rodada estiver em andamento.';
-        const aoVivoTooltip = mercadoAberto ? aoVivoMessageDisabled : aoVivoMessageEnabled;
-        const aoVivoAttributes = [
-            'data-action="ao-vivo"',
-            `title="${escapeAttr(aoVivoTooltip)}"`,
-            `aria-label="${escapeAttr(aoVivoTooltip)}"`,
-            `aria-disabled="${mercadoAberto ? 'true' : 'false'}"`
-        ];
-        if (mercadoAberto) {
-            aoVivoAttributes.push('data-disabled="true"');
-            aoVivoAttributes.push(`data-disabled-message="${escapeAttr(aoVivoMessageDisabled)}"`);
-        }
+        // REMOVIDO: variáveis aoVivo* - botão "Ao Vivo" removido, substituído por Raio-X da Rodada
 
         // Hall da Fama: ocultar completamente para ligas estreantes
         const hallDaFamaCard = isLigaEstreante ? '' : `
@@ -318,12 +305,7 @@ class QuickAccessBar {
                         <span class="material-icons">view_week</span>
                         <span class="menu-card-label">Rodadas</span>
                     </div>
-                    <div class="menu-card ao-vivo-card${mercadoAberto ? ' desativado' : ''}"
-                         ${aoVivoAttributes.join(' ')}>
-                        <span class="material-icons">sensors</span>
-                        <span class="menu-card-label">Ao Vivo</span>
-                        <span class="live-indicator"></span>
-                    </div>
+                    <!-- REMOVIDO: Botão "Ao Vivo" - funcionalidade substituída por Raio-X da Rodada (acessível via Rodadas) -->
                     ${renderCard('pontos-corridos', 'pontosCorridos', 'format_list_numbered', 'Pontos Corridos')}
                     ${renderCard('mata-mata', 'mataMata', 'military_tech', 'Mata-Mata')}
                     ${renderCard('top10', 'top10', 'leaderboard', 'TOP 10')}
@@ -422,11 +404,7 @@ class QuickAccessBar {
                     return;
                 }
 
-                // ✅ v2.6: Ao Vivo - navega para rodadas e seleciona rodada atual
-                if (action === 'ao-vivo') {
-                    this.navegarParaAoVivo();
-                    return;
-                }
+                // REMOVIDO: action 'ao-vivo' - funcionalidade substituída por Raio-X da Rodada
 
                 // ✅ v2.5: Módulo não configurado pelo admin
                 if (action === 'aguarde-config') {
@@ -537,83 +515,7 @@ class QuickAccessBar {
         }
     }
 
-    /**
-     * ✅ v2.8: Navegar para módulo de rodadas e abrir rodada atual (parciais)
-     * Usa polling robusto para aguardar selecionarRodada estar disponível
-     */
-    async navegarParaAoVivo() {
-        this.fecharMenu();
-
-        try {
-            const status =
-                (await this.atualizarStatusMercado(true)) ||
-                this.statusMercado ||
-                { status_mercado: 2 };
-
-            if (window.Log) Log.info('QUICK-BAR', 'Status mercado:', status);
-
-            const rodadaEmAndamento = status.status_mercado === 2 || status.bola_rolando;
-
-            if (!rodadaEmAndamento) {
-                this.mostrarToast('Nenhuma rodada em andamento no momento', 'info');
-                // Navegar para rodadas mesmo assim
-                this.navegarPara('rodadas');
-                return;
-            }
-
-            // Navegar para rodadas
-            this.navegarPara('rodadas');
-            this._dom.navItems.forEach(nav => nav.classList.remove('active'));
-
-            // ✅ v2.8: Polling robusto - aguarda função estar disponível (max 3s)
-            const rodadaAtual = status.rodada_atual;
-            const maxTentativas = 15; // 15 x 200ms = 3 segundos
-            let tentativa = 0;
-
-            const tentarSelecionarRodada = () => {
-                tentativa++;
-
-                // Tentar selecionar a rodada atual via função global
-                if (typeof window.selecionarRodada === 'function') {
-                    window.selecionarRodada(rodadaAtual, true);
-                    if (window.Log) Log.info('QUICK-BAR', `✅ Selecionando rodada ${rodadaAtual} (ao vivo) - tentativa ${tentativa}`);
-                    this.mostrarToast(`Rodada ${rodadaAtual} - Ao Vivo`, 'success');
-                    return;
-                }
-
-                if (typeof window.RodadasModule?.selecionarRodada === 'function') {
-                    window.RodadasModule.selecionarRodada(rodadaAtual, true);
-                    if (window.Log) Log.info('QUICK-BAR', `✅ RodadasModule.selecionarRodada rodada ${rodadaAtual}`);
-                    this.mostrarToast(`Rodada ${rodadaAtual} - Ao Vivo`, 'success');
-                    return;
-                }
-
-                // Se não encontrou a função, tentar novamente ou usar fallback
-                if (tentativa < maxTentativas) {
-                    if (window.Log) Log.debug('QUICK-BAR', `Aguardando selecionarRodada... (${tentativa}/${maxTentativas})`);
-                    setTimeout(tentarSelecionarRodada, 200);
-                } else {
-                    // Fallback final: clicar no card da rodada atual
-                    if (window.Log) Log.warn('QUICK-BAR', 'selecionarRodada não encontrada, usando fallback de click');
-                    const rodadaCard = document.querySelector(`[data-rodada="${rodadaAtual}"]`);
-                    if (rodadaCard) {
-                        rodadaCard.click();
-                        this.mostrarToast(`Rodada ${rodadaAtual} - Ao Vivo`, 'success');
-                    } else {
-                        this.mostrarToast('Rodada carregada', 'info');
-                    }
-                }
-            };
-
-            // Iniciar polling após pequeno delay inicial (200ms)
-            setTimeout(tentarSelecionarRodada, 200);
-
-        } catch (error) {
-            if (window.Log) Log.error('QUICK-BAR', 'Erro ao buscar status:', error);
-            this.mostrarToast('Erro ao verificar status da rodada', 'warning');
-            this.navegarPara('rodadas');
-        }
-    }
+    // REMOVIDO: navegarParaAoVivo() - funcionalidade substituída por Raio-X da Rodada
 
     atualizarNavAtivo(page) {
         this._dom.navItems.forEach(item => {
