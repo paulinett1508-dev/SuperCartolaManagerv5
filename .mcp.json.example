@@ -5,7 +5,7 @@
       "args": ["mongo-server.js"],
       "cwd": "/home/runner/workspace",
       "env": {
-        "MONGO_URI": "mongodb+srv://admin:yFRLiUwIG5ZhQQ43@cluster0.fjcat.mongodb.net/cartola-manager?retryWrites=true&w=majority",
+        "MONGO_URI": "SUA_MONGO_URI_AQUI",
         "NODE_ENV": "production"
       }
     },
@@ -13,7 +13,7 @@
       "command": "npx",
       "args": ["-y", "@perplexity-ai/mcp-server"],
       "env": {
-        "PERPLEXITY_API_KEY": "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"
+        "PERPLEXITY_API_KEY": "SUA_PERPLEXITY_KEY_AQUI"
       }
     },
     "context7": {
@@ -27,14 +27,14 @@
       "command": "npx",
       "args": ["-y", "@anthropic/mcp-server-figma"],
       "env": {
-        "FIGMA_ACCESS_TOKEN": "figd_b2MJbuEWzU10PKHRIm6Eerp-BaHtDwSquNZbNugP"
+        "FIGMA_ACCESS_TOKEN": "SEU_FIGMA_TOKEN_AQUI"
       }
     },
     "stitch": {
       "command": "npx",
       "args": ["-y", "@_davideast/stitch-mcp", "proxy"],
       "env": {
-        "STITCH_API_KEY": "AIzaSyAbDBBH7BQR2lWpoXQptgJJiTuvUMLlzEk"
+        "STITCH_API_KEY": "SUA_GOOGLE_AI_KEY_AQUI"
       }
     }
   }
