@@ -1619,3 +1619,106 @@
     letter-spacing: 0.3px;
     animation: wh-live-pulse 2s ease-in-out infinite;
 }
+
+/* ========================================
+   16. RANK CARDS - Ranking em Carrossel
+   ======================================== */
+.wh-rank-card {
+    min-width: 110px;
+    max-width: 130px;
+    flex-shrink: 0;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 8px;
+    background: var(--app-surface);
+    border-radius: 10px;
+    border: 1px solid var(--app-border);
+    transition: transform 0.15s ease, box-shadow 0.2s ease;
+    text-align: center;
+}
+
+.wh-rank-card:active {
+    transform: scale(0.96);
+}
+
+.wh-rank-card.gold {
+    border-color: var(--app-gold);
+    background: linear-gradient(135deg, var(--app-surface) 0%, rgba(255, 215, 0, 0.08) 100%);
+}
+
+.wh-rank-card.silver {
+    border-color: var(--app-silver);
+    background: linear-gradient(135deg, var(--app-surface) 0%, rgba(192, 192, 192, 0.06) 100%);
+}
+
+.wh-rank-card.bronze {
+    border-color: var(--app-bronze);
+    background: linear-gradient(135deg, var(--app-surface) 0%, rgba(205, 127, 50, 0.06) 100%);
+}
+
+.wh-rank-card.me {
+    border-color: var(--app-primary);
+    background: linear-gradient(135deg, var(--app-surface) 0%, rgba(255, 85, 0, 0.1) 100%);
+    box-shadow: 0 0 12px rgba(255, 85, 0, 0.15);
+}
+
+.wh-rank-pos {
+    font-size: 16px;
+    font-weight: 700;
+    font-family: var(--app-font-mono);
+    line-height: 1;
+}
+
+.wh-rank-card.gold .wh-rank-pos { color: var(--app-gold); }
+.wh-rank-card.silver .wh-rank-pos { color: var(--app-silver); }
+.wh-rank-card.bronze .wh-rank-pos { color: var(--app-bronze); }
+.wh-rank-card.me .wh-rank-pos { color: var(--app-primary); }
+
+.wh-rank-escudo {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: contain;
+    background: var(--app-bg);
+    border: 2px solid var(--app-border);
+}
+
+.wh-rank-card.me .wh-rank-escudo {
+    border-color: var(--app-primary);
+}
+
+.wh-rank-nome {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--app-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    line-height: 1.2;
+}
+
+.wh-rank-pontos {
+    font-family: var(--app-font-mono);
+    font-size: var(--app-font-md);
+    font-weight: 700;
+    color: var(--app-text-primary);
+}
+
+.wh-rank-card.me .wh-rank-pontos {
+    color: var(--app-primary);
+}
+
+.wh-rank-sub {
+    font-size: 10px;
+    color: var(--app-text-muted);
+    line-height: 1;
+}
+
+/* Disputa acirrada dentro de seção com carousel */
+.wh-section .wh-disputa-acirrada {
+    margin: 6px 8px 4px;
+}
