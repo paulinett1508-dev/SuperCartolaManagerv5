@@ -53,23 +53,19 @@ Handover para nova sessao - carrega contexto do trabalho em andamento e instrui 
 
 ---
 
-## BUG SISTEMATICO: Cache Stale Apos Pontos Corridos
+## ~~BUG SISTEMATICO: Cache Stale~~ ✅ RESOLVIDO (13/02/2026)
 
-**Severidade:** ALTA
-**Afeta:** TODOS participantes Super Cartola 2026 com resultados R2 de PC
-**Delta:** R$5 por participante (valor do PC da R2)
+**Status:** RESOLVIDO
+**Investigacao:** Ambos code paths (Path A L835-841, Path B L1285-1291) JA recalculam ganhos/perdas corretamente.
+**Root cause real:** Caches criados antes das fixes v8.9/v8.11/v8.12 tinham saldo_consolidado divergente.
 
-**Root cause:** Modulo Pontos Corridos faz `$push` em `historico_transacoes` mas NAO recalcula `saldo_consolidado`, `ganhos_consolidados`, `perdas_consolidadas`.
+**Resolucao:**
+1. Fix script reconciliacao: `t.saldo` → `t.valor` (campo correto para format 2026)
+2. Enhanced: --force agora tambem corrige ganhos_consolidados e perdas_consolidadas
+3. Executado `--force --temporada=2026`: 15/15 saldos corrigidos
+4. Verificado `--dry-run --temporada=2026`: 43/43 corretos, ZERO divergencias
 
-**Acoes necessarias:**
-1. Corrigir processamento PC para recalcular aggregates apos append
-2. Rodar script reconciliacao em TODOS participantes SC 2026
-3. Fix script auditoria para garantir `saldo = ganhos + perdas`
-
-**Arquivos a investigar:**
-- Logica de processamento Pontos Corridos (buscar onde faz $push em historico_transacoes)
-- `controllers/extratoFinanceiroCacheController.js` - funcao que processa PC
-- `controllers/fluxoFinanceiroController.js` v8.12.0
+**Padroes encontrados:** Delta ±R$5 (PC, 10 casos) e delta ~R$175-185 (inscricao, 5 casos)
 
 ---
 
@@ -80,12 +76,9 @@ Handover para nova sessao - carrega contexto do trabalho em andamento e instrui 
 - Erro: `API keys are not supported by this API`
 - Requer re-autenticacao interativa com Google
 
-### Trabalho nao commitado (encontrado 12/02)
-- `controllers/analyticsController.js` (NOVO - nao rastreado)
-- `public/dashboard-analytics.html` (NOVO - nao rastreado)
-- `routes/admin-mobile-routes.js` (MOD - 4 endpoints analytics)
-- `data/jogos-globo.json` (MOD - dados atualizados)
-- `.replit` (MOD - pacote undollar)
+### ~~Trabalho nao commitado (encontrado 12/02)~~ ✅ Resolvido
+- 4/5 arquivos ja commitados (verificado 13/02)
+- `public/dashboard-analytics.html` nao existe (removido ou nunca criado)
 
 ### AUDIT-001 (Extrato V2 Admin) - Fase 3 CODE pendente
 - PRD e SPEC prontos em `.claude/docs/`
@@ -130,7 +123,9 @@ node scripts/auditoria-financeira-completa.js --dry-run --temporada=2025
 ---
 
 **PROXIMA SESSAO:**
-1. Investigar e corrigir bug cache stale do Pontos Corridos (ALTA prioridade)
-2. Rodar script reconciliacao para normalizar saldos SC 2026
-3. Decidir sobre trabalho nao commitado (analytics)
+1. ~~Investigar e corrigir bug cache stale~~ ✅ RESOLVIDO
+2. ~~Rodar script reconciliacao~~ ✅ EXECUTADO (15/15 corrigidos)
+3. ~~Decidir sobre trabalho nao commitado~~ ✅ Resolvido (ja commitados)
 4. AUDIT-001 Fase 3 se houver tempo (cosmetico)
+5. Commitar fix do script reconciliacao (t.saldo→t.valor + ganhos/perdas)
+6. Verificar temporada 2025 caches (formato antigo, reconciliacao nao suporta)
