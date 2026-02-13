@@ -1653,6 +1653,26 @@
                 const container = document.getElementById('orchestratorContainer');
                 if (!container) return;
 
+                // Construir barra de fases separadamente (evita template literals aninhados)
+                var fasesHtml = '';
+                var faseIdx = ORCH_FASES.findIndex(function(x) { return x.id === faseAtual; });
+                ORCH_FASES.forEach(function(f, i) {
+                    var bg = 'var(--surface-card-elevated, #2a2a2a)';
+                    var cor = '#555';
+                    if (f.id === faseAtual) {
+                        bg = 'rgba(255, 85, 0, 0.15)';
+                        cor = 'var(--color-primary, #FF5500)';
+                    } else if (i < faseIdx) {
+                        bg = 'rgba(16, 185, 129, 0.1)';
+                        cor = 'var(--color-success, #10b981)';
+                    }
+                    fasesHtml += '<div style="flex:1;text-align:center;padding:6px 2px;border-radius:6px;background:' + bg + ';font-size:10px;font-weight:600;color:' + cor + ';">'
+                        + '<span class="material-icons" style="font-size:16px;display:block;">' + f.icon + '</span>'
+                        + f.label + '</div>';
+                });
+
+                var errosCor = (db.total_erros || 0) > 0 ? 'var(--color-danger, #ef4444)' : 'var(--text-secondary, #aaa)';
+
                 container.innerHTML = `
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px;">
                         <div style="
@@ -1679,35 +1699,15 @@
                             text-align: center; padding: 12px; border-radius: 10px;
                             background: var(--surface-card-elevated, #2a2a2a);
                         ">
-                            <div style="font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700; color: ${(db.total_erros || 0) > 0 ? 'var(--color-danger, #ef4444)' : 'var(--text-secondary, #aaa)'};">
+                            <div style="font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700; color: ${errosCor};">
                                 ${db.total_erros || 0}
                             </div>
                             <div style="font-size: 11px; color: var(--text-secondary, #aaa);">Erros</div>
                         </div>
                     </div>
 
-                    <!-- Barra de fases -->
                     <div style="display: flex; gap: 3px; margin-bottom: 16px;">
-                        ${ORCH_FASES.map((f, i) => {
-                            const faseIdx = ORCH_FASES.findIndex(x => x.id === faseAtual);
-                            let bg = 'var(--surface-card-elevated, #2a2a2a)';
-                            let color = '#555';
-                            if (f.id === faseAtual) {
-                                bg = 'rgba(255, 85, 0, 0.15)';
-                                color = 'var(--color-primary, #FF5500)';
-                            } else if (i < faseIdx) {
-                                bg = 'rgba(16, 185, 129, 0.1)';
-                                color = 'var(--color-success, #10b981)';
-                            }
-                            return \`<div style="
-                                flex: 1; text-align: center; padding: 6px 2px;
-                                border-radius: 6px; background: \${bg};
-                                font-size: 10px; font-weight: 600; color: \${color};
-                            ">
-                                <span class="material-icons" style="font-size: 16px; display: block;">\${f.icon}</span>
-                                \${f.label}
-                            </div>\`;
-                        }).join('')}
+                        ${fasesHtml}
                     </div>
 
                     <div style="text-align: center;">
