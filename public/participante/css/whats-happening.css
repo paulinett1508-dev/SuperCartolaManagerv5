@@ -1264,3 +1264,215 @@
 .wh-mc-status .material-icons {
     font-size: 14px; /* v1.3: Reduzido de 18px */
 }
+
+/* ========================================
+   12. EXPAND/COLLAPSE - Seções Expandíveis
+   ======================================== */
+.wh-expand-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px;
+    margin-top: 6px;
+    background: var(--app-surface);
+    border-radius: 8px;
+    border: 1px dashed var(--app-border);
+    color: var(--app-text-muted);
+    font-size: var(--app-font-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.wh-expand-trigger:hover,
+.wh-expand-trigger:active {
+    background: var(--app-surface-hover);
+    color: var(--app-text-secondary);
+    border-color: var(--app-primary-border);
+}
+
+.wh-expand-icon {
+    font-size: 20px !important;
+    transition: transform 0.3s ease;
+}
+
+.wh-expand-trigger.expanded .wh-expand-icon {
+    transform: rotate(180deg);
+}
+
+.wh-collapsed-content {
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+    animation: wh-collapse-in 0.3s ease;
+}
+
+.wh-collapsed-content.expanded {
+    display: flex;
+}
+
+@keyframes wh-collapse-in {
+    0% {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ========================================
+   13. BARRA DE PROPORÇÃO VISUAL
+   ======================================== */
+.wh-barra-proporcao {
+    display: flex;
+    height: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 8px;
+    background: var(--app-bg);
+}
+
+.wh-barra-a {
+    background: var(--app-info);
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    transition: width 0.5s ease;
+    border-radius: 3px 0 0 3px;
+    position: relative;
+}
+
+.wh-barra-b {
+    background: var(--app-warning);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    transition: width 0.5s ease;
+    border-radius: 0 3px 3px 0;
+    position: relative;
+}
+
+.wh-barra-a span,
+.wh-barra-b span {
+    font-size: 0;
+    line-height: 0;
+    opacity: 0;
+}
+
+/* ========================================
+   14. INSIGHTS POR NÍVEL DE INTENSIDADE
+   ======================================== */
+.wh-insight--inferno {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(255, 69, 0, 0.1)) !important;
+    color: var(--app-danger) !important;
+    border-left: 3px solid var(--app-danger);
+    animation: wh-insight-pulse 1s ease-in-out infinite;
+}
+
+.wh-insight--hot {
+    background: var(--app-primary-muted) !important;
+    color: var(--app-primary-light) !important;
+    border-left: 3px solid var(--app-primary);
+}
+
+.wh-insight--warm {
+    background: var(--app-warning-muted) !important;
+    color: var(--app-warning) !important;
+    border-left: 3px solid var(--app-warning);
+}
+
+.wh-insight--tied {
+    background: rgba(168, 85, 247, 0.1) !important;
+    color: #a855f7 !important;
+    border-left: 3px solid #a855f7;
+    animation: wh-insight-pulse 1.2s ease-in-out infinite;
+}
+
+.wh-insight--blowout {
+    background: rgba(34, 197, 94, 0.1) !important;
+    color: var(--app-success) !important;
+    border-left: 3px solid var(--app-success);
+}
+
+@keyframes wh-insight-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* ========================================
+   15. CONFRONTO INTERATIVO - TAP & NAVIGATE
+   ======================================== */
+.wh-confronto[data-navigate],
+.wh-section[data-navigate],
+.wh-section-header[data-navigate] {
+    cursor: pointer;
+}
+
+.wh-confronto[data-navigate]:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+}
+
+/* Highlight: meu confronto nos listados */
+.wh-confronto.mine {
+    border-left: 3px solid var(--app-primary);
+    background: linear-gradient(90deg, rgba(255, 85, 0, 0.05) 0%, var(--app-surface) 30%);
+}
+
+/* Confronto decidido (mata-mata com vencedor) */
+.wh-confronto.decided {
+    opacity: 0.7;
+}
+
+.wh-mm-decided {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 6px;
+    padding: 4px 8px;
+    background: var(--app-success-muted);
+    border-radius: 6px;
+    font-size: var(--app-font-xs);
+    font-weight: 600;
+    color: var(--app-success);
+}
+
+.wh-mm-decided .material-icons {
+    font-size: 14px;
+}
+
+.wh-confronto-status.decided {
+    background: var(--app-success-muted);
+    color: var(--app-success);
+}
+
+/* Navigate hint icon no header das seções */
+.wh-navigate-hint {
+    font-size: 14px !important;
+    color: var(--app-text-dim);
+    opacity: 0.5;
+    transition: opacity 0.2s ease;
+}
+
+.wh-section-header[data-navigate]:hover .wh-navigate-hint,
+.wh-section-header[data-navigate]:active .wh-navigate-hint {
+    opacity: 1;
+    color: var(--app-primary);
+}
+
+/* Section badge - "X quentes" */
+.wh-section-badge.wh-badge--hot {
+    background: var(--app-danger-muted);
+    color: var(--app-danger);
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    animation: wh-live-pulse 2s ease-in-out infinite;
+}

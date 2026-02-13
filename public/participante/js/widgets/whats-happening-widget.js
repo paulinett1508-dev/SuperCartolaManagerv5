@@ -4,6 +4,14 @@
  * Widget flutuante de engajamento em tempo real
  * Mostra disputas internas ativas nos módulos da liga
  *
+ * @version 3.0.0 - Confrontos Diretos: interatividade total
+ *   - Todos os confrontos PC e MM visíveis (expand/collapse)
+ *   - Insights dinâmicos por nível (inferno/hot/warm/tied/blowout)
+ *   - Barra visual de proporção de pontos
+ *   - Tap-to-navigate: clicar no confronto abre o módulo
+ *   - Badge numérico (contagem de disputas quentes)
+ *   - Mata-Mata mostra todos os confrontos da fase atual
+ *
  * @version 2.1.0 - FIX: FAB LIVE state falso (bola_rolando → gameStatus real)
  *
  * Máquina de Estados do Foguinho:
@@ -19,7 +27,7 @@
  * - Capitão de Luxo, Ranking da Rodada
  */
 
-if (window.Log) Log.info("[WHATS-HAPPENING] 🔥 Widget v2.1 carregando...");
+if (window.Log) Log.info("[WHATS-HAPPENING] 🔥 Widget v3.0 carregando...");
 
 // ============================================
 // MÁQUINA DE ESTADOS DO FOGUINHO
@@ -508,7 +516,7 @@ export async function initWhatsHappeningWidget(params = {}) {
             if (WHState.fabState === FAB_GAME_STATE.LIVE) {
                 startPolling();
             }
-            if (window.Log) Log.info("[WHATS-HAPPENING] ✅ Widget v2.0 inicializado", { fabState: WHState.fabState });
+            if (window.Log) Log.info("[WHATS-HAPPENING] ✅ Widget v3.0 inicializado", { fabState: WHState.fabState });
         });
     } else {
         if (window.Log) Log.info("[WHATS-HAPPENING] ℹ️ FAB oculto - estado:", WHState.fabState);
@@ -972,16 +980,48 @@ function stopPolling() {
 // VERIFICAR NOVIDADES
 // ============================================
 function checkForUpdates() {
-    // Lógica simples: se há disputas "quentes", mostrar badge
-    const hasHotDisputes =
-        hasHotPontosCorridos() ||
-        hasHotMataMata() ||
-        hasHotArtilheiro();
+    // Contar disputas "quentes" para badge numérico
+    const hotCount = countHotDisputes();
 
-    if (hasHotDisputes && !WHState.isOpen) {
+    if (hotCount > 0 && !WHState.isOpen) {
         WHState.hasUpdates = true;
+        WHState.hotCount = hotCount;
         updateFabBadge();
     }
+}
+
+/**
+ * Conta total de disputas quentes para badge numérico
+ */
+function countHotDisputes() {
+    let count = 0;
+
+    // Pontos Corridos: confrontos com < MIN_DIFF_HOT
+    const pcData = WHState.data.pontosCorridos;
+    if (pcData?.confrontos) {
+        count += pcData.confrontos.filter(c => {
+            const diff = Math.abs((c.pontosA || 0) - (c.pontosB || 0));
+            return diff < WH_CONFIG.MIN_DIFF_HOT;
+        }).length;
+    }
+
+    // Mata-Mata: confrontos da fase atual com < 15pts
+    const mmData = WHState.data.mataMata;
+    if (mmData?.dados) {
+        const faseAtual = mmData.faseAtual || 'quartas';
+        const confrontosFase = mmData.dados[faseAtual];
+        if (Array.isArray(confrontosFase)) {
+            count += confrontosFase.filter(c => {
+                const diff = Math.abs((c.timeA?.pontos || 0) - (c.timeB?.pontos || 0));
+                return diff < 15 && !c.vencedor;
+            }).length;
+        }
+    }
+
+    // Artilheiro: top 2 com <= 1 gol de diferença
+    if (hasHotArtilheiro()) count++;
+
+    return count;
 }
 
 function hasHotPontosCorridos() {
@@ -1020,12 +1060,12 @@ function updateFabBadge() {
     const existingBadge = fab.querySelector(".wh-fab-badge");
     if (existingBadge) existingBadge.remove();
 
-    // Adicionar classe de pulsação e badge se há updates
+    // Adicionar classe de pulsação e badge numérico se há updates
     if (WHState.hasUpdates) {
         fab.classList.add("has-updates");
         const badge = document.createElement("span");
         badge.className = "wh-fab-badge";
-        badge.textContent = "!";
+        badge.textContent = WHState.hotCount > 0 ? String(WHState.hotCount) : "!";
         fab.appendChild(badge);
     } else {
         fab.classList.remove("has-updates");
@@ -1115,6 +1155,50 @@ function renderContent() {
     }
 
     content.innerHTML = sections.join("");
+
+    // Event delegation: expand/collapse
+    content.querySelectorAll('.wh-expand-trigger').forEach(trigger => {
+        trigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const targetId = trigger.dataset.target;
+            const targetEl = document.getElementById(targetId);
+            if (!targetEl) return;
+
+            const isExpanded = targetEl.classList.toggle('expanded');
+            trigger.classList.toggle('expanded', isExpanded);
+            const icon = trigger.querySelector('.wh-expand-icon');
+            if (icon) icon.textContent = isExpanded ? 'expand_less' : 'expand_more';
+            trigger.querySelector('.wh-expand-icon')?.nextSibling;
+            // Atualizar texto
+            const textNode = trigger.childNodes;
+            for (const node of textNode) {
+                if (node.nodeType === 3 && node.textContent.trim()) {
+                    node.textContent = isExpanded ? ' Ocultar' : node.textContent;
+                    break;
+                }
+            }
+        });
+    });
+
+    // Event delegation: tap-to-navigate para módulo
+    content.querySelectorAll('[data-navigate]').forEach(el => {
+        // Não adicionar cursor/click em elementos dentro de expanded content
+        if (el.closest('.wh-collapsed-content') && !el.classList.contains('wh-confronto')) return;
+
+        el.style.cursor = 'pointer';
+        el.addEventListener('click', (e) => {
+            // Ignorar se clicou em expand trigger
+            if (e.target.closest('.wh-expand-trigger')) return;
+
+            const modulo = el.dataset.navigate;
+            if (modulo && window.participanteNav) {
+                closePanel();
+                setTimeout(() => {
+                    window.participanteNav.navegarPara(modulo);
+                }, 300); // Esperar animação de fechar
+            }
+        });
+    });
 }
 
 function renderTimestamp() {
@@ -1193,46 +1277,78 @@ function renderRankingSection() {
     `;
 }
 
+/**
+ * Gera insight dinâmico baseado na diferença de pontos
+ */
+function getConfrontoInsight(diff) {
+    if (diff === 0) return { text: "Empatado! Qualquer lance decide", icon: "balance", level: "tied" };
+    if (diff < 3) return { text: `Ponto a ponto! Apenas ${diff.toFixed(1)} pts`, icon: "local_fire_department", level: "inferno" };
+    if (diff < 5) return { text: `Virada iminente! ${diff.toFixed(1)} pts de diferença`, icon: "whatshot", level: "hot" };
+    if (diff < 10) return { text: `Disputa acirrada! ${diff.toFixed(1)} pts`, icon: "trending_flat", level: "warm" };
+    if (diff >= 25) return { text: `Goleada à vista! ${diff.toFixed(1)} pts`, icon: "rocket_launch", level: "blowout" };
+    return null;
+}
+
+/**
+ * Renderiza barra visual de proporção de pontos entre dois times
+ */
+function renderBarraProporção(pontosA, pontosB) {
+    const total = (pontosA || 0) + (pontosB || 0);
+    if (total === 0) return '';
+    const pctA = ((pontosA || 0) / total * 100).toFixed(0);
+    const pctB = (100 - pctA);
+    return `
+        <div class="wh-barra-proporcao">
+            <div class="wh-barra-a" style="width:${pctA}%"><span>${pctA}%</span></div>
+            <div class="wh-barra-b" style="width:${pctB}%"><span>${pctB}%</span></div>
+        </div>
+    `;
+}
+
 function renderPontosCorridosSection() {
     const data = WHState.data.pontosCorridos;
     if (!data?.confrontos || data.confrontos.length === 0) return null;
 
-    // Filtrar confrontos que envolvem meu time ou são "quentes"
-    const myConfrontos = data.confrontos.filter((c) => {
-        const isMyGame =
-            String(c.timeAId) === String(WHState.timeId) ||
-            String(c.timeBId) === String(WHState.timeId);
-        const diff = Math.abs((c.pontosA || 0) - (c.pontosB || 0));
-        const isHot = diff < WH_CONFIG.MIN_DIFF_HOT;
-        return isMyGame || isHot;
+    const meuId = String(WHState.timeId);
+    const allConfrontos = [...data.confrontos];
+
+    // Ordenar: meu confronto > hot (< 10pts) > demais
+    allConfrontos.sort((a, b) => {
+        const aIsMine = String(a.timeAId) === meuId || String(a.timeBId) === meuId;
+        const bIsMine = String(b.timeAId) === meuId || String(b.timeBId) === meuId;
+        if (aIsMine && !bIsMine) return -1;
+        if (!aIsMine && bIsMine) return 1;
+        const diffA = Math.abs((a.pontosA || 0) - (a.pontosB || 0));
+        const diffB = Math.abs((b.pontosA || 0) - (b.pontosB || 0));
+        return diffA - diffB; // Menores diferenças primeiro
     });
 
-    if (myConfrontos.length === 0) return null;
+    // Separar: primeiros 3 visíveis, restante colapsado
+    const visibleCount = 3;
+    const visible = allConfrontos.slice(0, visibleCount);
+    const collapsed = allConfrontos.slice(visibleCount);
 
-    const confrontosHtml = myConfrontos.slice(0, 3).map((c) => {
-        const diff = Math.abs((c.pontosA || 0) - (c.pontosB || 0));
+    function renderSingleConfronto(c, index) {
+        const pontosA = c.pontosA || 0;
+        const pontosB = c.pontosB || 0;
+        const diff = Math.abs(pontosA - pontosB);
         const isHot = diff < WH_CONFIG.MIN_DIFF_HOT;
-        const isMyGame =
-            String(c.timeAId) === String(WHState.timeId) ||
-            String(c.timeBId) === String(WHState.timeId);
+        const isMyGame = String(c.timeAId) === meuId || String(c.timeBId) === meuId;
+        const aWinning = pontosA > pontosB;
+        const bWinning = pontosB > pontosA;
 
-        const aWinning = (c.pontosA || 0) > (c.pontosB || 0);
-        const bWinning = (c.pontosB || 0) > (c.pontosA || 0);
-
-        let insight = "";
-        if (isHot) {
-            insight = `
-                <div class="wh-confronto-insight">
-                    <span class="material-icons">whatshot</span>
-                    Disputa acirrada! Apenas ${diff.toFixed(1)} pts de diferença
-                </div>
-            `;
-        }
+        const insight = getConfrontoInsight(diff);
+        const insightHtml = insight ? `
+            <div class="wh-confronto-insight wh-insight--${insight.level}">
+                <span class="material-icons">${insight.icon}</span>
+                ${insight.text}
+            </div>
+        ` : '';
 
         return `
-            <div class="wh-confronto ${isHot ? "hot" : ""}">
+            <div class="wh-confronto ${isHot ? "hot" : ""} ${isMyGame ? "mine" : ""}" data-navigate="pontos-corridos">
                 <div class="wh-confronto-header">
-                    <span class="wh-confronto-rodada">Rodada ${data.rodada}</span>
+                    <span class="wh-confronto-rodada">${isMyGame ? "Seu jogo" : `Jogo ${index + 1}`}</span>
                     ${isHot ? '<span class="wh-confronto-status tight"><span class="material-icons" style="font-size:12px">local_fire_department</span> Quente!</span>' : ""}
                 </div>
                 <div class="wh-confronto-times">
@@ -1241,34 +1357,52 @@ function renderPontosCorridosSection() {
                         <div class="wh-time-info">
                             <div class="wh-time-nome">${c.nomeTimeA || "Time A"}</div>
                         </div>
-                        <div class="wh-time-pontos">${(c.pontosA || 0).toFixed(1)}</div>
+                        <div class="wh-time-pontos">${pontosA.toFixed(1)}</div>
                     </div>
                     <div class="wh-vs">
                         <span class="wh-vs-text">VS</span>
                     </div>
                     <div class="wh-time wh-time--away ${bWinning ? "winning" : aWinning ? "losing" : ""}">
-                        <div class="wh-time-pontos">${(c.pontosB || 0).toFixed(1)}</div>
+                        <div class="wh-time-pontos">${pontosB.toFixed(1)}</div>
                         <div class="wh-time-info">
                             <div class="wh-time-nome">${c.nomeTimeB || "Time B"}</div>
                         </div>
                         <img class="wh-time-escudo" src="${c.escudoB || "/escudos/default.png"}" onerror="this.src='/escudos/default.png'" alt="">
                     </div>
                 </div>
-                ${insight}
+                ${renderBarraProporção(pontosA, pontosB)}
+                ${insightHtml}
             </div>
         `;
-    }).join("");
+    }
+
+    const visibleHtml = visible.map((c, i) => renderSingleConfronto(c, i)).join("");
+
+    const collapsedHtml = collapsed.length > 0 ? `
+        <div class="wh-expand-trigger" data-target="wh-pc-collapsed">
+            <span class="material-icons wh-expand-icon">expand_more</span>
+            Ver mais ${collapsed.length} confronto${collapsed.length > 1 ? 's' : ''}
+        </div>
+        <div class="wh-collapsed-content" id="wh-pc-collapsed">
+            ${collapsed.map((c, i) => renderSingleConfronto(c, visibleCount + i)).join("")}
+        </div>
+    ` : '';
+
+    const hotCount = allConfrontos.filter(c => Math.abs((c.pontosA || 0) - (c.pontosB || 0)) < WH_CONFIG.MIN_DIFF_HOT).length;
 
     return `
         <div class="wh-section wh-section--pontos-corridos">
-            <div class="wh-section-header">
+            <div class="wh-section-header" data-navigate="pontos-corridos">
                 <div class="wh-section-icon">
                     <span class="material-icons">swap_horiz</span>
                 </div>
-                <div class="wh-section-title">Pontos Corridos</div>
+                <div class="wh-section-title">Confrontos da Rodada</div>
+                ${hotCount > 0 ? `<span class="wh-section-badge wh-badge--hot">${hotCount} quente${hotCount > 1 ? 's' : ''}</span>` : ''}
+                <span class="material-icons wh-navigate-hint">open_in_new</span>
             </div>
             <div class="wh-section-body">
-                ${confrontosHtml}
+                ${visibleHtml}
+                ${collapsedHtml}
             </div>
         </div>
     `;
@@ -1276,34 +1410,103 @@ function renderPontosCorridosSection() {
 
 function renderMataMataSection() {
     const data = WHState.data.mataMata;
-    if (!data?.confrontos || data.confrontos.length === 0) return null;
+    if (!data?.dados) return null;
 
-    // Filtrar confrontos que envolvem meu time
-    const myConfrontos = data.confrontos.filter((c) => {
-        const timeAId = c.timeA?.time_id || c.timeA?.timeId;
-        const timeBId = c.timeB?.time_id || c.timeB?.timeId;
-        return (
-            String(timeAId) === String(WHState.timeId) ||
-            String(timeBId) === String(WHState.timeId)
-        );
+    // Determinar fase atual - percorrer do final para o início
+    const fases = ["final", "semis", "quartas", "oitavas", "primeira"];
+    let faseAtual = data.faseAtual || null;
+    let confrontosFase = [];
+
+    // Se faseAtual não definida, encontrar a fase com confrontos sem vencedor
+    if (!faseAtual) {
+        for (const fase of fases) {
+            const cf = data.dados[fase];
+            if (Array.isArray(cf) && cf.length > 0) {
+                const temAberto = cf.some(c => !c.vencedor);
+                if (temAberto) {
+                    faseAtual = fase;
+                    confrontosFase = cf;
+                    break;
+                }
+            }
+        }
+    } else {
+        confrontosFase = data.dados[faseAtual] || [];
+    }
+
+    // Se não encontrou fase aberta, pegar a última com dados
+    if (!faseAtual || confrontosFase.length === 0) {
+        for (const fase of fases) {
+            const cf = data.dados[fase];
+            if (Array.isArray(cf) && cf.length > 0) {
+                faseAtual = fase;
+                confrontosFase = cf;
+                break;
+            }
+        }
+    }
+
+    if (confrontosFase.length === 0) return null;
+
+    const meuId = String(WHState.timeId);
+    const faseLabel = {
+        primeira: "1a Fase", oitavas: "Oitavas", quartas: "Quartas",
+        semis: "Semifinal", final: "FINAL"
+    }[faseAtual] || faseAtual;
+
+    const isLive = isJogosAoVivo();
+
+    // Ordenar: meu confronto > hot > demais
+    const sorted = [...confrontosFase].sort((a, b) => {
+        const aIsMine = String(a.timeA?.timeId || a.timeA?.time_id) === meuId || String(a.timeB?.timeId || a.timeB?.time_id) === meuId;
+        const bIsMine = String(b.timeA?.timeId || b.timeA?.time_id) === meuId || String(b.timeB?.timeId || b.timeB?.time_id) === meuId;
+        if (aIsMine && !bIsMine) return -1;
+        if (!aIsMine && bIsMine) return 1;
+        const diffA = Math.abs((a.timeA?.pontos || 0) - (a.timeB?.pontos || 0));
+        const diffB = Math.abs((b.timeA?.pontos || 0) - (b.timeB?.pontos || 0));
+        return diffA - diffB;
     });
 
-    if (myConfrontos.length === 0) return null;
+    // Primeiros 2 visíveis, restante colapsado
+    const visibleCount = 2;
+    const visible = sorted.slice(0, visibleCount);
+    const collapsed = sorted.slice(visibleCount);
 
-    const confrontosHtml = myConfrontos.map((c) => {
+    function renderMmConfronto(c) {
         const pontosA = parseFloat(c.timeA?.pontos) || 0;
         const pontosB = parseFloat(c.timeB?.pontos) || 0;
         const diff = Math.abs(pontosA - pontosB);
         const aWinning = pontosA > pontosB;
         const bWinning = pontosB > pontosA;
+        const idA = String(c.timeA?.timeId || c.timeA?.time_id);
+        const idB = String(c.timeB?.timeId || c.timeB?.time_id);
+        const isMyGame = idA === meuId || idB === meuId;
+        const isDecided = !!c.vencedor;
+        const isHot = diff < 15 && !isDecided;
 
-        const fase = c.fase || "Fase";
+        const insight = !isDecided ? getConfrontoInsight(diff) : null;
+        const insightHtml = insight ? `
+            <div class="wh-confronto-insight wh-insight--${insight.level}">
+                <span class="material-icons">${insight.icon}</span>
+                ${insight.text}
+            </div>
+        ` : '';
+
+        // Status de decisão
+        let decisionHtml = '';
+        if (isDecided) {
+            const vencedorNome = String(c.vencedor) === idA
+                ? (c.timeA?.nome_time || 'Time A')
+                : (c.timeB?.nome_time || 'Time B');
+            decisionHtml = `<div class="wh-mm-decided"><span class="material-icons">check_circle</span> ${vencedorNome} classificado</div>`;
+        }
 
         return `
-            <div class="wh-confronto ${diff < 15 ? "hot" : ""}">
+            <div class="wh-confronto wh-mm-confronto ${isHot ? "hot" : ""} ${isMyGame ? "mine" : ""} ${isDecided ? "decided" : ""}" data-navigate="mata-mata">
                 <div class="wh-confronto-header">
-                    <span class="wh-confronto-rodada">${data.edicao || "Mata-Mata"} - ${fase}</span>
-                    ${isJogosAoVivo() ? '<span class="wh-confronto-status live"><span class="material-icons" style="font-size:12px">sensors</span> AO VIVO</span>' : ""}
+                    <span class="wh-confronto-rodada">${isMyGame ? "Seu jogo" : `Jogo ${c.jogo || ''}`}</span>
+                    ${isLive && !isDecided ? '<span class="wh-confronto-status live"><span class="material-icons" style="font-size:12px">sensors</span> AO VIVO</span>' : ""}
+                    ${isDecided ? '<span class="wh-confronto-status decided"><span class="material-icons" style="font-size:12px">check</span> Definido</span>' : ""}
                 </div>
                 <div class="wh-confronto-times">
                     <div class="wh-time wh-time--home ${aWinning ? "winning" : bWinning ? "losing" : ""}">
@@ -1325,20 +1528,42 @@ function renderMataMataSection() {
                         <img class="wh-time-escudo" src="${c.timeB?.url_escudo_png || c.timeB?.escudo || "/escudos/default.png"}" onerror="this.src='/escudos/default.png'" alt="">
                     </div>
                 </div>
+                ${!isDecided ? renderBarraProporção(pontosA, pontosB) : ''}
+                ${insightHtml}
+                ${decisionHtml}
             </div>
         `;
-    }).join("");
+    }
+
+    const visibleHtml = visible.map(c => renderMmConfronto(c)).join("");
+    const collapsedHtml = collapsed.length > 0 ? `
+        <div class="wh-expand-trigger" data-target="wh-mm-collapsed">
+            <span class="material-icons wh-expand-icon">expand_more</span>
+            Ver mais ${collapsed.length} confronto${collapsed.length > 1 ? 's' : ''}
+        </div>
+        <div class="wh-collapsed-content" id="wh-mm-collapsed">
+            ${collapsed.map(c => renderMmConfronto(c)).join("")}
+        </div>
+    ` : '';
+
+    const hotCount = confrontosFase.filter(c => {
+        const diff = Math.abs((c.timeA?.pontos || 0) - (c.timeB?.pontos || 0));
+        return diff < 15 && !c.vencedor;
+    }).length;
 
     return `
         <div class="wh-section wh-section--mata-mata">
-            <div class="wh-section-header">
+            <div class="wh-section-header" data-navigate="mata-mata">
                 <div class="wh-section-icon">
                     <span class="material-icons">emoji_events</span>
                 </div>
-                <div class="wh-section-title">Mata-Mata</div>
+                <div class="wh-section-title">Mata-Mata - ${faseLabel}</div>
+                ${hotCount > 0 ? `<span class="wh-section-badge wh-badge--hot">${hotCount} quente${hotCount > 1 ? 's' : ''}</span>` : ''}
+                <span class="material-icons wh-navigate-hint">open_in_new</span>
             </div>
             <div class="wh-section-body">
-                ${confrontosHtml}
+                ${visibleHtml}
+                ${collapsedHtml}
             </div>
         </div>
     `;
@@ -1506,16 +1731,15 @@ function renderMeuConfrontoPontosCorridos() {
 
     const vencendo = diff > 0;
     const perdendo = diff < 0;
-    const empatado = diff === 0;
 
     const statusClass = vencendo ? "winning" : perdendo ? "losing" : "tied";
     const statusEmoji = vencendo ? "🔥" : perdendo ? "😰" : "⚔️";
     const statusText = vencendo ? "Vencendo!" : perdendo ? "Perdendo..." : "Empatado";
 
-    const isLive = isJogosAoVivo(); // v2.1: usa game-status real
+    const isLive = isJogosAoVivo();
 
     return `
-        <div class="wh-section wh-section--meu-confronto wh-section--pontos-corridos ${statusClass}">
+        <div class="wh-section wh-section--meu-confronto wh-section--pontos-corridos ${statusClass}" data-navigate="pontos-corridos">
             <div class="wh-section-header">
                 <div class="wh-section-icon">
                     <span class="material-icons">stadium</span>
@@ -1567,7 +1791,7 @@ function renderMeuConfrontoMataMata() {
     const confronto = WHState.data.meuConfrontoMm;
     if (!confronto) return null;
 
-    const { eu, adversario, fase, edicao } = confronto;
+    const { eu, adversario, fase } = confronto;
 
     // Buscar pontuação atual das parciais (se disponível)
     const parciais = WHState.data.parciais?.ranking || [];
@@ -1595,7 +1819,7 @@ function renderMeuConfrontoMataMata() {
     const isLive = isJogosAoVivo(); // v2.1: usa game-status real
 
     return `
-        <div class="wh-section wh-section--meu-confronto wh-section--mata-mata ${statusClass}">
+        <div class="wh-section wh-section--meu-confronto wh-section--mata-mata ${statusClass}" data-navigate="mata-mata">
             <div class="wh-section-header">
                 <div class="wh-section-icon">
                     <span class="material-icons">emoji_events</span>
@@ -1684,4 +1908,4 @@ if (typeof window !== "undefined") {
     };
 }
 
-if (window.Log) Log.info("[WHATS-HAPPENING] ✅ Widget v2.0 carregado");
+if (window.Log) Log.info("[WHATS-HAPPENING] ✅ Widget v3.0 carregado");
