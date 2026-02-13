@@ -327,7 +327,7 @@ class QuickAccessBar {
                     ${renderCard('pontos-corridos', 'pontosCorridos', 'format_list_numbered', 'Pontos Corridos')}
                     ${renderCard('mata-mata', 'mataMata', 'military_tech', 'Mata-Mata')}
                     ${renderCard('top10', 'top10', 'leaderboard', 'TOP 10')}
-                    ${renderCard('campinho', 'campinho', 'sports_soccer', 'Meu Campinho')}
+                    ${renderCard('campinho', 'campinho', 'sports_soccer', 'Meu Time da Rodada')}
                 </div>
             </div>
 
@@ -703,7 +703,7 @@ class QuickAccessBar {
             'melhor-mes': 'Melhor do Mês',
             'artilheiro': 'Artilheiro',
             'luva-ouro': 'Luva de Ouro',
-            'campinho': 'Meu Campinho',
+            'campinho': 'Meu Time da Rodada',
             'dicas': 'Dicas'
         };
 
