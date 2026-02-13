@@ -708,12 +708,12 @@
 .wh-section-body--carousel {
     display: flex;
     flex-direction: row;
-    gap: 10px;
+    gap: 8px;
     overflow-x: auto;
     overflow-y: hidden;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
-    padding-bottom: 6px;
+    padding-bottom: 4px;
     scrollbar-width: none;
 }
 
@@ -721,12 +721,21 @@
     display: none;
 }
 
+/* Confrontos grandes: 85% width no carrossel */
 .wh-section-body--carousel > .wh-confronto {
     min-width: 85%;
     max-width: 85%;
     flex-shrink: 0;
     scroll-snap-align: start;
     margin-bottom: 0;
+}
+
+/* Chips: flow horizontal com wrap */
+.wh-section-body--chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px;
 }
 
 /* Indicador de scroll horizontal (dots) */
@@ -1621,55 +1630,45 @@
 }
 
 /* ========================================
-   16. RANK CARDS - Ranking em Carrossel
+   16. RANK CHIPS - Ranking discreto e elegante
    ======================================== */
 .wh-rank-card {
-    min-width: 110px;
-    max-width: 130px;
     flex-shrink: 0;
     scroll-snap-align: start;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    gap: 4px;
-    padding: 10px 8px;
+    gap: 6px;
+    padding: 5px 10px 5px 5px;
     background: var(--app-surface);
-    border-radius: 10px;
+    border-radius: 20px;
     border: 1px solid var(--app-border);
-    transition: transform 0.15s ease, box-shadow 0.2s ease;
-    text-align: center;
+    transition: transform 0.1s ease;
+    white-space: nowrap;
+    height: 32px;
 }
 
 .wh-rank-card:active {
-    transform: scale(0.96);
+    transform: scale(0.97);
 }
 
-.wh-rank-card.gold {
-    border-color: var(--app-gold);
-    background: linear-gradient(135deg, var(--app-surface) 0%, rgba(255, 215, 0, 0.08) 100%);
-}
-
-.wh-rank-card.silver {
-    border-color: var(--app-silver);
-    background: linear-gradient(135deg, var(--app-surface) 0%, rgba(192, 192, 192, 0.06) 100%);
-}
-
-.wh-rank-card.bronze {
-    border-color: var(--app-bronze);
-    background: linear-gradient(135deg, var(--app-surface) 0%, rgba(205, 127, 50, 0.06) 100%);
-}
+/* Posições com borda sutil */
+.wh-rank-card.gold { border-color: rgba(255, 215, 0, 0.4); }
+.wh-rank-card.silver { border-color: rgba(192, 192, 192, 0.3); }
+.wh-rank-card.bronze { border-color: rgba(205, 127, 50, 0.3); }
 
 .wh-rank-card.me {
     border-color: var(--app-primary);
-    background: linear-gradient(135deg, var(--app-surface) 0%, rgba(255, 85, 0, 0.1) 100%);
-    box-shadow: 0 0 12px rgba(255, 85, 0, 0.15);
+    background: rgba(255, 85, 0, 0.08);
 }
 
 .wh-rank-pos {
-    font-size: 16px;
+    font-size: 12px;
     font-weight: 700;
     font-family: var(--app-font-mono);
     line-height: 1;
+    min-width: 14px;
+    text-align: center;
 }
 
 .wh-rank-card.gold .wh-rank-pos { color: var(--app-gold); }
@@ -1678,34 +1677,35 @@
 .wh-rank-card.me .wh-rank-pos { color: var(--app-primary); }
 
 .wh-rank-escudo {
-    width: 36px;
-    height: 36px;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
     object-fit: contain;
     background: var(--app-bg);
-    border: 2px solid var(--app-border);
-}
-
-.wh-rank-card.me .wh-rank-escudo {
-    border-color: var(--app-primary);
+    flex-shrink: 0;
 }
 
 .wh-rank-nome {
     font-size: 11px;
-    font-weight: 600;
-    color: var(--app-text-primary);
-    white-space: nowrap;
+    font-weight: 500;
+    color: var(--app-text-secondary);
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100%;
-    line-height: 1.2;
+    max-width: 70px;
+    line-height: 1;
+}
+
+.wh-rank-card.me .wh-rank-nome {
+    color: var(--app-text-primary);
+    font-weight: 600;
 }
 
 .wh-rank-pontos {
     font-family: var(--app-font-mono);
-    font-size: var(--app-font-md);
+    font-size: 11px;
     font-weight: 700;
     color: var(--app-text-primary);
+    margin-left: auto;
 }
 
 .wh-rank-card.me .wh-rank-pontos {
@@ -1713,9 +1713,7 @@
 }
 
 .wh-rank-sub {
-    font-size: 10px;
-    color: var(--app-text-muted);
-    line-height: 1;
+    display: none; /* Oculto em chips - info já no pontos */
 }
 
 /* Disputa acirrada dentro de seção com carousel */
