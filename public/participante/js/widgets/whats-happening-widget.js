@@ -1338,12 +1338,23 @@ function resolverEscudo(item) {
     const direto = item.escudo || item.url_escudo_png;
     if (direto) return direto;
 
-    // Lookup no ranking/parciais (fonte mais confiável para escudos)
+    // Lookup por timeId em múltiplas fontes
     const timeId = String(item.timeId || item.time_id || item.participanteId || '');
     if (timeId) {
+        // 1. Parciais (ao vivo)
         const parciais = WHState.data.parciais?.ranking || [];
-        const found = parciais.find(p => String(p.timeId || p.time_id) === timeId);
-        if (found?.escudo) return found.escudo;
+        const p = parciais.find(r => String(r.timeId || r.time_id) === timeId);
+        if (p?.url_escudo_png || p?.escudo) return p.url_escudo_png || p.escudo;
+
+        // 2. Ranking salvo
+        const rankSalvo = WHState.data.ranking?.ranking || [];
+        const rs = rankSalvo.find(r => String(r.timeId || r.time_id) === timeId);
+        if (rs?.url_escudo_png || rs?.escudo) return rs.url_escudo_png || rs.escudo;
+
+        // 3. Pontos Corridos classificação (tem escudos)
+        const pcClass = WHState.data.pontosCorridos?.classificacao || [];
+        const pc = pcClass.find(r => String(r.timeId) === timeId);
+        if (pc?.escudo) return pc.escudo;
     }
 
     // Fallback local por clubeId
@@ -1583,8 +1594,8 @@ function renderMataMataSection() {
         let decisionHtml = '';
         if (isDecided) {
             const vencedorNome = String(c.vencedor) === idA
-                ? (c.timeA?.nome_time || 'Time A')
-                : (c.timeB?.nome_time || 'Time B');
+                ? (c.timeA?.nome_time || c.timeA?.nome || 'Time A')
+                : (c.timeB?.nome_time || c.timeB?.nome || 'Time B');
             decisionHtml = `<div class="wh-mm-decided"><span class="material-icons">check_circle</span> ${vencedorNome} classificado</div>`;
         }
 
@@ -1597,9 +1608,10 @@ function renderMataMataSection() {
                 </div>
                 <div class="wh-confronto-times">
                     <div class="wh-time wh-time--home ${aWinning ? "winning" : bWinning ? "losing" : ""}">
-                        <img class="wh-time-escudo" src="${c.timeA?.url_escudo_png || c.timeA?.escudo || "/escudos/default.png"}" onerror="this.src='/escudos/default.png'" alt="">
+                        <img class="wh-time-escudo" src="${resolverEscudo({timeId: idA, escudo: c.timeA?.escudo || c.timeA?.url_escudo_png})}" onerror="this.src='/escudos/default.png'" alt="">
                         <div class="wh-time-info">
-                            <div class="wh-time-nome">${c.timeA?.nome_time || "Time A"}</div>
+                            <div class="wh-time-nome">${c.timeA?.nome_time || c.timeA?.nome || "Time A"}</div>
+                            ${c.timeA?.nome_cartola ? `<div class="wh-time-cartola">${c.timeA.nome_cartola}</div>` : ''}
                         </div>
                         <div class="wh-time-pontos">${pontosA.toFixed(1)}</div>
                     </div>
@@ -1610,9 +1622,10 @@ function renderMataMataSection() {
                     <div class="wh-time wh-time--away ${bWinning ? "winning" : aWinning ? "losing" : ""}">
                         <div class="wh-time-pontos">${pontosB.toFixed(1)}</div>
                         <div class="wh-time-info">
-                            <div class="wh-time-nome">${c.timeB?.nome_time || "Time B"}</div>
+                            <div class="wh-time-nome">${c.timeB?.nome_time || c.timeB?.nome || "Time B"}</div>
+                            ${c.timeB?.nome_cartola ? `<div class="wh-time-cartola">${c.timeB.nome_cartola}</div>` : ''}
                         </div>
-                        <img class="wh-time-escudo" src="${c.timeB?.url_escudo_png || c.timeB?.escudo || "/escudos/default.png"}" onerror="this.src='/escudos/default.png'" alt="">
+                        <img class="wh-time-escudo" src="${resolverEscudo({timeId: idB, escudo: c.timeB?.escudo || c.timeB?.url_escudo_png})}" onerror="this.src='/escudos/default.png'" alt="">
                     </div>
                 </div>
                 ${!isDecided ? renderBarraProporção(pontosA, pontosB) : ''}
@@ -1676,11 +1689,12 @@ function renderModuleRankingSection(opts) {
     const posColors = ['gold', 'silver', 'bronze'];
 
     // Verificar se eu estou no top 3
-    const meuIndex = data.ranking.findIndex(r => String(r.timeId || r.time_id) === meuId);
+    const matchId = (r) => String(r.timeId || r.time_id || r.participanteId || '') === meuId;
+    const meuIndex = data.ranking.findIndex(matchId);
     const meuNoTop3 = meuIndex >= 0 && meuIndex < 3;
 
     const chipsHtml = top3.map((r, i) => {
-        const isMe = String(r.timeId || r.time_id) === meuId;
+        const isMe = matchId(r);
         const valor = getValue(r);
         const nome = getLabel(r);
         return `

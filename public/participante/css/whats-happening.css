@@ -903,6 +903,19 @@
     text-overflow: ellipsis;
 }
 
+.wh-time-cartola {
+    font-size: 10px;
+    color: var(--app-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+
+.wh-time--away .wh-time-cartola {
+    text-align: right;
+}
+
 .wh-time-pontos {
     font-family: var(--app-font-mono);
     font-size: var(--app-font-lg);

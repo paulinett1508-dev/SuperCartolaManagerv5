@@ -309,7 +309,7 @@ function calcularPontosTotais(data) {
     return atletas.reduce((total, a) => {
         const atletaId = Number(a.atleta_id ?? a.atletaId ?? a.id);
         let pontos = parseFloat(a.pontos_atual ?? a.pontos_num ?? (a.pontos || 0)) || 0;
-        if (atletaId && Number(capitaoId) && atletaId === Number(capitaoId)) pontos *= 2;
+        if (atletaId && Number(capitaoId) && atletaId === Number(capitaoId)) pontos *= 1.5;
         else if (atletaId && Number(reservaLuxoId) && atletaId === Number(reservaLuxoId) && pontos !== 0) pontos *= 1.5;
         return total + pontos;
     }, 0);
@@ -723,9 +723,9 @@ function renderizarLinhaLista(atleta, capitaoId, reservaLuxoId, isReserva = fals
     let multiplicador = '';
     let infoExtra = '';
     if (isCapitao) {
-        pontosExibir = pontos * 2;
-        multiplicador = '2x';
-        infoExtra = ' - Capitão (2x)';
+        pontosExibir = pontos * 1.5;
+        multiplicador = '1.5x';
+        infoExtra = ' - Capitão (1.5x)';
     } else if (isReservaLuxo && pontos !== 0) {
         pontosExibir = pontos * 1.5;
         multiplicador = '1.5x';
@@ -833,9 +833,9 @@ function renderizarJogador(atleta, capitaoId, reservaLuxoId) {
     const isCapitao = Number(capitaoId) && atletaId === Number(capitaoId);
     const isReservaLuxo = Number(reservaLuxoId) && atletaId === Number(reservaLuxoId);
 
-    // Multiplicadores
+    // Multiplicadores (Capitão: 1.5x, Reserva de Luxo: 1.5x)
     let pontosExibir = pontos;
-    if (isCapitao) pontosExibir = pontos * 2;
+    if (isCapitao) pontosExibir = pontos * 1.5;
     else if (isReservaLuxo && pontos !== 0) pontosExibir = pontos * 1.5;
 
     // Classes especiais
