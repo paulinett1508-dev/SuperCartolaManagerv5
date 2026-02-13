@@ -696,7 +696,18 @@ async function getConsolidacaoHistorico(req, res) {
       const rodadasConsolidadas = snapshots.map(s => s.rodada);
       rodadasPendentes = [];
 
-      for (let r = 1; r <= rodadaAtual; r++) {
+      // Verificar status do mercado para não incluir rodada em andamento
+      let ultimaConsolidavel = rodadaAtual;
+      try {
+        const statusMercado = await fetch('https://api.cartola.globo.com/mercado/status').then(r => r.json());
+        if (statusMercado?.status_mercado === 1) {
+          ultimaConsolidavel = rodadaAtual - 1;
+        }
+      } catch (e) {
+        // Se falhar, mantém rodadaAtual como limite
+      }
+
+      for (let r = 1; r <= ultimaConsolidavel; r++) {
         if (!rodadasConsolidadas.includes(r)) {
           rodadasPendentes.push(r);
         }

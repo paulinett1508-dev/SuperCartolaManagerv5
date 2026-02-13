@@ -1370,8 +1370,10 @@
                         mercado.status_mercado === 2 ? 'Fechado' : 'Encerrado';
                     document.getElementById('rodadaAtual').textContent = mercado.rodada_atual || '-';
 
-                    // Buscar rodadas disponíveis (1 até rodada atual)
+                    // Buscar rodadas disponíveis
                     const rodadaAtual = mercado.rodada_atual || 1;
+                    const mercadoAberto = mercado.status_mercado === 1;
+                    const ultimaRodadaConsolidavel = mercadoAberto ? rodadaAtual - 1 : rodadaAtual;
                     const listaRodadas = document.getElementById('listaRodadas');
                     listaRodadas.innerHTML = '';
 
@@ -1386,8 +1388,8 @@
                         .map(r => r.rodada);
                     const setConsolidadas = new Set(rodadasConsolidadas);
 
-                    // Gerar lista de rodadas (do atual até 1, ordem reversa)
-                    for (let r = rodadaAtual; r >= 1; r--) {
+                    // Gerar lista de rodadas (apenas finalizadas, ordem reversa)
+                    for (let r = ultimaRodadaConsolidavel; r >= 1; r--) {
                         const consolidada = setConsolidadas.has(r);
                         const rodadaEl = document.createElement('div');
                         rodadaEl.className = `rodada-item ${consolidada ? 'consolidada' : ''}`;
@@ -1400,7 +1402,7 @@
                                 </div>
                             </div>
                             <div class="rodada-item-checkbox">
-                                <input type="checkbox" class="rodada-checkbox" data-rodada="${r}" ${r === rodadaAtual ? 'checked' : ''}>
+                                <input type="checkbox" class="rodada-checkbox" data-rodada="${r}">
                             </div>
                         `;
 
