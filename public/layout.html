@@ -1315,6 +1315,31 @@
                 }
             }
 
+            // Cache da ligaId para evitar múltiplas requisições
+            let _cachedLigaId = null;
+
+            window.getLigaIdPrincipal = async function() {
+                if (_cachedLigaId) return _cachedLigaId;
+
+                try {
+                    const response = await fetch('/api/ligas');
+                    if (!response.ok) throw new Error('Erro ao buscar ligas');
+
+                    const data = await response.json();
+                    const ligas = data.ligas || data;
+
+                    if (!ligas || ligas.length === 0) {
+                        throw new Error('Nenhuma liga disponível');
+                    }
+
+                    _cachedLigaId = ligas[0]._id;
+                    return _cachedLigaId;
+                } catch (error) {
+                    console.error('[CONSOLIDAR] Erro ao buscar ligaId:', error);
+                    throw error;
+                }
+            };
+
             window.abrirConsolidarRodadaSidebar = async function(event) {
                 event.preventDefault();
                 event.stopPropagation();
@@ -1349,10 +1374,11 @@
                     const listaRodadas = document.getElementById('listaRodadas');
                     listaRodadas.innerHTML = '';
 
-                    // Buscar informações de consolidação
-                    const consolidacaoRes = await fetch('/api/admin/rodadas/consolidadas');
-                    const rodadasConsolidadas = consolidacaoRes.ok ? await consolidacaoRes.json() : [];
-                    const setConsolidadas = new Set(rodadasConsolidadas.map(r => r.rodada));
+                    // Buscar informações de consolidação usando endpoint correto (snapshots v2)
+                    const ligaId = await getLigaIdPrincipal();
+                    const consolidacaoRes = await fetch(`/api/consolidacao/ligas/${ligaId}/status`);
+                    const statusData = consolidacaoRes.ok ? await consolidacaoRes.json() : { rodadas_consolidadas: [] };
+                    const setConsolidadas = new Set(statusData.rodadas_consolidadas || []);
 
                     // Gerar lista de rodadas (do atual até 1, ordem reversa)
                     for (let r = rodadaAtual; r >= 1; r--) {
@@ -1437,25 +1463,61 @@
                 `;
 
                 try {
-                    // Consolidar rodadas uma por uma
+                    // Buscar ligaId
+                    const ligaId = await getLigaIdPrincipal();
+
+                    let sucessos = 0;
+                    let jaConsolidadas = 0;
+
+                    // Consolidar rodadas uma por uma usando endpoint correto (snapshots v2)
                     for (const rodada of rodadas) {
-                        const response = await fetch('/api/admin/consolidar-rodada', {
+                        btn.innerHTML = `
+                            <div class="loading-spinner-consolidar" style="width: 20px; height: 20px; border-width: 2px;"></div>
+                            Consolidando rodada ${rodada}...
+                        `;
+
+                        const response = await fetch(`/api/consolidacao/ligas/${ligaId}/rodadas/${rodada}/consolidar`, {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ rodada })
+                            headers: { 'Content-Type': 'application/json' }
                         });
 
                         if (!response.ok) {
-                            const error = await response.text();
-                            throw new Error(`Erro na rodada ${rodada}: ${error}`);
+                            const errorData = await response.json().catch(() => ({ message: 'Erro desconhecido' }));
+
+                            // Se já consolidada, não é erro fatal
+                            if (response.status === 409 || errorData.message?.includes('já consolidada')) {
+                                jaConsolidadas++;
+                                continue;
+                            }
+
+                            throw new Error(`Erro na rodada ${rodada}: ${errorData.message || response.statusText}`);
                         }
+
+                        sucessos++;
                     }
 
-                    alert(`✓ ${rodadas.length} rodada(s) consolidada(s) com sucesso!`);
+                    // Feedback detalhado
+                    let mensagem = '';
+                    if (sucessos > 0) mensagem += `✓ ${sucessos} rodada(s) consolidada(s) com sucesso!\n`;
+                    if (jaConsolidadas > 0) mensagem += `ℹ ${jaConsolidadas} rodada(s) já estava(m) consolidada(s).\n`;
+
+                    alert(mensagem || 'Consolidação concluída!');
                     fecharModalConsolidar();
                 } catch (error) {
                     console.error('[CONSOLIDAR] Erro:', error);
-                    alert('Erro ao consolidar rodadas: ' + error.message);
+
+                    let mensagemErro = 'Erro ao consolidar rodadas:\n\n';
+                    if (error.message.includes('liga')) {
+                        mensagemErro += '❌ Nenhuma liga disponível. Verifique se você tem acesso a alguma liga.';
+                    } else if (error.message.includes('API Cartola')) {
+                        mensagemErro += '❌ API do Cartola indisponível. Tente novamente mais tarde.';
+                    } else if (error.message.includes('mercado')) {
+                        mensagemErro += '❌ Mercado ainda não fechou para esta rodada.';
+                    } else {
+                        mensagemErro += error.message;
+                    }
+
+                    alert(mensagemErro);
                     btn.disabled = false;
                     atualizarBotaoConsolidar();
                 }
