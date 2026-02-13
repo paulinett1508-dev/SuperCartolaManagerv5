@@ -1171,7 +1171,6 @@ async function carregarDestaquesRodada(ligaId, rodada, timeId) {
         const response = await fetch(`/api/cartola/time/id/${timeId}/${rodada}`);
         if (!response.ok) {
             if (window.Log) Log.debug("PARTICIPANTE-HOME", "Escalação não encontrada");
-            // Esconder seção se não tiver dados
             const destaquesSection = document.getElementById('home-destaques-section');
             if (destaquesSection) destaquesSection.classList.add('hidden');
             return;
@@ -1187,24 +1186,76 @@ async function carregarDestaquesRodada(ligaId, rodada, timeId) {
         const atletas = escalacao.atletas || [];
         const capitaoId = escalacao.capitao_id;
 
-        // Encontrar capitão, maior e menor pontuador
+        // Verificar se pontos_num está zerado para todos os atletas
+        const todosPontosZerados = atletas.every(a => !a.pontos_num || parseFloat(a.pontos_num) === 0);
+
+        // Se pontos zerados, tentar enriquecer com atletasPontuados (rodada em andamento)
+        if (todosPontosZerados) {
+            try {
+                const pontuadosResp = await fetch(`/api/cartola/atletas/pontuados?_t=${Date.now()}`, {
+                    cache: 'no-store',
+                    headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' }
+                });
+                if (pontuadosResp.ok) {
+                    const pontuadosData = await pontuadosResp.json();
+                    const pontuados = pontuadosData.atletas || {};
+                    // Cruzar pontos reais com atletas da escalação
+                    for (const atleta of atletas) {
+                        const pontuado = pontuados[atleta.atleta_id];
+                        if (pontuado) {
+                            atleta.pontos_num = pontuado.pontuacao || 0;
+                            if (!atleta.scout && pontuado.scout) atleta.scout = pontuado.scout;
+                        }
+                    }
+                    if (window.Log) Log.info("PARTICIPANTE-HOME", "Pontos enriquecidos via atletasPontuados");
+                }
+            } catch (e) {
+                if (window.Log) Log.debug("PARTICIPANTE-HOME", "Fallback atletasPontuados indisponível:", e.message);
+            }
+        }
+
+        // Verificar se ainda sem pontuação após enriquecimento
+        const semPontuacao = atletas.every(a => !a.pontos_num || parseFloat(a.pontos_num) === 0);
+
+        // Encontrar capitão
         let capitao = atletas.find(a => a.atleta_id === capitaoId) || atletas[0];
-        let maiorPontuador = atletas.reduce((max, a) => (a.pontos_num > (max?.pontos_num || -999) ? a : max), null);
-        let menorPontuador = atletas.reduce((min, a) => (a.pontos_num < (min?.pontos_num || 999) ? a : min), null);
+
+        // Encontrar maior e menor pontuador
+        let maiorPontuador = atletas.reduce((max, a) => {
+            const pts = parseFloat(a.pontos_num || 0);
+            const maxPts = max ? parseFloat(max.pontos_num || 0) : -Infinity;
+            return pts > maxPts ? a : max;
+        }, null);
+
+        let menorPontuador = atletas.reduce((min, a) => {
+            const pts = parseFloat(a.pontos_num || 0);
+            const minPts = min ? parseFloat(min.pontos_num || 0) : Infinity;
+            return pts < minPts ? a : min;
+        }, null);
+
+        // Evitar mesmo jogador como maior e menor (quando todos têm mesma pontuação)
+        if (maiorPontuador && menorPontuador && maiorPontuador.atleta_id === menorPontuador.atleta_id && atletas.length > 1) {
+            // Pegar o último atleta do array como menor (diferente do primeiro)
+            menorPontuador = atletas.reduce((min, a) => {
+                if (a.atleta_id === maiorPontuador.atleta_id) return min;
+                const pts = parseFloat(a.pontos_num || 0);
+                const minPts = min ? parseFloat(min.pontos_num || 0) : Infinity;
+                return pts < minPts ? a : min;
+            }, null);
+        }
 
         // Popular cards de destaques (Capitão / Maior / Menor)
-        popularDestaqueCard('capitao', capitao, true);
-        popularDestaqueCard('maior', maiorPontuador, false);
-        popularDestaqueCard('menor', menorPontuador, false);
+        popularDestaqueCard('capitao', capitao, true, semPontuacao);
+        popularDestaqueCard('maior', maiorPontuador, false, semPontuacao);
+        popularDestaqueCard('menor', menorPontuador, false, semPontuacao);
 
         // Popular card de módulos (Artilheiro / Luva / Capitão de Luxo)
-        popularCardModulos(atletas, capitao);
+        popularCardModulos(atletas, capitao, semPontuacao);
 
         if (window.Log) Log.info("PARTICIPANTE-HOME", `Destaques carregados - Rodada ${rodada}`);
 
     } catch (error) {
         if (window.Log) Log.warn("PARTICIPANTE-HOME", "Erro ao carregar destaques:", error);
-        // Esconder seções em caso de erro
         const destaquesSection = document.getElementById('home-destaques-section');
         if (destaquesSection) destaquesSection.classList.add('hidden');
         const modulosSection = document.getElementById('home-modulos-section');
@@ -1215,7 +1266,7 @@ async function carregarDestaquesRodada(ligaId, rodada, timeId) {
 // =====================================================================
 // POPULAR CARD DE DESTAQUE
 // =====================================================================
-function popularDestaqueCard(tipo, atleta, isCapitao = false) {
+function popularDestaqueCard(tipo, atleta, isCapitao = false, semPontuacao = false) {
     if (!atleta) return;
 
     const nomeEl = document.getElementById(`home-nome-${tipo}`);
@@ -1236,19 +1287,22 @@ function popularDestaqueCard(tipo, atleta, isCapitao = false) {
     }
 
     if (pontosEl) {
-        const pontos = parseFloat(atleta.pontos_num || 0);
-        if (isCapitao) {
-            // Capitão: mostrar pontos x1.5
-            const pontosCapitao = pontos * 1.5;
-            pontosEl.textContent = pontosCapitao.toFixed(2);
-
-            // Pontos base
+        if (semPontuacao) {
+            pontosEl.textContent = '--';
             const pontosBaseEl = document.getElementById('home-pontos-base-capitao');
-            if (pontosBaseEl) {
-                pontosBaseEl.textContent = pontos.toFixed(2);
-            }
+            if (pontosBaseEl && isCapitao) pontosBaseEl.textContent = '--';
         } else {
-            pontosEl.textContent = pontos.toFixed(2);
+            const pontos = parseFloat(atleta.pontos_num || 0);
+            if (isCapitao) {
+                const pontosCapitao = pontos * 1.5;
+                pontosEl.textContent = pontosCapitao.toFixed(2);
+                const pontosBaseEl = document.getElementById('home-pontos-base-capitao');
+                if (pontosBaseEl) {
+                    pontosBaseEl.textContent = pontos.toFixed(2);
+                }
+            } else {
+                pontosEl.textContent = pontos.toFixed(2);
+            }
         }
     }
 
@@ -1267,7 +1321,7 @@ function popularDestaqueCard(tipo, atleta, isCapitao = false) {
 // =====================================================================
 // POPULAR CARD DE MÓDULOS (Artilheiro / Luva de Ouro / Capitão)
 // =====================================================================
-function popularCardModulos(atletas, capitao) {
+function popularCardModulos(atletas, capitao, semPontuacao = false) {
     const section = document.getElementById('home-modulos-section');
     if (!section || !atletas?.length) return;
 
@@ -1295,9 +1349,13 @@ function popularCardModulos(atletas, capitao) {
     if (artilheiro) {
         if (artNomeEl) artNomeEl.textContent = artilheiro.apelido || artilheiro.nome || '--';
         if (artStatsEl) {
-            const gols = parseInt(artilheiro.scout?.G || artilheiro.scouts?.G || 0);
-            const pts = parseFloat(artilheiro.pontos_num || 0).toFixed(1);
-            artStatsEl.textContent = gols > 0 ? `${gols} gol${gols > 1 ? 's' : ''} • ${pts} pts` : `${pts} pts`;
+            if (semPontuacao) {
+                artStatsEl.textContent = 'Aguardando pontuação';
+            } else {
+                const gols = parseInt(artilheiro.scout?.G || artilheiro.scouts?.G || 0);
+                const pts = parseFloat(artilheiro.pontos_num || 0).toFixed(1);
+                artStatsEl.textContent = gols > 0 ? `${gols} gol${gols > 1 ? 's' : ''} • ${pts} pts` : `${pts} pts`;
+            }
         }
     } else {
         if (artNomeEl) artNomeEl.textContent = 'Sem gols';
@@ -1311,15 +1369,19 @@ function popularCardModulos(atletas, capitao) {
     if (goleiro) {
         if (luvaNomeEl) luvaNomeEl.textContent = goleiro.apelido || goleiro.nome || '--';
         if (luvaStatsEl) {
-            const gs = parseInt(goleiro.scout?.GS || goleiro.scouts?.GS || 0);
-            const dd = parseInt(goleiro.scout?.DD || goleiro.scouts?.DD || 0);
-            const sg = parseInt(goleiro.scout?.SG || goleiro.scouts?.SG || 0);
-            const pts = parseFloat(goleiro.pontos_num || 0).toFixed(1);
-            let info = '';
-            if (sg > 0) info = `SG • ${pts} pts`;
-            else if (gs > 0) info = `${gs} gol${gs > 1 ? 's' : ''} sofrido${gs > 1 ? 's' : ''} • ${pts} pts`;
-            else info = `${dd > 0 ? dd + ' DD • ' : ''}${pts} pts`;
-            luvaStatsEl.textContent = info;
+            if (semPontuacao) {
+                luvaStatsEl.textContent = 'Aguardando pontuação';
+            } else {
+                const gs = parseInt(goleiro.scout?.GS || goleiro.scouts?.GS || 0);
+                const dd = parseInt(goleiro.scout?.DD || goleiro.scouts?.DD || 0);
+                const sg = parseInt(goleiro.scout?.SG || goleiro.scouts?.SG || 0);
+                const pts = parseFloat(goleiro.pontos_num || 0).toFixed(1);
+                let info = '';
+                if (sg > 0) info = `SG • ${pts} pts`;
+                else if (gs > 0) info = `${gs} gol${gs > 1 ? 's' : ''} sofrido${gs > 1 ? 's' : ''} • ${pts} pts`;
+                else info = `${dd > 0 ? dd + ' DD • ' : ''}${pts} pts`;
+                luvaStatsEl.textContent = info;
+            }
         }
     } else {
         if (luvaNomeEl) luvaNomeEl.textContent = '--';
@@ -1332,9 +1394,13 @@ function popularCardModulos(atletas, capitao) {
     if (capitao) {
         if (capNomeEl) capNomeEl.textContent = capitao.apelido || capitao.nome || '--';
         if (capStatsEl) {
-            const pts = parseFloat(capitao.pontos_num || 0);
-            const ptsCapitao = (pts * 1.5).toFixed(1);
-            capStatsEl.textContent = `${pts.toFixed(1)} ×1.5 = ${ptsCapitao} pts`;
+            if (semPontuacao) {
+                capStatsEl.textContent = 'Aguardando pontuação';
+            } else {
+                const pts = parseFloat(capitao.pontos_num || 0);
+                const ptsCapitao = (pts * 1.5).toFixed(1);
+                capStatsEl.textContent = `${pts.toFixed(1)} ×1.5 = ${ptsCapitao} pts`;
+            }
         }
     } else {
         if (capNomeEl) capNomeEl.textContent = '--';
