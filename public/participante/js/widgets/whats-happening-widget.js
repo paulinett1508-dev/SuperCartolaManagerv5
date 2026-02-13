@@ -1681,42 +1681,54 @@ function renderMataMataSection() {
  * @param {Object} opts - { data, title, icon, sectionClass, navigateTo, emoji, getValue, getLabel, getSubLabel }
  */
 function renderModuleRankingSection(opts) {
-    const { data, title, icon, sectionClass, navigateTo, getValue, getLabel } = opts;
+    const { data, title, icon, sectionClass, navigateTo, getValue, getLabel, getSubLabel, unitLabel } = opts;
     if (!data?.ranking || !Array.isArray(data.ranking) || data.ranking.length === 0) return null;
 
     const top3 = data.ranking.slice(0, 3);
     const meuId = String(WHState.timeId);
-    const posColors = ['gold', 'silver', 'bronze'];
+    const posEmojis = ['🥇', '🥈', '🥉'];
+    const posClasses = ['gold', 'silver', 'bronze'];
 
-    // Verificar se eu estou no top 3
     const matchId = (r) => String(r.timeId || r.time_id || r.participanteId || '') === meuId;
     const meuIndex = data.ranking.findIndex(matchId);
     const meuNoTop3 = meuIndex >= 0 && meuIndex < 3;
 
-    const chipsHtml = top3.map((r, i) => {
+    // Pódio: layout de 3 colunas (2o | 1o | 3o)
+    const podiumOrder = top3.length >= 3 ? [1, 0, 2] : top3.length === 2 ? [0, 1] : [0];
+
+    const podiumHtml = podiumOrder.map(i => {
+        const r = top3[i];
+        if (!r) return '';
         const isMe = matchId(r);
         const valor = getValue(r);
         const nome = getLabel(r);
+        const sub = getSubLabel ? getSubLabel(r) : '';
+        const isFirst = i === 0;
+
         return `
-            <div class="wh-rank-card ${posColors[i] || ''} ${isMe ? 'me' : ''}">
-                <div class="wh-rank-pos">${i + 1}</div>
-                <img class="wh-rank-escudo" src="${resolverEscudo(r)}" onerror="this.src='/escudos/default.png'" alt="">
-                <div class="wh-rank-nome">${nome}</div>
-                <div class="wh-rank-pontos">${valor}</div>
+            <div class="wh-podium-item wh-podium--${posClasses[i]} ${isMe ? 'me' : ''} ${isFirst ? 'first' : ''}">
+                <div class="wh-podium-medal">${posEmojis[i]}</div>
+                <img class="wh-podium-escudo" src="${resolverEscudo(r)}" onerror="this.src='/escudos/default.png'" alt="">
+                <div class="wh-podium-nome">${nome}</div>
+                <div class="wh-podium-valor">${valor}</div>
+                ${sub ? `<div class="wh-podium-sub">${sub}</div>` : ''}
             </div>
         `;
     }).join('');
 
     // Minha posição se fora do top 3
-    let meuChipHtml = '';
+    let meuPosHtml = '';
     if (!meuNoTop3 && meuIndex >= 0) {
         const meuItem = data.ranking[meuIndex];
-        meuChipHtml = `
-            <div class="wh-rank-card me">
-                <div class="wh-rank-pos">${meuIndex + 1}</div>
-                <img class="wh-rank-escudo" src="${resolverEscudo(meuItem)}" onerror="this.src='/escudos/default.png'" alt="">
-                <div class="wh-rank-nome">${getLabel(meuItem)}</div>
-                <div class="wh-rank-pontos">${getValue(meuItem)}</div>
+        meuPosHtml = `
+            <div class="wh-minha-pos">
+                <span class="wh-minha-pos-label">Sua posição</span>
+                <div class="wh-minha-pos-card">
+                    <span class="wh-minha-pos-num">${meuIndex + 1}º</span>
+                    <img class="wh-minha-pos-escudo" src="${resolverEscudo(meuItem)}" onerror="this.src='/escudos/default.png'" alt="">
+                    <span class="wh-minha-pos-nome">${getLabel(meuItem)}</span>
+                    <span class="wh-minha-pos-valor">${getValue(meuItem)}</span>
+                </div>
             </div>
         `;
     }
@@ -1731,7 +1743,7 @@ function renderModuleRankingSection(opts) {
             disputaHtml = `
                 <div class="wh-disputa-acirrada">
                     <span class="material-icons">whatshot</span>
-                    ${getLabel(top3[1])} cola no 1o!
+                    ${getLabel(top3[1])} cola no 1º!
                 </div>
             `;
         }
@@ -1746,9 +1758,11 @@ function renderModuleRankingSection(opts) {
                 <div class="wh-section-title">${title}</div>
                 ${navigateTo ? '<span class="material-icons wh-navigate-hint">open_in_new</span>' : ''}
             </div>
-            <div class="wh-section-body wh-section-body--chips">
-                ${chipsHtml}
-                ${meuChipHtml}
+            <div class="wh-section-body wh-section-body--podium">
+                <div class="wh-podium">
+                    ${podiumHtml}
+                </div>
+                ${meuPosHtml}
             </div>
             ${disputaHtml}
         </div>
@@ -1758,13 +1772,16 @@ function renderModuleRankingSection(opts) {
 function renderArtilheiroSection() {
     return renderModuleRankingSection({
         data: WHState.data.artilheiro,
-        title: 'Artilheiro Campeao',
+        title: 'Artilheiro Campeão',
         icon: 'sports_soccer',
         sectionClass: 'artilheiro',
         navigateTo: 'artilheiro',
-        getValue: (r) => String(r.golsPro || r.gols || 0),
+        getValue: (r) => {
+            const g = r.golsPro || r.gols || 0;
+            return `${g} gol${g !== 1 ? 's' : ''}`;
+        },
         getLabel: (r) => r.nome || r.nome_cartola || r.nomeCartola || 'Jogador',
-        getSubLabel: (r) => `${r.golsPro || r.gols || 0} gol(s)`
+        getSubLabel: () => ''
     });
 }
 
@@ -1775,24 +1792,24 @@ function renderLuvaOuroSection() {
         icon: 'sports_handball',
         sectionClass: 'luva-ouro',
         navigateTo: 'luva-de-ouro',
-        getValue: (r) => (r.pontosTotais || r.pontos || 0).toFixed(1),
+        getValue: (r) => `${(r.pontosTotais || r.pontos || 0).toFixed(1)} pts`,
         getLabel: (r) => r.participanteNome || r.nome_cartola || r.nomeCartola || 'Jogador',
-        getSubLabel: (r) => `${r.pontosTotais || r.pontos || 0 > 0 ? (r.pontosTotais || r.pontos || 0).toFixed(1) + ' pts' : ''}`
+        getSubLabel: () => ''
     });
 }
 
 function renderCapitaoSection() {
     return renderModuleRankingSection({
         data: WHState.data.capitao,
-        title: 'Capitao de Luxo',
+        title: 'Capitão de Luxo',
         icon: 'military_tech',
         sectionClass: 'capitao',
         navigateTo: 'capitao',
-        getValue: (r) => (r.pontuacao_total || r.total || 0).toFixed(0),
+        getValue: (r) => `${(r.pontuacao_total || r.total || 0).toFixed(0)} pts`,
         getLabel: (r) => r.nome_cartola || r.nomeCartola || 'Jogador',
         getSubLabel: (r) => {
             const media = r.media_capitao || r.media || 0;
-            return media > 0 ? `Media: ${media.toFixed(1)}` : '';
+            return media > 0 ? `Média: ${media.toFixed(1)}` : '';
         }
     });
 }
@@ -1828,9 +1845,10 @@ function renderMeuConfrontoPontosCorridos() {
         <div class="wh-section wh-section--meu-confronto wh-section--pontos-corridos ${statusClass}" data-navigate="pontos-corridos">
             <div class="wh-section-header">
                 <div class="wh-section-icon">
-                    <span class="material-icons">stadium</span>
+                    <span class="material-icons">swap_horiz</span>
                 </div>
-                <div class="wh-section-title">Seu Confronto - Rodada ${rodada}</div>
+                <div class="wh-section-title">Seu Confronto</div>
+                <span class="wh-module-badge wh-module-badge--pc">PC · R${rodada}</span>
                 ${isLive ? '<span class="wh-live-badge">🔴 AO VIVO</span>' : ''}
             </div>
             <div class="wh-section-body">
@@ -1910,7 +1928,8 @@ function renderMeuConfrontoMataMata() {
                 <div class="wh-section-icon">
                     <span class="material-icons">emoji_events</span>
                 </div>
-                <div class="wh-section-title">Mata-Mata - ${faseLabel}</div>
+                <div class="wh-section-title">Seu Confronto</div>
+                <span class="wh-module-badge wh-module-badge--mm">MM · ${faseLabel}</span>
                 ${isLive ? '<span class="wh-live-badge">🔴 AO VIVO</span>' : ''}
             </div>
             <div class="wh-section-body">

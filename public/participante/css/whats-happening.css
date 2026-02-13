@@ -547,7 +547,7 @@
     padding: 12px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 14px;
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
     /* Scrollbar customizada */
@@ -639,18 +639,18 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 10px; /* v1.2: Reduzido de 12px 14px */
+    padding: 10px 12px;
     border-bottom: 1px solid var(--app-border);
 }
 
 .wh-section-icon {
-    width: 26px; /* v1.2: Reduzido de 32px */
-    height: 26px;
-    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px; /* v1.2: Reduzido de 18px */
+    font-size: 16px;
 }
 
 .wh-section-title {
@@ -1332,13 +1332,13 @@
 }
 
 .wh-mc-nome {
-    font-size: var(--app-font-xs); /* v1.3: Reduzido de sm */
+    font-size: var(--app-font-xs);
     font-weight: 600;
     color: var(--app-text-primary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 70px; /* v1.3: Reduzido de 100px */
+    max-width: 90px;
     line-height: 1.2;
 }
 
@@ -1732,4 +1732,266 @@
 /* Disputa acirrada dentro de seção com carousel */
 .wh-section .wh-disputa-acirrada {
     margin: 6px 8px 4px;
+}
+
+/* ========================================
+   17. MODULE BADGES (PC / MM identifiers)
+   ======================================== */
+.wh-module-badge {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+    line-height: 1.4;
+}
+
+.wh-module-badge--pc {
+    background: var(--app-info-muted);
+    color: var(--app-info);
+    border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+.wh-module-badge--mm {
+    background: var(--app-danger-muted);
+    color: var(--app-danger);
+    border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+/* ========================================
+   18. PODIUM LAYOUT (Artilheiro/Luva/Capitão)
+   ======================================== */
+.wh-section-body--podium {
+    padding: 10px 8px 8px;
+}
+
+.wh-podium {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 6px;
+}
+
+.wh-podium-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 4px 10px;
+    background: var(--app-surface);
+    border-radius: 10px;
+    border: 1px solid var(--app-border);
+    text-align: center;
+    min-width: 0;
+    transition: transform 0.15s ease;
+    position: relative;
+}
+
+.wh-podium-item:active {
+    transform: scale(0.97);
+}
+
+/* 1o lugar mais alto visualmente */
+.wh-podium-item.first {
+    padding-top: 12px;
+    padding-bottom: 14px;
+    margin-top: -6px;
+}
+
+/* Cores por posição */
+.wh-podium--gold {
+    border-color: rgba(255, 215, 0, 0.35);
+    background: linear-gradient(180deg, rgba(255, 215, 0, 0.08) 0%, var(--app-surface) 60%);
+}
+
+.wh-podium--silver {
+    border-color: rgba(192, 192, 192, 0.3);
+    background: linear-gradient(180deg, rgba(192, 192, 192, 0.06) 0%, var(--app-surface) 60%);
+}
+
+.wh-podium--bronze {
+    border-color: rgba(205, 127, 50, 0.3);
+    background: linear-gradient(180deg, rgba(205, 127, 50, 0.06) 0%, var(--app-surface) 60%);
+}
+
+.wh-podium-item.me {
+    border-color: var(--app-primary);
+    background: linear-gradient(180deg, rgba(255, 85, 0, 0.08) 0%, var(--app-surface) 60%);
+}
+
+/* Medalha */
+.wh-podium-medal {
+    font-size: 18px;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.wh-podium-item.first .wh-podium-medal {
+    font-size: 22px;
+}
+
+/* Escudo */
+.wh-podium-escudo {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: contain;
+    background: var(--app-bg);
+    border: 2px solid var(--app-border);
+    margin-bottom: 4px;
+}
+
+.wh-podium-item.first .wh-podium-escudo {
+    width: 42px;
+    height: 42px;
+}
+
+.wh-podium--gold .wh-podium-escudo {
+    border-color: rgba(255, 215, 0, 0.4);
+}
+
+.wh-podium--silver .wh-podium-escudo {
+    border-color: rgba(192, 192, 192, 0.35);
+}
+
+.wh-podium--bronze .wh-podium-escudo {
+    border-color: rgba(205, 127, 50, 0.35);
+}
+
+/* Nome */
+.wh-podium-nome {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--app-text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    line-height: 1.2;
+}
+
+.wh-podium-item.me .wh-podium-nome {
+    color: var(--app-text-primary);
+}
+
+/* Valor principal */
+.wh-podium-valor {
+    font-family: var(--app-font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--app-text-primary);
+    margin-top: 2px;
+    line-height: 1.2;
+}
+
+.wh-podium-item.first .wh-podium-valor {
+    font-size: 15px;
+}
+
+.wh-podium-item.me .wh-podium-valor {
+    color: var(--app-primary);
+}
+
+/* Sub valor (média, etc) */
+.wh-podium-sub {
+    font-size: 9px;
+    color: var(--app-text-muted);
+    margin-top: 1px;
+}
+
+/* ========================================
+   19. MINHA POSIÇÃO (fora do pódio)
+   ======================================== */
+.wh-minha-pos {
+    margin-top: 8px;
+}
+
+.wh-minha-pos-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--app-text-dim);
+    font-weight: 600;
+    display: block;
+    margin-bottom: 4px;
+    padding-left: 2px;
+}
+
+.wh-minha-pos-card {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: rgba(255, 85, 0, 0.06);
+    border: 1px solid var(--app-primary-border);
+    border-radius: 8px;
+}
+
+.wh-minha-pos-num {
+    font-family: var(--app-font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--app-primary);
+    min-width: 24px;
+}
+
+.wh-minha-pos-escudo {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    object-fit: contain;
+    background: var(--app-bg);
+    flex-shrink: 0;
+}
+
+.wh-minha-pos-nome {
+    flex: 1;
+    font-size: var(--app-font-sm);
+    font-weight: 600;
+    color: var(--app-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.wh-minha-pos-valor {
+    font-family: var(--app-font-mono);
+    font-size: var(--app-font-sm);
+    font-weight: 700;
+    color: var(--app-primary);
+}
+
+/* ========================================
+   20. MODULE-SPECIFIC SECTION THEMING
+   ======================================== */
+/* Artilheiro - Verde */
+.wh-section--artilheiro {
+    border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.wh-section--artilheiro .wh-section-header {
+    background: linear-gradient(90deg, rgba(34, 197, 94, 0.08) 0%, transparent 100%);
+    border-bottom-color: rgba(34, 197, 94, 0.15);
+}
+
+/* Luva de Ouro - Dourado */
+.wh-section--luva-ouro {
+    border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.wh-section--luva-ouro .wh-section-header {
+    background: linear-gradient(90deg, rgba(255, 215, 0, 0.08) 0%, transparent 100%);
+    border-bottom-color: rgba(255, 215, 0, 0.15);
+}
+
+/* Capitão - Roxo */
+.wh-section--capitao {
+    border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.wh-section--capitao .wh-section-header {
+    background: linear-gradient(90deg, rgba(139, 92, 246, 0.08) 0%, transparent 100%);
+    border-bottom-color: rgba(139, 92, 246, 0.15);
 }
