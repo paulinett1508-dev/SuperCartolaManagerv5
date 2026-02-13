@@ -957,12 +957,17 @@ function renderizarHome(container, data, ligaId) {
         sliderTotalEl.textContent = totalParticipantes || 38;
     }
 
-    // Link para rodada - usar última rodada consolidada
+    // Link para rodada - usar última rodada disputada + verbo contextual
     const linkRodadaEl = document.getElementById('home-link-rodada');
     const rodadaNumEl = document.getElementById('home-rodada-num');
-    const rodadaParaExibir = ultimaRodadaDisputada || Math.max(1, rodadaAtual - 1);
+    const rodadaEmAndamento = statusMercadoNum === 2;
+    const rodadaParaExibir = rodadaEmAndamento ? rodadaMercado : (ultimaRodadaDisputada || Math.max(1, rodadaAtual - 1));
     if (rodadaNumEl) {
         rodadaNumEl.textContent = `Rodada ${rodadaParaExibir}`;
+    }
+    if (linkRodadaEl) {
+        const verbo = rodadaEmAndamento ? 'está se saindo' : 'se saiu';
+        linkRodadaEl.innerHTML = `Veja como você ${verbo} na <span id="home-rodada-num">Rodada ${rodadaParaExibir}</span>`;
     }
 
     // === CARDS DE STATS ===
