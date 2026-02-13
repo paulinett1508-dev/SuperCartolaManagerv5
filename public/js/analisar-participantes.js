@@ -619,18 +619,38 @@
     modal.classList.add("active");
 
     try {
-      const res = await fetch(`/api/data-lake/raw/${timeId}?historico=true&limit=50`);
-      const data = await res.json();
+      // Buscar dados do Data Lake E status do mercado em paralelo
+      const [rawRes, mercadoRes] = await Promise.all([
+        fetch(`/api/data-lake/raw/${timeId}?historico=true&limit=50`),
+        fetch('/api/cartola/mercado/status').catch(() => null)
+      ]);
+
+      const data = await rawRes.json();
+      const mercado = mercadoRes && mercadoRes.ok ? await mercadoRes.json() : null;
+
       dumpAtual = { timeId, nomeCartola, nomeTime };
       dumpHistorico = data.historico || [];
 
-      // Auto-detectar e carregar última rodada disponível
+      // Determinar rodada consolidada (igual ao participante-campinho)
+      const rodadaMercado = mercado?.rodada_atual || 0;
+      const rodadaConsolidada = rodadaMercado > 1 ? rodadaMercado - 1 : rodadaMercado;
       const rodadasDisp = data.rodadas_disponiveis || [];
-      if (rodadasDisp.length > 0) {
+
+      console.log(`[ANALISAR] Mercado rodada_atual=${rodadaMercado}, consolidada=${rodadaConsolidada}, disponíveis=[${rodadasDisp.join(',')}]`);
+
+      if (rodadaConsolidada > 0 && rodadasDisp.includes(rodadaConsolidada)) {
+        // Caso ideal: a rodada consolidada já está no Data Lake
+        carregarRodadaDump(timeId, nomeCartola, nomeTime, rodadaConsolidada);
+      } else if (rodadasDisp.length > 0) {
+        // Consolidada não disponível, mas há outras rodadas - carregar a mais recente
         const ultimaRodada = Math.max(...rodadasDisp);
         carregarRodadaDump(timeId, nomeCartola, nomeTime, ultimaRodada);
+      } else if (rodadaConsolidada > 0) {
+        // DL vazio: tentar proxy Cartola (rapido, sem admin auth) com fallback para sync
+        console.log(`[ANALISAR] DL vazio. Fallback: proxy Cartola rodada ${rodadaConsolidada}...`);
+        carregarViaCartolaProxy(timeId, nomeCartola, nomeTime, rodadaConsolidada, data);
       } else {
-        // Sem rodadas - mostra estado vazio com opção de sincronizar
+        // Sem rodadas e sem info de mercado - estado vazio
         renderizarDumpGlobo(modal, data, timeId, nomeCartola, nomeTime);
       }
     } catch (error) {
@@ -720,14 +740,20 @@
     `;
 
     // ── SELETOR DE RODADA + REFRESH (topo) ──
+    // Gerar opções para todas as 38 rodadas (indica quais têm dados no Data Lake)
+    let selectOptions = '';
+    for (let r = 1; r <= 38; r++) {
+      const temDados = rodadasDisp.includes(r);
+      const isSelected = r === rodadaAtual;
+      const label = `Rodada ${r}${isSelected ? ' (visualizando)' : ''}${temDados ? '' : ' *'}`;
+      selectOptions += `<option value="${r}" ${isSelected ? 'selected' : ''}>${label}</option>`;
+    }
+
     html += `
       <div class="dl-round-control">
         <div class="dl-round-control-left">
           <select class="dl-round-select" id="dlRoundSelect">
-            ${rodadasDisp.length > 0
-              ? rodadasDisp.map(r => `<option value="${r}" ${r === rodadaAtual ? 'selected' : ''}>Rodada ${r}${r === rodadaAtual ? ' (visualizando)' : ''}</option>`).join('')
-              : '<option value="">Sem rodadas disponíveis</option>'
-            }
+            ${selectOptions}
           </select>
         </div>
         <div class="dl-round-control-right">
@@ -863,10 +889,16 @@
     content.innerHTML = html;
 
     // ── EVENT LISTENERS ──
-    // Seletor de rodada
+    // Seletor de rodada (tenta Data Lake; se não tem, sincroniza da Globo)
     content.querySelector("#dlRoundSelect")?.addEventListener("change", (e) => {
       const rodada = parseInt(e.target.value);
-      if (rodada) carregarRodadaDump(timeId, nomeCartola, nomeTime, rodada);
+      if (!rodada) return;
+      const temNoDL = rodadasDisp.includes(rodada);
+      if (temNoDL) {
+        carregarRodadaDump(timeId, nomeCartola, nomeTime, rodada);
+      } else {
+        carregarViaCartolaProxy(timeId, nomeCartola, nomeTime, rodada, { rodadas_disponiveis: rodadasDisp, historico: dumpHistorico });
+      }
     });
 
     // Refresh = re-coletar da Globo e regravar no Mongo
@@ -886,12 +918,46 @@
         if (h) {
           carregarRodadaDump(timeId, nomeCartola, nomeTime, rodada);
         } else if (rodada) {
-          if (await SuperModal.confirm({ title: 'Sincronizar', message: `Rodada ${rodada} nao esta no Data Lake. Deseja buscar da API Cartola?` })) {
-            sincronizarRodadaDump(timeId, nomeCartola, nomeTime, rodada);
-          }
+          carregarViaCartolaProxy(timeId, nomeCartola, nomeTime, rodada, { rodadas_disponiveis: rodadasDisp, historico: dumpHistorico });
         }
       });
     });
+  }
+
+  async function carregarViaCartolaProxy(timeId, nomeCartola, nomeTime, rodada, dataLakeData) {
+    const modal = document.getElementById("modalDump");
+    if (!modal) return;
+    const content = modal.querySelector(".modal-content");
+    content.innerHTML = `
+      <div style="text-align:center;padding:40px;">
+        <div class="loading-spinner"></div>
+        <div style="color:#9ca3af;font-size:0.85rem;margin-top:8px;">Buscando Rodada ${rodada} da API Cartola...</div>
+      </div>
+    `;
+    try {
+      const res = await fetch(`/api/cartola/time/id/${timeId}/${rodada}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const rawJson = await res.json();
+      if (!rawJson || (!rawJson.atletas && !rawJson.time)) {
+        throw new Error('Dados incompletos da API');
+      }
+      const fakeData = {
+        success: true,
+        dump_atual: {
+          tipo_coleta: 'time_rodada',
+          rodada: rodada,
+          data_coleta: new Date().toISOString(),
+          raw_json: rawJson,
+          meta: { url_origem: 'cartola-proxy', origem_trigger: 'fallback' }
+        },
+        rodadas_disponiveis: dataLakeData?.rodadas_disponiveis || [],
+        historico: dataLakeData?.historico || [],
+      };
+      renderizarDumpGlobo(modal, fakeData, timeId, nomeCartola, nomeTime);
+    } catch (error) {
+      console.warn(`[ANALISAR] Proxy falhou: ${error.message}. Tentando auto-sync...`);
+      sincronizarRodadaDump(timeId, nomeCartola, nomeTime, rodada);
+    }
   }
 
   async function carregarRodadaDump(timeId, nomeCartola, nomeTime, rodada) {

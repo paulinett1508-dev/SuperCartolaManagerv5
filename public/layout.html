@@ -152,12 +152,6 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="historico-acessos.html" class="sidebar-accordion-item" data-page="historico-acessos.html">
-                                    <span class="material-icons">history</span>
-                                    <span>Histórico de Acessos</span>
-                                </a>
-                            </li>
-                            <li>
                                 <a href="#" class="sidebar-accordion-item" onclick="abrirAdicionarParticipanteSidebar(event)">
                                     <span class="material-icons">group_add</span>
                                     <span>Adicionar Participante</span>
@@ -249,6 +243,12 @@
                                 <a href="dashboard-saude.html" class="sidebar-accordion-item" data-page="dashboard-saude.html">
                                     <span class="material-icons">health_and_safety</span>
                                     <span>Saúde</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="historico-acessos.html" class="sidebar-accordion-item" data-page="historico-acessos.html">
+                                    <span class="material-icons">history</span>
+                                    <span>Atividade App</span>
                                 </a>
                             </li>
                         </ul>
@@ -640,7 +640,7 @@
                         'admin.html': 'ligas',
                         // Participantes
                         'analisar-participantes.html': 'participantes',
-                        'historico-acessos.html': 'participantes',
+                        'historico-acessos.html': 'analytics',
                         // Operações
                         'ferramentas-rodadas.html': 'operacoes',
                         'admin-orchestrator.html': 'operacoes',
@@ -1325,14 +1325,15 @@
                     const response = await fetch('/api/ligas');
                     if (!response.ok) throw new Error('Erro ao buscar ligas');
 
-                    const data = await response.json();
-                    const ligas = data.ligas || data;
+                    const ligas = await response.json();
 
-                    if (!ligas || ligas.length === 0) {
+                    if (!Array.isArray(ligas) || ligas.length === 0) {
                         throw new Error('Nenhuma liga disponível');
                     }
 
-                    _cachedLigaId = ligas[0]._id;
+                    // Buscar primeira liga ativa
+                    const ligaAtiva = ligas.find(l => l.ativa) || ligas[0];
+                    _cachedLigaId = ligaAtiva._id;
                     return _cachedLigaId;
                 } catch (error) {
                     console.error('[CONSOLIDAR] Erro ao buscar ligaId:', error);
@@ -1377,8 +1378,13 @@
                     // Buscar informações de consolidação usando endpoint correto (snapshots v2)
                     const ligaId = await getLigaIdPrincipal();
                     const consolidacaoRes = await fetch(`/api/consolidacao/ligas/${ligaId}/status`);
-                    const statusData = consolidacaoRes.ok ? await consolidacaoRes.json() : { rodadas_consolidadas: [] };
-                    const setConsolidadas = new Set(statusData.rodadas_consolidadas || []);
+                    const statusData = consolidacaoRes.ok ? await consolidacaoRes.json() : { rodadas: [] };
+
+                    // Extrair rodadas consolidadas do array de status
+                    const rodadasConsolidadas = (statusData.rodadas || [])
+                        .filter(r => r.status === 'consolidada')
+                        .map(r => r.rodada);
+                    const setConsolidadas = new Set(rodadasConsolidadas);
 
                     // Gerar lista de rodadas (do atual até 1, ordem reversa)
                     for (let r = rodadaAtual; r >= 1; r--) {

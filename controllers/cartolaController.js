@@ -120,7 +120,9 @@ export async function obterEscalacao(req, res) {
       `Erro ao buscar escalação do time ${id} na rodada ${rodada}:`,
       error.message,
     );
-    res.status(500).json({
+    // Retornar 404 quando a API Cartola indica que o time não jogou na rodada
+    const status = error.message?.includes('404') ? 404 : 500;
+    res.status(status).json({
       error: `Erro ao buscar escalação do time ${id} na rodada ${rodada}: ${error.message}`,
     });
   }

@@ -203,7 +203,7 @@ export async function consolidarRankingTurno(ligaId, turno, rodadaAtualGeral, te
         }
 
         timesPontos[timeId].pontos += pontos;
-        if (!registro.rodadaNaoJogada && pontos > 0) {
+        if (!registro.rodadaNaoJogada) {
             timesPontos[timeId].rodadas_jogadas++;
         }
     });
@@ -272,10 +272,12 @@ export async function consolidarRankingTurno(ligaId, turno, rodadaAtualGeral, te
 
 /**
  * Força reconsolidação de todos os turnos de uma liga
+ * @param {string|ObjectId} ligaId - ID da liga
+ * @param {number} temporada - Ano da temporada (opcional, default: ano atual)
  */
-export async function reconsolidarTodosOsTurnos(ligaId) {
+export async function reconsolidarTodosOsTurnos(ligaId, temporada = new Date().getFullYear()) {
     console.log(
-        `${LOG_PREFIX} 🔄 Reconsolidando todos os turnos para liga ${ligaId}`,
+        `${LOG_PREFIX} 🔄 Reconsolidando todos os turnos para liga ${ligaId} - Temporada: ${temporada}`,
     );
 
     const ligaObjectId =
@@ -283,8 +285,8 @@ export async function reconsolidarTodosOsTurnos(ligaId) {
             ? new mongoose.Types.ObjectId(ligaId)
             : ligaId;
 
-    // Buscar última rodada
-    const ultimaRodada = await Rodada.findOne({ ligaId: ligaObjectId })
+    // Buscar última rodada (filtrada por temporada para não misturar dados de anos anteriores)
+    const ultimaRodada = await Rodada.findOne({ ligaId: ligaObjectId, temporada })
         .sort({ rodada: -1 })
         .select("rodada")
         .lean();
@@ -293,9 +295,9 @@ export async function reconsolidarTodosOsTurnos(ligaId) {
 
     // Consolidar cada turno
     const resultados = {
-        turno1: await consolidarRankingTurno(ligaObjectId, "1", rodadaAtual),
-        turno2: await consolidarRankingTurno(ligaObjectId, "2", rodadaAtual),
-        geral: await consolidarRankingTurno(ligaObjectId, "geral", rodadaAtual),
+        turno1: await consolidarRankingTurno(ligaObjectId, "1", rodadaAtual, temporada),
+        turno2: await consolidarRankingTurno(ligaObjectId, "2", rodadaAtual, temporada),
+        geral: await consolidarRankingTurno(ligaObjectId, "geral", rodadaAtual, temporada),
     };
 
     return resultados;
