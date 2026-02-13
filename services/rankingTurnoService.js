@@ -46,14 +46,14 @@ export async function buscarRankingTurno(ligaId, turno, temporada = new Date().g
 
     const rodadaAtual = ultimaRodada?.rodada || 0;
 
-    // ✅ v3.2: Validar snapshots "consolidados" - corrigir snapshots stale
+    // ✅ v3.3: Validar snapshots "consolidados" - forçar reconsolidação se stale
     // Um turno "geral" (1-38) só pode ser consolidado se rodadaAtual >= 38
     if (snapshot && snapshot.status === "consolidado") {
         if (rodadaAtual < fim) {
-            // Snapshot incorretamente marcado como consolidado - corrigir
-            console.log(`${LOG_PREFIX} ⚠️ Snapshot consolidado stale detectado (R${snapshot.rodada_atual} < R${fim}), reconsolidando...`);
-            snapshot.status = "em_andamento";
-            await snapshot.save();
+            // Snapshot incorretamente marcado como consolidado - deletar para forçar reconsolidação
+            console.log(`${LOG_PREFIX} ⚠️ Snapshot consolidado stale detectado (R${snapshot.rodada_atual} vs rodadaAtual R${rodadaAtual}, fim R${fim}), deletando para reconsolidar...`);
+            await RankingTurno.deleteOne({ _id: snapshot._id });
+            snapshot = null;
         } else if (turno !== "geral") {
             // Turnos 1 e 2 consolidados podem retornar direto (são imutáveis)
             console.log(`${LOG_PREFIX} ✅ Retornando snapshot consolidado turno ${turno}`);
