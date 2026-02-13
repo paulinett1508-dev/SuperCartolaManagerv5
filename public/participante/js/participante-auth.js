@@ -131,12 +131,14 @@ class ParticipanteAuth {
             this.sessionCache = data;
             this.sessionCacheTime = Date.now();
 
-            // ✅ PERF: Atualizar UI, verificar ligas e manutenção em PARALELO
-            const [, , emManutencaoFetch] = await Promise.all([
+            // Atualizar UI e verificar ligas PRIMEIRO (manutenção precisa de ligasDisponiveis)
+            await Promise.all([
                 this.atualizarHeader({ forceRefresh: true }),
                 this.verificarMultiplasLigas(),
-                this._verificarManutencao(),
             ]);
+
+            // Só depois verificar manutenção (ManutencaoScreen.ativar usa ligasDisponiveis)
+            const emManutencaoFetch = await this._verificarManutencao();
 
             if (window.Log) Log.info('PARTICIPANTE-AUTH', '✅ Autenticação válida (cache atualizado)');
             this.verificandoAuth = false;
