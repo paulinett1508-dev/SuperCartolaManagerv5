@@ -4,11 +4,11 @@ Handover para nova sessao - carrega contexto do trabalho em andamento e instrui 
 
 ---
 
-## STATUS ATUAL: AUDIT RANKING GERAL - 4 BUGS CORRIGIDOS
+## STATUS ATUAL: AUDIT-004 COMPLETO - RANKING OK
 
-**Data:** 13/02/2026
-**Ultima acao:** Auditoria completa do Ranking (Classificacao Geral). 4 bugs encontrados e corrigidos. Pontos da R3 nao apareciam no ranking acumulado.
-**Sessao anterior:** 13/02/2026 (AUDIT-001/002/003 financeiras + bug cache stale resolvido)
+**Data:** 14/02/2026
+**Ultima acao:** AUDIT-004 totalmente concluido. 4 bugs corrigidos, deployados, R3 repopulada e ranking reconsolidado.
+**Sessao anterior:** 13/02/2026 (AUDIT-004: 4 bugs ranking corrigidos + AUDIT-001/002/003 financeiras + cache stale resolvido)
 
 ---
 
@@ -42,9 +42,9 @@ Handover para nova sessao - carrega contexto do trabalho em andamento e instrui 
 
 ### Acao manual pendente
 
-- **Repopular R3** via painel admin com `repopular: true` (corrige dados stored)
-- **Reconsolidar ranking** ou aguardar auto-reconsolidacao (Bug 3 fix garante isso)
-- **Deploy** das mudancas (4 arquivos modificados nesta sessao)
+- ~~**Repopular R3** via painel admin com `repopular: true`~~ ✅ FEITO (14/02)
+- ~~**Reconsolidar ranking**~~ ✅ FEITO (auto-reconsolidacao apos repopulacao)
+- ~~**Deploy** das mudancas~~ ✅ DEPLOYED (commits 213012d, 5c52818 "Published your App")
 
 ---
 
@@ -163,8 +163,8 @@ node scripts/auditoria-financeira-completa.js --dry-run --temporada=2025
 2. ~~Rodar script reconciliacao~~ ✅ EXECUTADO (15/15 corrigidos)
 3. ~~Decidir sobre trabalho nao commitado~~ ✅ Resolvido (ja commitados)
 4. ~~Auditoria Ranking Geral (R3 nao aparecia)~~ ✅ 4 bugs corrigidos (AUDIT-004)
-5. **Deploy dos fixes do ranking** (rankingTurnoService.js + rodadaController.js)
-6. **Repopular R3 + reconsolidar ranking** via painel admin apos deploy
-7. Commitar todos os fixes pendentes (ranking + script reconciliacao)
+5. ~~Deploy dos fixes do ranking~~ ✅ DEPLOYED (commits 213012d, 5c52818 - verificado 14/02)
+6. ~~Repopular R3 + reconsolidar ranking~~ ✅ FEITO via painel admin (14/02)
+7. ~~Commitar todos os fixes pendentes~~ ✅ Tudo commitado (verificado 14/02 - 0 linhas diff)
 8. AUDIT-001 Fase 3 se houver tempo (cosmetico)
 9. Verificar temporada 2025 caches (formato antigo, reconciliacao nao suporta)
