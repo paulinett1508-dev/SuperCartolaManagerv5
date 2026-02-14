@@ -928,7 +928,7 @@
                             <span class="material-icons" style="font-size:22px;color:#34d399;">leaderboard</span>
                             <span class="btn-text">Ranking da Rodada</span>
                         </button>
-                        <button id="manutencaoBtnDino" onclick="window.ManutencaoScreen && ManutencaoScreen.abrirDinoGame()"
+                        <button id="manutencaoBtnPenalty" onclick="window.ManutencaoScreen && ManutencaoScreen.abrirPenaltyGame()"
                             class="manutencao-btn">
                             <span style="font-size:22px;"><span class="material-icons">sports_soccer</span></span>
                             <span class="btn-text">Cobrança de Pênalti</span>
@@ -944,8 +944,8 @@
                 <!-- Conteúdo dinâmico (ranking) -->
                 <div id="manutencaoConteudo" class="manutencao-conteudo"></div>
 
-                <!-- Container Dino Game -->
-                <div id="manutencaoDinoContainer" class="manutencao-conteudo"></div>
+                <!-- Container Jogo de Pênaltis -->
+                <div id="manutencaoPenaltyContainer" class="manutencao-conteudo"></div>
 
                 <!-- Notícias do time do coração (carrega automaticamente) -->
                 <div id="manutencaoNoticias" class="manutencao-noticias"></div>
@@ -967,7 +967,7 @@
                 }
                 #manutencaoBtnRankingGeral:hover,
                 #manutencaoBtnRankingRodada:hover,
-                #manutencaoBtnDino:hover {
+                #manutencaoBtnPenalty:hover {
                     transform: scale(1.02);
                     background: rgba(255,255,255,0.1) !important;
                     border-color: #4b5563 !important;
@@ -979,7 +979,7 @@
                 }
                 #manutencaoBtnRankingGeral:active,
                 #manutencaoBtnRankingRodada:active,
-                #manutencaoBtnDino:active,
+                #manutencaoBtnPenalty:active,
                 #manutencaoBtnRefresh:active {
                     transform: scale(0.98);
                 }
