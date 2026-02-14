@@ -12,8 +12,13 @@ let consolidando = false;
 export async function render(params = {}) {
   const container = document.getElementById('page-content');
 
-  // Esconde FAB
-  document.getElementById('fab').classList.add('hidden');
+  // Atualiza top bar
+  const titleEl = document.getElementById('page-title');
+  const subtitleEl = document.getElementById('page-subtitle');
+  const backBtn = document.getElementById('btn-back');
+  if (titleEl) titleEl.textContent = 'Operacoes';
+  if (subtitleEl) subtitleEl.textContent = 'Consolidacao e ferramentas';
+  if (backBtn) backBtn.classList.remove('hidden');
 
   // Se veio com ligaId, seleciona automaticamente
   if (params.ligaId) {

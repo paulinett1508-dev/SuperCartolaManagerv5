@@ -27,51 +27,28 @@
 <body>
   <!-- App Container -->
   <div id="app">
-    <!-- Page Header (dinamicamente renderizado) -->
-    <header id="page-header" class="page-header" style="display: none;">
-      <h1 id="page-title" class="page-title">Dashboard</h1>
+    <!-- Top Bar -->
+    <header id="top-bar" class="top-bar">
+      <div class="top-bar-content">
+        <button id="btn-back" class="top-bar-back hidden" onclick="window.router.navigate('/')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+        </button>
+        <div class="top-bar-title-area">
+          <h1 id="page-title" class="top-bar-title">Admin</h1>
+          <span id="page-subtitle" class="top-bar-subtitle"></span>
+        </div>
+        <button id="btn-profile" class="top-bar-action" onclick="window.router.navigate('/profile')">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
+        </button>
+      </div>
     </header>
 
     <!-- Page Content (SPA) -->
-    <main id="page-content" class="page-content">
+    <main id="page-content" class="page-content page-content--no-bottom-nav">
       <div class="loading">
         <div class="spinner"></div>
       </div>
     </main>
-
-    <!-- Bottom Navigation -->
-    <nav class="bottom-nav">
-      <a href="#/" class="bottom-nav-item active" data-route="/">
-        <div class="bottom-nav-icon">🏠</div>
-        <div class="bottom-nav-label">Início</div>
-      </a>
-      <a href="#/financeiro" class="bottom-nav-item" data-route="/financeiro">
-        <div class="bottom-nav-icon">💰</div>
-        <div class="bottom-nav-label">Financeiro</div>
-      </a>
-      <a href="#/consolidacao" class="bottom-nav-item" data-route="/consolidacao">
-        <div class="bottom-nav-icon">⚙️</div>
-        <div class="bottom-nav-label">Operações</div>
-      </a>
-      <a href="#/health" class="bottom-nav-item" data-route="/health">
-        <div class="bottom-nav-icon">🏥</div>
-        <div class="bottom-nav-label">Saúde</div>
-      </a>
-      <a href="#/profile" class="bottom-nav-item" data-route="/profile">
-        <div class="bottom-nav-icon">👤</div>
-        <div class="bottom-nav-label">Perfil</div>
-      </a>
-    </nav>
-
-    <!-- FAB (Floating Action Button) -->
-    <button id="fab" class="fab hidden">
-      <span>+</span>
-    </button>
-
-    <!-- FAB Menu -->
-    <div id="fab-menu" class="fab-menu">
-      <!-- Dinamicamente populado -->
-    </div>
   </div>
 
   <!-- Toast Container -->
@@ -79,6 +56,11 @@
 
   <!-- Modal Container -->
   <div id="modal-container"></div>
+
+  <!-- Back-to-top -->
+  <button id="btn-scroll-top" class="scroll-top-btn hidden" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+  </button>
 
   <!-- App Script (ES6 Modules) -->
   <script type="module" src="/admin-mobile/js/app.js"></script>

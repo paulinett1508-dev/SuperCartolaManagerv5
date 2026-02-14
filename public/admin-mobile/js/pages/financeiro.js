@@ -11,8 +11,13 @@ let ligas = [];
 export async function render(params = {}) {
   const container = document.getElementById('page-content');
 
-  // Esconde FAB
-  document.getElementById('fab').classList.add('hidden');
+  // Atualiza top bar
+  const titleEl = document.getElementById('page-title');
+  const subtitleEl = document.getElementById('page-subtitle');
+  const backBtn = document.getElementById('btn-back');
+  if (titleEl) titleEl.textContent = 'Acertos Financeiros';
+  if (subtitleEl) subtitleEl.textContent = 'Pagamentos e recebimentos';
+  if (backBtn) backBtn.classList.remove('hidden');
 
   if (params.ligaId) {
     ligaSelecionada = parseInt(params.ligaId);

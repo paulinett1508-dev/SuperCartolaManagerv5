@@ -9,6 +9,14 @@ export async function render(params = {}) {
   const container = document.getElementById('page-content');
   const user = getUser();
 
+  // Atualiza top bar
+  const titleEl = document.getElementById('page-title');
+  const subtitleEl = document.getElementById('page-subtitle');
+  const backBtn = document.getElementById('btn-back');
+  if (titleEl) titleEl.textContent = 'Perfil';
+  if (subtitleEl) subtitleEl.textContent = user?.email || '';
+  if (backBtn) backBtn.classList.remove('hidden');
+
   container.innerHTML = `
     <div class="container">
       <div class="card">

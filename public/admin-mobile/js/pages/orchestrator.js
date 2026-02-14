@@ -29,8 +29,13 @@ let refreshInterval = null;
 export async function render() {
   const container = document.getElementById('page-content');
 
-  // Esconde FAB (usamos botões inline)
-  document.getElementById('fab').classList.add('hidden');
+  // Atualiza top bar
+  const titleEl = document.getElementById('page-title');
+  const subtitleEl = document.getElementById('page-subtitle');
+  const backBtn = document.getElementById('btn-back');
+  if (titleEl) titleEl.textContent = 'Orchestrator';
+  if (subtitleEl) subtitleEl.textContent = 'Monitoramento em tempo real';
+  if (backBtn) backBtn.classList.remove('hidden');
 
   showLoading(container);
   await loadOrchestrator(container);

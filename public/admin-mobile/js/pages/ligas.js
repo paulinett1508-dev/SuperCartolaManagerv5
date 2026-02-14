@@ -9,13 +9,18 @@ export async function render(params = {}) {
   const container = document.getElementById('page-content');
   const { ligaId } = params;
 
+  // Atualiza top bar
+  const titleEl = document.getElementById('page-title');
+  const subtitleEl = document.getElementById('page-subtitle');
+  const backBtn = document.getElementById('btn-back');
+  if (titleEl) titleEl.textContent = 'Liga';
+  if (subtitleEl) subtitleEl.textContent = 'Detalhes';
+  if (backBtn) backBtn.classList.remove('hidden');
+
   if (!ligaId) {
-    container.innerHTML = '<div class="empty-state"><p>Liga não especificada</p></div>';
+    container.innerHTML = '<div class="empty-state"><p>Liga nao especificada</p></div>';
     return;
   }
-
-  // Esconde FAB
-  document.getElementById('fab').classList.add('hidden');
 
   showLoading(container);
 
