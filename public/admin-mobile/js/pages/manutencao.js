@@ -43,14 +43,14 @@ function renderPage(container) {
 
   const statusColor = isAtivo ? 'var(--accent-danger)' : 'var(--accent-success)';
   const statusLabel = isAtivo ? 'ATIVADO' : 'DESATIVADO';
-  const statusEmoji = isAtivo ? '🔴' : '🟢';
+  const statusIcon = isAtivo ? '<span class="material-icons" style="font-size:48px;color:var(--accent-danger);">error</span>' : '<span class="material-icons" style="font-size:48px;color:var(--accent-success);">check_circle</span>';
   const statusBg = isAtivo ? 'rgba(239,68,68,0.1)' : 'rgba(34,197,94,0.1)';
 
   container.innerHTML = `
     <div class="container">
       <!-- Status Card -->
       <div class="card" style="text-align:center;padding:24px;border:1px solid ${statusColor};background:${statusBg};">
-        <div style="font-size:48px;margin-bottom:12px;">${statusEmoji}</div>
+        <div style="margin-bottom:12px;">${statusIcon}</div>
         <h2 style="font-size:20px;font-weight:700;color:${statusColor};margin-bottom:4px;font-family:var(--font-russo);">
           ${statusLabel}
         </h2>

@@ -42,8 +42,8 @@ function renderPage(container, ligas, stats) {
       <!-- Stats -->
       <div class="card" style="margin-bottom:var(--spacing-md);">
         <div style="display:flex;align-items:center;gap:12px;">
-          <div style="width:40px;height:40px;border-radius:var(--radius-md);background:rgba(236,72,153,0.15);display:flex;align-items:center;justify-content:center;font-size:20px;">
-            🔔
+          <div style="width:40px;height:40px;border-radius:var(--radius-md);background:rgba(236,72,153,0.15);display:flex;align-items:center;justify-content:center;">
+            <span class="material-icons" style="color:#ec4899;">notifications_active</span>
           </div>
           <div>
             <div style="font-size:14px;font-weight:600;color:var(--text-primary);">Push Subscribers</div>

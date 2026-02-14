@@ -1,6 +1,48 @@
 /**
- * Components - Cards, Buttons, Bottom Nav, FAB, Modals, Toast
+ * Components - Cards, Buttons, Material Icons, Modals, Toast
  */
+
+/* ========== MATERIAL ICONS HELPERS ========== */
+.material-icons,
+.material-icons-outlined {
+  vertical-align: middle;
+  line-height: 1;
+}
+
+/* Tamanhos padrao */
+.mi-xs { font-size: 14px; }
+.mi-sm { font-size: 18px; }
+.mi-md { font-size: 24px; }
+.mi-lg { font-size: 32px; }
+.mi-xl { font-size: 48px; }
+
+/* Inline com texto */
+.mi-inline {
+  font-size: 18px;
+  vertical-align: -3px;
+  margin-right: 4px;
+}
+
+/* Dentro de block-card-icon */
+.block-card-icon .material-icons,
+.block-card-icon .material-icons-outlined {
+  font-size: 20px;
+}
+
+/* Status indicators (circulos coloridos) */
+.mi-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+
+.mi-dot--success { background: var(--accent-success); }
+.mi-dot--danger { background: var(--accent-danger); }
+.mi-dot--warning { background: var(--accent-warning); }
+.mi-dot--info { background: var(--accent-info); }
+.mi-dot--muted { background: var(--text-muted); }
 
 /* ========== CARDS ========== */
 .card {

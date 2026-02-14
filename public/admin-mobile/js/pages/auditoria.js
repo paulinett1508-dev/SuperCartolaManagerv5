@@ -123,7 +123,7 @@ function renderAuditResult(container, data, detalhado) {
       <!-- Resumo -->
       <div class="card" style="border:1px solid ${saudavel ? 'var(--accent-success)' : 'var(--accent-danger)'};">
         <div style="display:flex;align-items:center;gap:12px;">
-          <span style="font-size:32px;">${saudavel ? '✅' : '⚠️'}</span>
+          <span class="material-icons" style="font-size:32px;color:${saudavel ? 'var(--accent-success)' : 'var(--accent-danger)'};">${saudavel ? 'verified' : 'warning'}</span>
           <div>
             <div style="font-size:16px;font-weight:700;color:${saudavel ? 'var(--accent-success)' : 'var(--accent-danger)'};">
               ${saudavel ? 'Extratos Saudaveis' : `${discrepancias.length} Discrepancia(s)`}

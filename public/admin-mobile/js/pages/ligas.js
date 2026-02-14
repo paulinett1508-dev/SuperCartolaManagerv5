@@ -36,7 +36,7 @@ export async function render(params = {}) {
 function renderLigaDetalhes(container, liga) {
   const saldoClass = liga.saldoTotal >= 0 ? 'text-success' : 'text-danger';
   const consolidacaoStatus = liga.ultimaConsolidacao
-    ? `Rodada ${liga.ultimaConsolidacao.rodada} consolidada ✅`
+    ? `Rodada ${liga.ultimaConsolidacao.rodada} consolidada <span class="material-icons mi-inline">check_circle</span>`
     : 'Nenhuma consolidação ainda';
 
   container.innerHTML = `
@@ -44,7 +44,7 @@ function renderLigaDetalhes(container, liga) {
       <!-- Header com botão voltar -->
       <div style="display: flex; align-items: center; gap: 12px; margin-bottom: var(--spacing-md);">
         <button onclick="window.router.navigate('/')" class="btn btn-ghost btn-sm" style="min-width: 44px; padding: 8px;">
-          ←
+          <span class="material-icons">arrow_back</span>
         </button>
         <div style="flex: 1;">
           <h2 class="card-title" style="margin: 0; font-size: 20px;">${liga.nome}</h2>
@@ -54,7 +54,7 @@ function renderLigaDetalhes(container, liga) {
 
       <!-- Info Geral -->
       <div class="card">
-        <h3 class="card-title" style="font-size: 16px; margin-bottom: var(--spacing-md);">ℹ️ Informações Gerais</h3>
+        <h3 class="card-title" style="font-size: 16px; margin-bottom: var(--spacing-md);"><span class="material-icons mi-inline">info</span> Informações Gerais</h3>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
           <div>
@@ -84,14 +84,14 @@ function renderLigaDetalhes(container, liga) {
         </div>
 
         <p class="text-muted" style="font-size: 13px; margin: 0;">
-          <span style="margin-right: 8px;">⏱️</span>
+          <span class="material-icons mi-inline" style="margin-right: 8px;">timer</span>
           ${consolidacaoStatus}
         </p>
       </div>
 
       <!-- Estatísticas -->
       <div class="card">
-        <h3 class="card-title" style="font-size: 16px; margin-bottom: var(--spacing-md);">📊 Estatísticas</h3>
+        <h3 class="card-title" style="font-size: 16px; margin-bottom: var(--spacing-md);"><span class="material-icons mi-inline">bar_chart</span> Estatísticas</h3>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
           <div>
@@ -123,7 +123,7 @@ function renderLigaDetalhes(container, liga) {
 
       <!-- Módulos Ativos -->
       <div class="card">
-        <h3 class="card-title" style="font-size: 16px; margin-bottom: var(--spacing-md);">🎮 Módulos</h3>
+        <h3 class="card-title" style="font-size: 16px; margin-bottom: var(--spacing-md);"><span class="material-icons mi-inline">sports_esports</span> Módulos</h3>
 
         <div style="display: flex; flex-wrap: wrap; gap: 8px;">
           ${renderModulos(liga.modulosAtivos)}
@@ -131,11 +131,11 @@ function renderLigaDetalhes(container, liga) {
       </div>
 
       <!-- Participantes -->
-      <h3 class="card-title" style="font-size: 16px; margin: var(--spacing-lg) 0 var(--spacing-md) 0;">👥 Participantes (${liga.participantes.length})</h3>
+      <h3 class="card-title" style="font-size: 16px; margin: var(--spacing-lg) 0 var(--spacing-md) 0;"><span class="material-icons mi-inline">group</span> Participantes (${liga.participantes.length})</h3>
 
       ${liga.participantes.length === 0 ? `
         <div class="empty-state">
-          <div class="empty-state-icon">👥</div>
+          <div class="empty-state-icon"><span class="material-icons">group</span></div>
           <h3 class="empty-state-title">Nenhum participante</h3>
           <p class="empty-state-text">Adicione participantes para começar</p>
         </div>
@@ -156,10 +156,10 @@ function renderLigaDetalhes(container, liga) {
       <!-- Ações -->
       <div style="margin-top: var(--spacing-xl); display: flex; gap: 12px;">
         <button onclick="window.router.navigate('/consolidacao', { ligaId: ${liga.id} })" class="btn btn-primary" style="flex: 1;">
-          ⚙️ Consolidar
+          <span class="material-icons mi-inline">settings</span> Consolidar
         </button>
         <button onclick="window.router.navigate('/financeiro', { ligaId: ${liga.id} })" class="btn btn-secondary" style="flex: 1;">
-          💰 Acertos
+          <span class="material-icons mi-inline">payments</span> Acertos
         </button>
       </div>
     </div>
@@ -181,7 +181,7 @@ function renderModulos(modulosAtivos) {
   return Object.entries(modulos).map(([key, modulo]) => {
     const ativo = modulosAtivos[key];
     const badge = ativo ? 'badge-success' : 'badge';
-    const icon = ativo ? '✅' : '⚪';
+    const icon = ativo ? '<span class="material-icons mi-inline">check_circle</span>' : '<span class="material-icons mi-inline">radio_button_unchecked</span>';
 
     return `
       <span class="badge ${badge}" style="display: flex; align-items: center; gap: 4px;">

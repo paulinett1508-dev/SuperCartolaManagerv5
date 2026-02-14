@@ -46,7 +46,7 @@ function renderPage(container) {
     container.innerHTML = `
       <div class="container">
         <div class="empty-state">
-          <div class="empty-state-icon">🔒</div>
+          <div class="empty-state-icon"><span class="material-icons mi-xl">lock</span></div>
           <h3 class="empty-state-title">Acesso Restrito</h3>
           <p class="empty-state-text">Apenas Super Admins podem gerenciar administradores</p>
           <button class="btn btn-ghost" onclick="window.router.navigate('/')">Voltar</button>
@@ -64,7 +64,7 @@ function renderPage(container) {
       <div class="card" style="margin-bottom:var(--spacing-md);">
         <div style="display:flex;align-items:center;gap:12px;">
           <div style="width:40px;height:40px;border-radius:var(--radius-md);background:rgba(59,130,246,0.15);display:flex;align-items:center;justify-content:center;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span class="material-icons" style="color:#3b82f6;">admin_panel_settings</span>
           </div>
           <div>
             <div style="font-size:14px;font-weight:600;color:var(--text-primary);">Administradores</div>

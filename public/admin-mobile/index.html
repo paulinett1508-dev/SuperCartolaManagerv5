@@ -9,10 +9,11 @@
 
   <title>Admin Mobile - Super Cartola Manager</title>
 
-  <!-- Fonts -->
+  <!-- Fonts + Material Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Outlined" rel="stylesheet">
 
   <!-- Styles -->
   <link rel="stylesheet" href="/admin-mobile/css/dark-mode.css">
@@ -31,14 +32,14 @@
     <header id="top-bar" class="top-bar">
       <div class="top-bar-content">
         <button id="btn-back" class="top-bar-back hidden" onclick="window.router.navigate('/')">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg>
+          <span class="material-icons">arrow_back</span>
         </button>
         <div class="top-bar-title-area">
           <h1 id="page-title" class="top-bar-title">Admin</h1>
           <span id="page-subtitle" class="top-bar-subtitle"></span>
         </div>
         <button id="btn-profile" class="top-bar-action" onclick="window.router.navigate('/profile')">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
+          <span class="material-icons-outlined">account_circle</span>
         </button>
       </div>
     </header>
@@ -59,7 +60,7 @@
 
   <!-- Back-to-top -->
   <button id="btn-scroll-top" class="scroll-top-btn hidden" onclick="window.scrollTo({top:0,behavior:'smooth'})">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+    <span class="material-icons">keyboard_arrow_up</span>
   </button>
 
   <!-- App Script (ES6 Modules) -->

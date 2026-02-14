@@ -55,17 +55,17 @@ function renderConsolidacaoPage(container, ligas) {
       <!-- Header -->
       <div style="display: flex; align-items: center; gap: 12px; margin-bottom: var(--spacing-md);">
         <button onclick="window.router.navigate('/')" class="btn btn-ghost btn-sm" style="min-width: 44px; padding: 8px;">
-          ←
+          <span class="material-icons">arrow_back</span>
         </button>
         <div style="flex: 1;">
-          <h2 class="card-title" style="margin: 0; font-size: 20px;">⚙️ Operações</h2>
+          <h2 class="card-title" style="margin: 0; font-size: 20px;"><span class="material-icons mi-inline">settings</span> Operações</h2>
           <p class="text-muted" style="margin: 0; font-size: 14px;">Consolidação e ferramentas administrativas</p>
         </div>
       </div>
 
       <!-- Acesso Rápido -->
       <div class="card" style="margin-bottom: var(--spacing-md); background: linear-gradient(135deg, rgba(251, 146, 60, 0.1) 0%, rgba(249, 115, 22, 0.05) 100%); border: 1px solid rgba(251, 146, 60, 0.2);">
-        <h3 class="card-title" style="font-size: 14px; margin-bottom: 12px; color: #fb923c;">🔧 Ferramentas Administrativas</h3>
+        <h3 class="card-title" style="font-size: 14px; margin-bottom: 12px; color: #fb923c;"><span class="material-icons mi-inline">build</span> Ferramentas Administrativas</h3>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
           <a
             href="/notificador.html"
@@ -73,14 +73,14 @@ function renderConsolidacaoPage(container, ligas) {
             class="btn btn-secondary"
             style="flex: 1; min-width: 140px; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 6px;"
           >
-            📢 Notificador
+            <span class="material-icons mi-inline">campaign</span> Notificador
           </a>
           <button
             class="btn btn-ghost"
             style="flex: 1; min-width: 140px; font-size: 13px; opacity: 0.5; cursor: not-allowed;"
             disabled
           >
-            🔜 Em breve
+            <span class="material-icons mi-inline">schedule</span> Em breve
           </button>
         </div>
       </div>
@@ -133,7 +133,7 @@ function renderConsolidacaoPage(container, ligas) {
           onclick="window.consolidarRodadaManual()"
           disabled
         >
-          ⚙️ Consolidar Rodada
+          <span class="material-icons mi-inline">settings</span> Consolidar Rodada
         </button>
 
         <!-- Status de Consolidação -->
@@ -241,11 +241,11 @@ async function consolidarRodadaManual() {
 
     if (result.success) {
       if (result.jaConsolidada) {
-        statusText.textContent = '✅ Rodada já estava consolidada';
+        statusText.innerHTML = '<span class="material-icons mi-inline">check_circle</span> Rodada já estava consolidada';
         statusText.className = 'text-warning';
         showToast('Rodada já consolidada anteriormente', 'warning');
       } else {
-        statusText.textContent = '✅ Consolidação concluída com sucesso!';
+        statusText.innerHTML = '<span class="material-icons mi-inline">check_circle</span> Consolidação concluída com sucesso!';
         statusText.className = 'text-success';
         showToast('Rodada consolidada com sucesso!', 'success');
       }
@@ -265,7 +265,7 @@ async function consolidarRodadaManual() {
     console.error('Erro ao consolidar rodada:', error);
     progressFill.style.width = '100%';
     progressFill.style.background = 'var(--accent-danger)';
-    statusText.textContent = '❌ Erro: ' + error.message;
+    statusText.innerHTML = '<span class="material-icons mi-inline">error</span> Erro: ' + error.message;
     statusText.className = 'text-danger';
     showToast('Erro ao consolidar: ' + error.message, 'error');
   } finally {
@@ -300,7 +300,7 @@ async function carregarHistorico(ligaId) {
     console.error('Erro ao carregar histórico:', error);
     historicoContainer.innerHTML = `
       <div class="card">
-        <p class="text-danger" style="margin: 0; font-size: 14px;">❌ Erro ao carregar histórico</p>
+        <p class="text-danger" style="margin: 0; font-size: 14px;"><span class="material-icons mi-inline">error</span> Erro ao carregar histórico</p>
       </div>
     `;
   }
@@ -312,7 +312,7 @@ function renderHistorico(container, historico) {
   if (totalConsolidadas === 0) {
     container.innerHTML = `
       <div class="empty-state" style="margin-top: var(--spacing-lg);">
-        <div class="empty-state-icon">📋</div>
+        <div class="empty-state-icon"><span class="material-icons">assignment</span></div>
         <h3 class="empty-state-title">Nenhuma rodada consolidada</h3>
         <p class="empty-state-text">Consolide a primeira rodada acima</p>
       </div>
@@ -323,14 +323,14 @@ function renderHistorico(container, historico) {
   container.innerHTML = `
     <div style="margin-top: var(--spacing-xl);">
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--spacing-md);">
-        <h3 class="card-title" style="font-size: 16px; margin: 0;">📊 Histórico - ${ligaNome}</h3>
+        <h3 class="card-title" style="font-size: 16px; margin: 0;"><span class="material-icons mi-inline">bar_chart</span> Histórico - ${ligaNome}</h3>
         <span class="badge badge-primary">${totalConsolidadas} consolidadas</span>
       </div>
 
       ${rodadasPendentes.length > 0 ? `
         <div class="card" style="margin-bottom: var(--spacing-md); background: var(--bg-tertiary); border: 1px solid var(--accent-warning);">
           <p class="text-warning" style="font-size: 13px; margin: 0;">
-            ⚠️ ${rodadasPendentes.length} rodada${rodadasPendentes.length > 1 ? 's' : ''} pendente${rodadasPendentes.length > 1 ? 's' : ''}:
+            <span class="material-icons mi-inline">warning</span> ${rodadasPendentes.length} rodada${rodadasPendentes.length > 1 ? 's' : ''} pendente${rodadasPendentes.length > 1 ? 's' : ''}:
             ${rodadasPendentes.slice(0, 5).join(', ')}${rodadasPendentes.length > 5 ? '...' : ''}
           </p>
         </div>
@@ -370,7 +370,7 @@ function renderHistoricoItem(item) {
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
         ${campeaoRodada ? `
           <div>
-            <p class="text-muted" style="font-size: 11px; margin: 0;">🏆 Campeão</p>
+            <p class="text-muted" style="font-size: 11px; margin: 0;"><span class="material-icons mi-inline">emoji_events</span> Campeão</p>
             <p style="font-size: 13px; font-weight: 600; margin: 2px 0 0 0;">${campeaoRodada.nome}</p>
             <p class="text-success" style="font-size: 12px; font-weight: 600; margin: 0; font-family: var(--font-mono);">
               ${campeaoRodada.pontos.toFixed(2)} pts
@@ -380,7 +380,7 @@ function renderHistoricoItem(item) {
 
         ${liderGeral ? `
           <div>
-            <p class="text-muted" style="font-size: 11px; margin: 0;">👑 Líder Geral</p>
+            <p class="text-muted" style="font-size: 11px; margin: 0;"><span class="material-icons mi-inline">military_tech</span> Líder Geral</p>
             <p style="font-size: 13px; font-weight: 600; margin: 2px 0 0 0;">${liderGeral.nome}</p>
             <p class="text-primary" style="font-size: 12px; font-weight: 600; margin: 0; font-family: var(--font-mono);">
               ${liderGeral.pontos.toFixed(2)} pts
@@ -393,12 +393,12 @@ function renderHistoricoItem(item) {
         <div style="display: flex; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border-color);">
           ${mito ? `
             <span class="badge badge-success" style="flex: 1; justify-content: center; font-size: 11px;">
-              🔥 ${mito.nome_time || mito.nome}
+              <span class="material-icons mi-inline">whatshot</span> ${mito.nome_time || mito.nome}
             </span>
           ` : ''}
           ${mico ? `
             <span class="badge badge-danger" style="flex: 1; justify-content: center; font-size: 11px;">
-              💩 ${mico.nome_time || mico.nome}
+              <span class="material-icons mi-inline">sentiment_very_dissatisfied</span> ${mico.nome_time || mico.nome}
             </span>
           ` : ''}
         </div>

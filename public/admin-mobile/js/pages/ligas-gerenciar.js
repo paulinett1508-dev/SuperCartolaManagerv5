@@ -35,7 +35,7 @@ function renderPage(container, ligas) {
     container.innerHTML = `
       <div class="container">
         <div class="empty-state">
-          <div class="empty-state-icon">🏆</div>
+          <div class="empty-state-icon"><span class="material-icons mi-xl">emoji_events</span></div>
           <h3 class="empty-state-title">Nenhuma liga encontrada</h3>
           <p class="empty-state-text">Crie sua primeira liga pelo painel web</p>
           <button class="btn btn-primary" onclick="window.open('/criar-liga.html','_blank')">
@@ -55,7 +55,7 @@ function renderPage(container, ligas) {
 
       <div style="margin-top:var(--spacing-lg);text-align:center;">
         <button class="btn btn-ghost btn-sm" onclick="window.open('/criar-liga.html','_blank')" style="gap:6px;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span class="material-icons mi-inline">add</span>
           Criar Nova Liga (Web)
         </button>
       </div>
@@ -72,7 +72,7 @@ function renderLigaManageCard(liga) {
     <div class="card" style="padding:14px;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
         <div style="display:flex;align-items:center;gap:10px;">
-          <span style="font-size:22px;">🏆</span>
+          <span class="material-icons" style="font-size:22px;color:var(--accent-warning);">emoji_events</span>
           <div>
             <div style="font-size:15px;font-weight:600;color:var(--text-primary);">${liga.nome}</div>
             <div style="font-size:12px;color:var(--text-muted);">Temporada ${liga.temporada}</div>

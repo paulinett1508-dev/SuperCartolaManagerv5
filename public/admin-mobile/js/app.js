@@ -159,10 +159,10 @@ export function showToast(message, type = 'info') {
   toast.className = `toast toast-${type}`;
 
   const icons = {
-    success: '✅',
-    error: '❌',
-    warning: '⚠️',
-    info: 'ℹ️'
+    success: '<span class="material-icons" style="color:var(--accent-success)">check_circle</span>',
+    error: '<span class="material-icons" style="color:var(--accent-danger)">error</span>',
+    warning: '<span class="material-icons" style="color:var(--accent-warning)">warning</span>',
+    info: '<span class="material-icons" style="color:var(--accent-info)">info</span>'
   };
 
   toast.innerHTML = `
@@ -216,7 +216,7 @@ export function showError(container, message) {
 
   container.innerHTML = `
     <div class="error-message">
-      ❌ ${message}
+      <span class="material-icons" style="color:var(--accent-danger);vertical-align:-4px;">error</span> ${message}
     </div>
   `;
 }

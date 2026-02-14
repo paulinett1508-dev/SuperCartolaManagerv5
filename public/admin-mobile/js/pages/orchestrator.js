@@ -15,12 +15,12 @@ const MARKET_LABELS = {
 };
 
 const FASES = [
-  { id: 'aguardando', label: 'Ocioso', emoji: '⏳' },
-  { id: 'coletando_dados', label: 'Coletando', emoji: '📥' },
-  { id: 'atualizando_live', label: 'Live', emoji: '📡' },
-  { id: 'finalizando', label: 'Finalizando', emoji: '🏁' },
-  { id: 'consolidando', label: 'Consolidando', emoji: '📊' },
-  { id: 'concluida', label: 'Concluida', emoji: '✅' },
+  { id: 'aguardando', label: 'Ocioso', materialIcon: 'hourglass_empty' },
+  { id: 'coletando_dados', label: 'Coletando', materialIcon: 'download' },
+  { id: 'atualizando_live', label: 'Live', materialIcon: 'sensors' },
+  { id: 'finalizando', label: 'Finalizando', materialIcon: 'flag' },
+  { id: 'consolidando', label: 'Consolidando', materialIcon: 'bar_chart' },
+  { id: 'concluida', label: 'Concluida', materialIcon: 'check_circle' },
 ];
 
 let eventSource = null;
@@ -128,7 +128,7 @@ function renderPage(container, data) {
           margin: 0 auto 12px;
           font-size: 32px;
           ${statusNum === 2 ? 'animation: pulse-glow 2s infinite;' : ''}
-        ">${semaforo.emoji}</div>
+        ">${semaforo.icon}</div>
         <h2 style="font-family: var(--font-russo); font-size: 22px; margin: 0;">
           Mercado ${statusLabel}
         </h2>
@@ -143,7 +143,7 @@ function renderPage(container, data) {
         border-left: 4px solid ${acao.cor};
         display: flex; align-items: center; gap: 12px;
       ">
-        <span style="font-size: 28px;">${acao.emoji}</span>
+        <span style="font-size: 28px;">${acao.icon}</span>
         <div>
           <div style="font-weight: 600; font-size: 15px; color: ${acao.cor};">${acao.titulo}</div>
           <div style="color: var(--text-muted); font-size: 13px;">${acao.descricao}</div>
@@ -197,7 +197,7 @@ function renderPage(container, data) {
               background: ${bg}; color: ${color};
               font-size: 11px; font-weight: 600;
             ">
-              <div style="font-size: 16px;">${f.emoji}</div>
+              <div style="font-size: 16px;"><span class="material-icons">${f.materialIcon}</span></div>
               ${f.label}
             </div>`;
           }).join('')}
@@ -210,10 +210,10 @@ function renderPage(container, data) {
       </h3>
       <div style="display: flex; gap: 8px; margin-bottom: var(--spacing-md);">
         <button class="btn btn-primary btn-sm" style="flex: 1;" onclick="window._orchForcarVerificacao()">
-          🔄 Verificar Mercado
+          <span class="material-icons mi-inline">autorenew</span> Verificar Mercado
         </button>
         <button class="btn btn-secondary btn-sm" style="flex: 1;" onclick="window._orchForcarConsolidacao()">
-          🔧 Forcar Consolidacao
+          <span class="material-icons mi-inline">build</span> Forcar Consolidacao
         </button>
       </div>
 
@@ -287,11 +287,11 @@ function renderPage(container, data) {
 
 function getSemaforoConfig(statusNum) {
   switch (statusNum) {
-    case 1: return { cor: 'var(--accent-success)', sombra: 'rgba(34, 197, 94, 0.4)', emoji: '🟢' };
-    case 2: return { cor: 'var(--accent-danger)', sombra: 'rgba(239, 68, 68, 0.4)', emoji: '🔴' };
-    case 4: return { cor: 'var(--accent-warning)', sombra: 'rgba(245, 158, 11, 0.4)', emoji: '🟡' };
-    case 6: return { cor: 'var(--text-muted)', sombra: 'rgba(148, 163, 184, 0.3)', emoji: '🏁' };
-    default: return { cor: 'var(--bg-tertiary)', sombra: 'rgba(0,0,0,0.2)', emoji: '❓' };
+    case 1: return { cor: 'var(--accent-success)', sombra: 'rgba(34, 197, 94, 0.4)', icon: '<span class="mi-dot mi-dot--success"></span>' };
+    case 2: return { cor: 'var(--accent-danger)', sombra: 'rgba(239, 68, 68, 0.4)', icon: '<span class="mi-dot mi-dot--danger"></span>' };
+    case 4: return { cor: 'var(--accent-warning)', sombra: 'rgba(245, 158, 11, 0.4)', icon: '<span class="mi-dot mi-dot--warning"></span>' };
+    case 6: return { cor: 'var(--text-muted)', sombra: 'rgba(148, 163, 184, 0.3)', icon: '<span class="material-icons">flag</span>' };
+    default: return { cor: 'var(--bg-tertiary)', sombra: 'rgba(0,0,0,0.2)', icon: '<span class="material-icons">help</span>' };
   }
 }
 
@@ -300,7 +300,7 @@ function getAcaoStatus(live) {
 
   if (fase === 'erro') {
     return {
-      emoji: '🚨',
+      icon: '<span class="material-icons">report_problem</span>',
       titulo: 'Acao necessaria',
       descricao: 'Houve erro na consolidacao. Verifique os eventos e force manualmente.',
       cor: 'var(--accent-danger)',
@@ -308,7 +308,7 @@ function getAcaoStatus(live) {
   }
   if (live.consolidandoAgora) {
     return {
-      emoji: '⏳',
+      icon: '<span class="material-icons">hourglass_empty</span>',
       titulo: 'Consolidando...',
       descricao: 'Consolidacao em andamento. Aguarde.',
       cor: 'var(--accent-warning)',
@@ -316,7 +316,7 @@ function getAcaoStatus(live) {
   }
   if (live.statusMercado === 1 && (fase === 'concluida' || fase === 'aguardando')) {
     return {
-      emoji: '✅',
+      icon: '<span class="material-icons">check_circle</span>',
       titulo: 'Tudo automatico',
       descricao: 'Mercado aberto, ultima rodada consolidada. Nenhuma acao necessaria.',
       cor: 'var(--accent-success)',
@@ -324,7 +324,7 @@ function getAcaoStatus(live) {
   }
   if (live.statusMercado === 2) {
     return {
-      emoji: '⚽',
+      icon: '<span class="material-icons">sports_soccer</span>',
       titulo: 'Rodada em andamento',
       descricao: 'Jogos acontecendo. Consolidacao sera automatica ao final.',
       cor: 'var(--accent-info)',
@@ -332,14 +332,14 @@ function getAcaoStatus(live) {
   }
   if (live.statusMercado === 4) {
     return {
-      emoji: '⏸️',
+      icon: '<span class="material-icons">pause_circle</span>',
       titulo: 'Rodada encerrada',
       descricao: 'Aguardando mercado abrir para consolidar automaticamente.',
       cor: 'var(--accent-warning)',
     };
   }
   return {
-    emoji: '📡',
+    icon: '<span class="material-icons">sensors</span>',
     titulo: 'Monitorando',
     descricao: 'Orchestrator ativo e monitorando o mercado.',
     cor: 'var(--text-muted)',
@@ -358,13 +358,13 @@ function renderStat(value, label) {
 }
 
 function renderEvento(e) {
-  let emoji = '📝';
+  let icon = '<span class="material-icons">edit_note</span>';
   let borderColor = 'var(--border-color)';
 
-  if (e.tipo.includes('transicao')) { emoji = '🔔'; borderColor = 'var(--accent-primary)'; }
-  else if (e.tipo.includes('consolidacao_completa')) { emoji = '✅'; borderColor = 'var(--accent-success)'; }
-  else if (e.tipo.includes('erro')) { emoji = '❌'; borderColor = 'var(--accent-danger)'; }
-  else if (e.tipo.includes('rodada_encerrada')) { emoji = '🏁'; borderColor = 'var(--accent-warning)'; }
+  if (e.tipo.includes('transicao')) { icon = '<span class="material-icons">notifications</span>'; borderColor = 'var(--accent-primary)'; }
+  else if (e.tipo.includes('consolidacao_completa')) { icon = '<span class="material-icons">check_circle</span>'; borderColor = 'var(--accent-success)'; }
+  else if (e.tipo.includes('erro')) { icon = '<span class="material-icons">cancel</span>'; borderColor = 'var(--accent-danger)'; }
+  else if (e.tipo.includes('rodada_encerrada')) { icon = '<span class="material-icons">flag</span>'; borderColor = 'var(--accent-warning)'; }
 
   const time = e.timestamp
     ? new Date(e.timestamp).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
@@ -376,7 +376,7 @@ function renderEvento(e) {
       padding: 8px 0;
       border-bottom: 1px solid var(--border-color);
     ">
-      <span style="font-size: 16px; flex-shrink: 0; margin-top: 2px;">${emoji}</span>
+      <span style="font-size: 16px; flex-shrink: 0; margin-top: 2px;">${icon}</span>
       <div style="flex: 1; min-width: 0;">
         <div style="font-size: 13px; color: var(--text-primary);">${formatEvento(e)}</div>
         <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); margin-top: 2px;">${time}</div>
@@ -387,7 +387,7 @@ function renderEvento(e) {
 
 function formatEvento(e) {
   if (e.tipo === 'transicao_mercado') {
-    return `Mercado: ${MARKET_LABELS[e.de] || e.de} → ${MARKET_LABELS[e.para] || e.para} (R${e.rodada})`;
+    return `Mercado: ${MARKET_LABELS[e.de] || e.de} <span class="material-icons mi-inline">call_made</span> ${MARKET_LABELS[e.para] || e.para} (R${e.rodada})`;
   }
   if (e.tipo === 'consolidacao_completa') {
     return `Consolidacao R${e.rodada} completa (${e.detalhes?.ligas || '?'} ligas)`;
