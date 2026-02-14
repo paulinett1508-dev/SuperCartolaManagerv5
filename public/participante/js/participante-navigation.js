@@ -396,7 +396,7 @@ class ParticipanteNavigation {
         }
 
         // Verificar se módulo está ativo na liga
-        if (!this.moduloEstaAtivo('raioX')) {
+        if (!this.verificarModuloAtivo('raioX')) {
             if (window.Log) Log.debug('PARTICIPANTE-NAV', '⏭️ Widget Raio-X ignorado (módulo desativado)');
             return;
         }
