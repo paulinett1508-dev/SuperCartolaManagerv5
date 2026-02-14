@@ -199,49 +199,68 @@ export const obterContextoRodada = async (req, res) => {
 };
 
 /**
- * Calcula movimentações na liga (quem subiu/caiu)
+ * Calcula ranking geral acumulado até uma rodada (soma de pontos)
+ * Retorna array ordenado por totalPontos desc com posição atribuída
+ */
+async function calcularRankingAcumulado(ligaId, ateRodada, temporada) {
+    return Rodada.aggregate([
+        {
+            $match: {
+                ligaId: ligaId,
+                temporada: temporada,
+                rodada: { $lte: ateRodada },
+            },
+        },
+        {
+            $group: {
+                _id: "$timeId",
+                nome: { $last: "$nome_cartola" },
+                totalPontos: { $sum: "$pontos" },
+            },
+        },
+        { $sort: { totalPontos: -1 } },
+    ]);
+}
+
+/**
+ * Calcula movimentações na liga (quem subiu/caiu no RANKING GERAL)
+ * IMPORTANTE: Usa ranking acumulado (soma de todas rodadas), NÃO a
+ * posição individual da rodada (Rodada.posicao = rank dentro daquela rodada)
  */
 async function calcularMovimentacoes(ligaId, rodada, timeId, temporada) {
     try {
-        // Buscar rodada anterior para comparar
-        const rodadaAnterior = await Rodada.find({
-            ligaId: ligaId,
-            rodada: rodada - 1,
-            temporada: temporada,
-        }).lean();
+        if (rodada <= 1) return []; // Sem rodada anterior para comparar
 
-        const rodadaAtual = await Rodada.find({
-            ligaId: ligaId,
-            rodada: rodada,
-            temporada: temporada,
-        }).lean();
+        // Calcular ranking geral acumulado até rodada atual e anterior
+        const [rankingAtual, rankingAnterior] = await Promise.all([
+            calcularRankingAcumulado(ligaId, rodada, temporada),
+            calcularRankingAcumulado(ligaId, rodada - 1, temporada),
+        ]);
+
+        // Criar map de posições: timeId → posição (1-based)
+        const posAtual = new Map();
+        rankingAtual.forEach((r, i) => posAtual.set(r._id, { posicao: i + 1, nome: r.nome }));
+
+        const posAnterior = new Map();
+        rankingAnterior.forEach((r, i) => posAnterior.set(r._id, i + 1));
 
         const movimentacoes = [];
 
-        // Comparar posições
-        rodadaAtual.forEach(atual => {
-            const anterior = rodadaAnterior.find(r => r.timeId === atual.timeId);
-            if (anterior && anterior.posicao !== atual.posicao) {
-                const mudanca = anterior.posicao - atual.posicao; // Positivo = subiu
-                if (mudanca > 0) {
-                    movimentacoes.push({
-                        tipo: "subida",
-                        time: atual.nome_cartola || atual.nome_time,
-                        timeId: atual.timeId,
-                        de: anterior.posicao,
-                        para: atual.posicao,
-                    });
-                } else {
-                    movimentacoes.push({
-                        tipo: "queda",
-                        time: atual.nome_cartola || atual.nome_time,
-                        timeId: atual.timeId,
-                        de: anterior.posicao,
-                        para: atual.posicao,
-                    });
-                }
-            }
-        });
+        for (const [tid, dados] of posAtual) {
+            const posAnt = posAnterior.get(tid);
+            if (posAnt === undefined) continue; // Participante novo, sem anterior
+
+            const mudanca = posAnt - dados.posicao; // Positivo = subiu
+            if (mudanca === 0) continue;
+
+            movimentacoes.push({
+                tipo: mudanca > 0 ? "subida" : "queda",
+                time: dados.nome,
+                timeId: tid,
+                de: posAnt,
+                para: dados.posicao,
+            });
+        }
 
         // Ordenar por magnitude da mudança
         movimentacoes.sort((a, b) =>
