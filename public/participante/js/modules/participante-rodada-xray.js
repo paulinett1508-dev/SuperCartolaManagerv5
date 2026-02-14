@@ -360,7 +360,7 @@ function renderizarUpcoming(disputas) {
                 <div class="xray-upcoming-info">
                     <div class="xray-upcoming-title">LUVA DE OURO</div>
                     <div class="xray-upcoming-desc">
-                        ${luva.sua_posicao}º lugar • ${luva.seus_sgs} SGs
+                        ${luva.sua_posicao}º lugar • ${luva.seus_pontos?.toFixed(1) || 0} pts
                     </div>
                 </div>
                 <span class="xray-upcoming-badge posicao">${luva.sua_posicao}º</span>

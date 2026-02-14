@@ -46,17 +46,24 @@ const NOMES_FASES = {
  */
 export async function calcularPontosCorridos(ligaId, rodada, timeId, temporada) {
     try {
-        // Buscar cache da rodada
+        // IMPORTANTE: rodada_consolidada no PontosCorridosCache é a rodada da LIGA PC,
+        // NÃO a rodada do Brasileirão/Cartola. A numeração é independente.
+        // Ex: Liga PC rodada 2 pode ter sido disputada na rodada 3 do Brasileirão.
+        // Por isso buscamos o cache MAIS RECENTE da liga, sem filtrar por rodada.
         const cache = await PontosCorridosCache.findOne({
             liga_id: String(ligaId),
-            rodada_consolidada: rodada,
             temporada: temporada,
-        }).lean();
+        })
+            .sort({ rodada_consolidada: -1 })
+            .lean();
 
         if (!cache) {
-            console.log(`${LOG_PREFIX} [PC] Cache não encontrado para rodada ${rodada}`);
+            console.log(`${LOG_PREFIX} [PC] Nenhum cache encontrado para liga=${ligaId} temp=${temporada}`);
             return null;
         }
+
+        const rodadaPC = cache.rodada_consolidada;
+        console.log(`${LOG_PREFIX} [PC] Usando cache da rodada PC ${rodadaPC} (Brasileirão rodada ${rodada})`);
 
         // Encontrar confronto do time
         const meuConfronto = cache.confrontos?.find(c =>
@@ -90,10 +97,10 @@ export async function calcularPontosCorridos(ligaId, rodada, timeId, temporada) 
         const posicaoAtual = minhaClassificacao?.posicao || 0;
         const pontosTabela = minhaClassificacao?.pontos || 0;
 
-        // Buscar rodada anterior para detectar mudança de posição
+        // Buscar rodada PC anterior para detectar mudança de posição
         const cacheAnterior = await PontosCorridosCache.findOne({
             liga_id: String(ligaId),
-            rodada_consolidada: rodada - 1,
+            rodada_consolidada: rodadaPC - 1,
             temporada: temporada,
         }).lean();
 
@@ -128,11 +135,11 @@ export async function calcularPontosCorridos(ligaId, rodada, timeId, temporada) 
             vantagem_g4 = -(Math.abs(pontosTabela - (quarto?.pontos || 0)));
         }
 
-        // Buscar próximo confronto (rodada +1)
+        // Buscar próximo confronto (rodada PC + 1)
         let proximoConfronto = null;
         const cacheProximo = await PontosCorridosCache.findOne({
             liga_id: String(ligaId),
-            rodada_consolidada: rodada + 1,
+            rodada_consolidada: rodadaPC + 1,
             temporada: temporada,
         }).lean();
 
@@ -146,7 +153,7 @@ export async function calcularPontosCorridos(ligaId, rodada, timeId, temporada) 
                 const adversarioProx = sou_time1_prox ? confrontoProx.time2 : confrontoProx.time1;
 
                 proximoConfronto = {
-                    rodada: rodada + 1,
+                    rodada: rodadaPC + 1,
                     adversario: {
                         nome: adversarioProx.nome_cartola || adversarioProx.nome,
                         timeId: adversarioProx.id,
@@ -180,6 +187,7 @@ export async function calcularPontosCorridos(ligaId, rodada, timeId, temporada) 
                 derrotas: c.derrotas,
                 saldo_pontos: c.saldo_pontos || 0,
             })),
+            rodada_pc: rodadaPC, // Rodada da Liga PC (diferente da rodada Brasileirão)
             minha_posicao: posicaoAtual,
             posicao_anterior: posicaoAnterior,
             mudanca_posicao: mudancaPosicao, // +2 = subiu 2, -1 = caiu 1
@@ -479,61 +487,43 @@ function extrairGolsDaRodada(detalhePorRodada, rodada) {
  */
 export async function calcularLuvaOuro(ligaId, rodada, timeId, temporada) {
     try {
-        const dados = await Goleiros.findOne({
-            ligaId: String(ligaId),
-            temporada: temporada,
-        }).lean();
+        // Goleiros armazena 1 doc por participante/rodada.
+        // Usar o método buscarRanking() do model que faz aggregation.
+        const ranking = await Goleiros.buscarRanking(
+            String(ligaId),
+            1,    // rodadaInicio
+            null, // rodadaFim (todas até a mais recente)
+            temporada
+        );
 
-        if (!dados || !dados.dados) {
-            console.log(`${LOG_PREFIX} [LUVA] Dados não encontrados`);
+        if (!ranking || ranking.length === 0) {
+            console.log(`${LOG_PREFIX} [LUVA] Nenhum dado de goleiros para liga=${ligaId} temp=${temporada}`);
             return null;
         }
 
-        // Ordenar por saldoGols (SGs)
-        const ranking = dados.dados
-            .map(d => ({
-                timeId: d.timeId,
-                nome: d.nomeCartoleiro,
-                sgs: d.saldoGols, // Saldo de gols (clean sheets - gols sofridos)
-                pontos: d.pontosRankingGeral || 0,
-            }))
-            .sort((a, b) => {
-                if (b.sgs !== a.sgs) return b.sgs - a.sgs;
-                return b.pontos - a.pontos; // Desempate por pontos
-            });
+        // ranking já vem ordenado por pontosTotais desc
+        const minhaPosicao = ranking.findIndex(r => r.participanteId === timeId) + 1;
+        const meusDados = ranking.find(r => r.participanteId === timeId);
 
-        const minhaPosicao = ranking.findIndex(r => r.timeId === timeId) + 1;
-        const meusDados = ranking.find(r => r.timeId === timeId);
-
-        // Buscar goleiro da rodada
-        const rodadaData = await Rodada.findOne({
-            ligaId: ligaId,
-            rodada: rodada,
-            temporada: temporada,
-            timeId: timeId,
-        }).lean();
-
+        // Buscar goleiro da última rodada do participante
         let goleiroRodada = null;
-        if (rodadaData && rodadaData.atletas) {
-            // Encontrar goleiro (posicao_id === 1)
-            const goleiro = rodadaData.atletas.find(a => a.posicao_id === 1);
-
-            if (goleiro) {
-                goleiroRodada = {
-                    nome: goleiro.apelido,
-                    pontos: goleiro.pontos_num || 0,
-                    sgs: 0, // Seria necessário calcular
-                };
-            }
+        if (meusDados?.ultimaRodada) {
+            goleiroRodada = {
+                nome: meusDados.ultimaRodada.goleiroNome,
+                pontos: meusDados.ultimaRodada.pontos || 0,
+            };
         }
 
         return {
             classificacao: ranking.slice(0, 5).map((r, i) => ({
                 posicao: i + 1,
-                ...r,
+                timeId: r.participanteId,
+                nome: r.participanteNome,
+                pontos: r.pontosTotais,
             })),
             sua_posicao: minhaPosicao,
-            seus_sgs: meusDados?.sgs || 0,
+            seus_pontos: meusDados?.pontosTotais || 0,
+            rodadas_jogadas: meusDados?.rodadasJogadas || 0,
             seu_goleiro_rodada: goleiroRodada,
         };
     } catch (error) {
@@ -547,51 +537,28 @@ export async function calcularLuvaOuro(ligaId, rodada, timeId, temporada) {
  */
 export async function calcularCapitaoLuxo(ligaId, rodada, timeId, temporada) {
     try {
-        const cache = await CapitaoCaches.findOne({
-            ligaId: String(ligaId),
-            temporada: temporada,
-        }).lean();
+        // CapitaoCaches armazena 1 doc por participante (ligaId é ObjectId).
+        // Usar buscarRanking() do model que já ordena por pontuacao_total desc.
+        const ranking = await CapitaoCaches.buscarRanking(ligaId, temporada);
 
-        if (!cache || !cache.rankingAcumulado) {
-            console.log(`${LOG_PREFIX} [CAP] Cache não encontrado`);
+        if (!ranking || ranking.length === 0) {
+            console.log(`${LOG_PREFIX} [CAP] Nenhum dado de capitão para liga=${ligaId} temp=${temporada}`);
             return null;
         }
 
-        const ranking = cache.rankingAcumulado
-            .map(r => ({
-                timeId: r.timeId,
-                nome: r.nomeCartoleiro,
-                pontos: r.totalBonusAcumulado || 0,
-            }))
-            .sort((a, b) => b.pontos - a.pontos);
-
-        const minhaPosicao = ranking.findIndex(r => r.timeId === timeId) + 1;
         const lider = ranking[0];
+        const minhaPosicao = ranking.findIndex(r => r.timeId === timeId) + 1;
         const meusDados = ranking.find(r => r.timeId === timeId);
 
-        // Buscar capitão da rodada
-        const rodadaData = await Rodada.findOne({
-            ligaId: ligaId,
-            rodada: rodada,
-            temporada: temporada,
-            timeId: timeId,
-        }).lean();
-
+        // Buscar último capitão do participante via historico_rodadas
         let capitaoRodada = null;
-        if (rodadaData && rodadaData.capitao_id && rodadaData.atletas) {
-            const capitao = rodadaData.atletas.find(a => a.atleta_id === rodadaData.capitao_id);
-
-            if (capitao) {
-                const pontosBase = capitao.pontos_num || 0;
-                const bonus = pontosBase * 0.5; // Capitão de Luxo = 1.5x = 0.5x de bônus
-
+        if (meusDados?.historico_rodadas?.length > 0) {
+            const ultimoCapitao = [...meusDados.historico_rodadas]
+                .sort((a, b) => b.rodada - a.rodada)[0];
+            if (ultimoCapitao) {
                 capitaoRodada = {
-                    nome: capitao.apelido,
-                    pontos_base: pontosBase,
-                    bonus: bonus,
-                    impacto_percentual: rodadaData.pontos > 0
-                        ? (bonus / rodadaData.pontos) * 100
-                        : 0,
+                    nome: ultimoCapitao.atleta_nome,
+                    pontuacao: ultimoCapitao.pontuacao || 0,
                 };
             }
         }
@@ -599,11 +566,14 @@ export async function calcularCapitaoLuxo(ligaId, rodada, timeId, temporada) {
         return {
             classificacao_acumulada: ranking.slice(0, 5).map((r, i) => ({
                 posicao: i + 1,
-                ...r,
-                diferenca: i === 0 ? 0 : parseFloat((r.pontos - lider.pontos).toFixed(2)),
+                timeId: r.timeId,
+                nome: r.nome_cartola,
+                pontos: r.pontuacao_total,
+                diferenca: i === 0 ? 0 : parseFloat((r.pontuacao_total - lider.pontuacao_total).toFixed(2)),
             })),
             sua_posicao: minhaPosicao,
-            seus_pontos: meusDados?.pontos || 0,
+            seus_pontos: meusDados?.pontuacao_total || 0,
+            media_capitao: meusDados?.media_capitao || 0,
             seu_capitao_rodada: capitaoRodada,
         };
     } catch (error) {
