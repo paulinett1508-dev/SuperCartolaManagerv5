@@ -1,5 +1,6 @@
 /**
- * App Module - Inicialização e Routing SPA
+ * App Module - Inicializacao e Routing SPA
+ * v2 - Redesign com blocos (sem bottom-nav)
  */
 
 import { requireAuth, getUser } from './auth.js';
@@ -14,22 +15,13 @@ class Router {
     window.addEventListener('load', () => this.handleRoute());
   }
 
-  /**
-   * Adiciona rota
-   */
   addRoute(path, handler) {
     this.routes[path] = handler;
   }
 
-  /**
-   * Gerencia mudança de rota
-   */
   async handleRoute() {
-    // Verifica autenticação
     const isAuth = await requireAuth();
-    if (!isAuth) {
-      return;
-    }
+    if (!isAuth) return;
 
     const hash = window.location.hash.slice(1) || '/';
     const [path, queryString] = hash.split('?');
@@ -37,107 +29,101 @@ class Router {
     const route = this.routes[path];
     if (route) {
       const params = this.parseQueryString(queryString);
+      this.currentPage = path;
       await route(params);
-      this.updateBottomNav(path);
-      this.updatePageHeader(path);
     } else {
-      // Rota não encontrada - vai para dashboard
       this.navigate('/');
     }
   }
 
-  /**
-   * Navega para rota
-   */
   navigate(path, params = {}) {
     const queryString = new URLSearchParams(params).toString();
     const hash = queryString ? `${path}?${queryString}` : path;
     window.location.hash = hash;
   }
 
-  /**
-   * Parse query string
-   */
   parseQueryString(queryString) {
     if (!queryString) return {};
-
     return queryString.split('&').reduce((acc, param) => {
       const [key, value] = param.split('=');
       acc[key] = decodeURIComponent(value);
       return acc;
     }, {});
   }
-
-  /**
-   * Atualiza bottom nav ativo
-   */
-  updateBottomNav(path) {
-    document.querySelectorAll('.bottom-nav-item').forEach(item => {
-      item.classList.remove('active');
-      if (item.dataset.route === path) {
-        item.classList.add('active');
-      }
-    });
-  }
-
-  /**
-   * Atualiza header da página
-   */
-  updatePageHeader(path) {
-    const pageHeader = document.getElementById('page-header');
-    const pageTitle = document.getElementById('page-title');
-
-    const titles = {
-      '/': 'Dashboard',
-      '/ligas': 'Ligas',
-      '/consolidacao': 'Operações',
-      '/financeiro': 'Financeiro',
-      '/health': 'Saúde do Sistema',
-      '/orchestrator': 'Orchestrator',
-      '/profile': 'Perfil'
-    };
-
-    if (titles[path]) {
-      pageTitle.textContent = titles[path];
-      pageHeader.style.display = 'block';
-    }
-  }
 }
 
 // ========== APP INIT ========== //
 const router = new Router();
 
-// Registra rotas (lazy load)
+// ========== ROTAS ========== //
+
+// Dashboard (Home com blocos)
 router.addRoute('/', async (params) => {
   const { render } = await import('./pages/dashboard.js');
   await render();
 });
 
+// Liga detalhes
 router.addRoute('/ligas', async (params) => {
   const { render } = await import('./pages/ligas.js');
   await render(params);
 });
 
+// Gerenciar ligas
+router.addRoute('/ligas-gerenciar', async (params) => {
+  const { render } = await import('./pages/ligas-gerenciar.js');
+  await render(params);
+});
+
+// Consolidacao
 router.addRoute('/consolidacao', async (params) => {
   const { render } = await import('./pages/consolidacao.js');
   await render(params);
 });
 
+// Financeiro (Acertos)
 router.addRoute('/financeiro', async (params) => {
   const { render } = await import('./pages/financeiro.js');
   await render(params);
 });
 
+// Auditoria
+router.addRoute('/auditoria', async (params) => {
+  const { render } = await import('./pages/auditoria.js');
+  await render(params);
+});
+
+// Notificador
+router.addRoute('/notificador', async (params) => {
+  const { render } = await import('./pages/notificador.js');
+  await render(params);
+});
+
+// Manutencao
+router.addRoute('/manutencao', async (params) => {
+  const { render } = await import('./pages/manutencao.js');
+  await render(params);
+});
+
+// Saude
 router.addRoute('/health', async (params) => {
   const { render } = await import('./pages/health.js');
   await render(params);
 });
 
+// Admin Gestao
+router.addRoute('/admin-gestao', async (params) => {
+  const { render } = await import('./pages/admin-gestao.js');
+  await render(params);
+});
+
+// Orchestrator
 router.addRoute('/orchestrator', async (params) => {
   const { render } = await import('./pages/orchestrator.js');
   await render(params);
 });
 
+// Perfil
 router.addRoute('/profile', async (params) => {
   const { render } = await import('./pages/profile.js');
   await render(params);
@@ -159,24 +145,11 @@ if (action === 'consolidar') {
   router.navigate('/financeiro');
 } else if (action === 'health') {
   router.navigate('/health');
+} else if (action === 'manutencao') {
+  router.navigate('/manutencao');
+} else if (action === 'notificar') {
+  router.navigate('/notificador');
 }
-
-// ========== FAB (Floating Action Button) ========== //
-const fab = document.getElementById('fab');
-const fabMenu = document.getElementById('fab-menu');
-
-fab.addEventListener('click', () => {
-  fabMenu.classList.toggle('open');
-  fab.innerHTML = fabMenu.classList.contains('open') ? '×' : '+';
-});
-
-// Fecha menu ao clicar fora
-document.addEventListener('click', (e) => {
-  if (!fab.contains(e.target) && !fabMenu.contains(e.target)) {
-    fabMenu.classList.remove('open');
-    fab.innerHTML = '+';
-  }
-});
 
 // ========== TOAST HELPER ========== //
 export function showToast(message, type = 'info') {
@@ -186,10 +159,10 @@ export function showToast(message, type = 'info') {
   toast.className = `toast toast-${type}`;
 
   const icons = {
-    success: '✅',
-    error: '❌',
-    warning: '⚠️',
-    info: 'ℹ️'
+    success: '<span class="material-icons" style="color:var(--accent-success)">check_circle</span>',
+    error: '<span class="material-icons" style="color:var(--accent-danger)">error</span>',
+    warning: '<span class="material-icons" style="color:var(--accent-warning)">warning</span>',
+    info: '<span class="material-icons" style="color:var(--accent-info)">info</span>'
   };
 
   toast.innerHTML = `
@@ -199,12 +172,10 @@ export function showToast(message, type = 'info') {
 
   container.appendChild(toast);
 
-  // Anima entrada
   setTimeout(() => {
     toast.classList.add('show');
   }, 10);
 
-  // Remove após 3s
   setTimeout(() => {
     toast.classList.remove('show');
     setTimeout(() => {
@@ -245,7 +216,7 @@ export function showError(container, message) {
 
   container.innerHTML = `
     <div class="error-message">
-      ❌ ${message}
+      <span class="material-icons" style="color:var(--accent-danger);vertical-align:-4px;">error</span> ${message}
     </div>
   `;
 }
@@ -283,17 +254,17 @@ window.addEventListener('app-foreground', () => {
   router.handleRoute();
 });
 
-// Exibe indicador de conexão offline/online
+// Exibe indicador de conexao offline/online
 window.addEventListener('online', () => {
-  showToast('Conexão restaurada', 'success');
+  showToast('Conexao restaurada', 'success');
 });
 
 window.addEventListener('offline', () => {
-  showToast('Você está offline', 'warning');
+  showToast('Voce esta offline', 'warning');
 });
 
 // Exporta router e user para uso global
 window.router = router;
 window.currentUser = getUser();
 
-console.log('App initialized');
+console.log('Admin App v2 initialized - Block Dashboard');
