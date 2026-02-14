@@ -20,7 +20,9 @@ let estadoDicas = {
     },
     rodada: null,
     carregando: false,
-    isPremium: false
+    isPremium: false,
+    modoSelecionado: 'equilibrado',
+    modoSugerido: null
 };
 
 const POSICOES = [
@@ -474,9 +476,9 @@ async function calcularMPV() {
 }
 
 // =====================================================================
-// TAB: SUGESTAO DE ESCALACAO
+// TAB: SUGESTAO DE ESCALACAO (v2.0 - Modos nomeados)
 // =====================================================================
-function renderizarFormSugestao() {
+async function renderizarFormSugestao() {
     const content = document.getElementById('dicas-content');
 
     content.innerHTML = `
@@ -486,7 +488,7 @@ function renderizarFormSugestao() {
                 <h3 class="text-sm font-bold text-white">Sugestao de Escalacao</h3>
             </div>
             <p class="text-xs text-white/50 mb-4">
-                Informe seu patrimonio e objetivo para receber um time otimizado.
+                Escolha a estrategia e patrimonio para receber um time otimizado.
             </p>
 
             <!-- Patrimonio -->
@@ -496,18 +498,28 @@ function renderizarFormSugestao() {
                        placeholder="Ex: 120.00" step="0.01" min="50" value="100">
             </div>
 
-            <!-- Slider de Objetivo -->
-            <div class="mb-6">
-                <label class="text-xs text-white/50 block mb-2">Objetivo da Escalacao</label>
-                <div class="slider-container">
-                    <input type="range" id="sugestao-peso" min="0" max="100" value="50">
-                    <div class="slider-labels">
-                        <span>Mitar (pontos)</span>
-                        <span>Valorizar (C$)</span>
-                    </div>
+            <!-- Modos de Estrategia -->
+            <div class="mb-5">
+                <label class="text-xs text-white/50 block mb-2">Estrategia</label>
+                <div class="grid grid-cols-3 gap-2" id="modos-estrategia">
+                    <button class="modo-btn ${estadoDicas.modoSelecionado === 'mitar' ? 'active' : ''}" data-modo="mitar">
+                        <span class="material-icons modo-icon" style="color: #ef4444;">rocket_launch</span>
+                        <span class="modo-nome">Mitar</span>
+                        <span class="modo-desc">Pontuacao alta</span>
+                    </button>
+                    <button class="modo-btn ${estadoDicas.modoSelecionado === 'equilibrado' ? 'active' : ''}" data-modo="equilibrado">
+                        <span class="material-icons modo-icon" style="color: #f59e0b;">balance</span>
+                        <span class="modo-nome">Equilibrado</span>
+                        <span class="modo-desc">Pts + C$</span>
+                    </button>
+                    <button class="modo-btn ${estadoDicas.modoSelecionado === 'valorizar' ? 'active' : ''}" data-modo="valorizar">
+                        <span class="material-icons modo-icon" style="color: #22c55e;">trending_up</span>
+                        <span class="modo-nome">Valorizar</span>
+                        <span class="modo-desc">Crescer C$</span>
+                    </button>
                 </div>
-                <div class="text-center mt-2">
-                    <span id="peso-valor" class="text-xs text-white/60">Equilibrado (50%)</span>
+                <div id="modo-sugestao-chip" class="mt-2 hidden">
+                    <!-- Chip de sugestao inteligente -->
                 </div>
             </div>
 
@@ -522,27 +534,68 @@ function renderizarFormSugestao() {
         </div>
     `;
 
-    // Event listeners
-    const slider = document.getElementById('sugestao-peso');
-    const pesoValor = document.getElementById('peso-valor');
+    // Event: selecionar modo
+    document.getElementById('modos-estrategia')?.addEventListener('click', (e) => {
+        const btn = e.target.closest('.modo-btn');
+        if (!btn) return;
 
-    slider?.addEventListener('input', (e) => {
-        const valor = parseInt(e.target.value);
-        let texto;
-        if (valor <= 20) texto = `Foco em Mitar (${valor}%)`;
-        else if (valor <= 40) texto = `Mitar + Valorizar (${valor}%)`;
-        else if (valor <= 60) texto = `Equilibrado (${valor}%)`;
-        else if (valor <= 80) texto = `Valorizar + Mitar (${valor}%)`;
-        else texto = `Foco em Valorizar (${valor}%)`;
-        pesoValor.textContent = texto;
+        estadoDicas.modoSelecionado = btn.dataset.modo;
+        document.querySelectorAll('.modo-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
     });
 
+    // Event: patrimonio muda -> sugerir modo
+    document.getElementById('sugestao-patrimonio')?.addEventListener('change', atualizarSugestaoModo);
+
+    // Event: gerar
     document.getElementById('gerar-sugestao-btn')?.addEventListener('click', gerarSugestaoEscalacao);
+
+    // Sugestao inicial
+    atualizarSugestaoModo();
+}
+
+async function atualizarSugestaoModo() {
+    const patrimonio = parseFloat(document.getElementById('sugestao-patrimonio')?.value) || 100;
+    const chip = document.getElementById('modo-sugestao-chip');
+
+    try {
+        const resp = await fetch(`/api/dicas-premium/modo-sugerido?patrimonio=${patrimonio}`);
+        const data = await resp.json();
+
+        if (data.sucesso && data.modo) {
+            estadoDicas.modoSugerido = data.modo;
+            chip.classList.remove('hidden');
+            chip.innerHTML = `
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 cursor-pointer"
+                     onclick="document.querySelector('.modo-btn[data-modo=\\'${data.modo}\\']')?.click()">
+                    <span class="material-icons text-xs text-yellow-400">lightbulb</span>
+                    <span class="text-xs text-white/60">
+                        Sugerido: <strong class="text-white/80">${data.config.nome}</strong> — ${data.razao}
+                    </span>
+                </div>
+            `;
+
+            // Marcar chip de recomendado no botao
+            document.querySelectorAll('.modo-btn').forEach(btn => {
+                const badge = btn.querySelector('.modo-recomendado');
+                if (badge) badge.remove();
+
+                if (btn.dataset.modo === data.modo) {
+                    const recomendado = document.createElement('span');
+                    recomendado.className = 'modo-recomendado';
+                    recomendado.textContent = 'Sugerido';
+                    btn.appendChild(recomendado);
+                }
+            });
+        }
+    } catch {
+        // Silencioso - sugestao nao e critica
+    }
 }
 
 async function gerarSugestaoEscalacao() {
     const patrimonio = parseFloat(document.getElementById('sugestao-patrimonio')?.value);
-    const pesoValorizacao = parseInt(document.getElementById('sugestao-peso')?.value) || 50;
+    const modo = estadoDicas.modoSelecionado || 'equilibrado';
     const resultado = document.getElementById('sugestao-resultado');
 
     if (!patrimonio || patrimonio < 50) {
@@ -560,7 +613,7 @@ async function gerarSugestaoEscalacao() {
         const resp = await fetch('/api/dicas-premium/sugestao', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ patrimonio, pesoValorizacao })
+            body: JSON.stringify({ patrimonio, modo })
         });
 
         const data = await resp.json();
