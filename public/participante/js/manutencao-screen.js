@@ -1327,11 +1327,55 @@ const ManutencaoScreen = {
     // DEV BYPASS: Login admin via Replit Auth para acessar app em manutenção
     // =====================================================================
     iniciarDevBypass() {
-        if (window.Log) Log.info('MANUTENCAO', 'Dev bypass iniciado - redirecionando para Replit Auth');
-        // Redirecionar para Replit Auth com retorno ao app participante
-        // Após login admin, a sessão terá req.session.admin + req.session.participante
-        // O endpoint /api/participante/manutencao/status detecta e libera
-        window.location.href = '/api/admin/auth/login?redirect=/participante/';
+        if (window.Log) Log.info('MANUTENCAO', 'Dev bypass - mostrando opções de acesso');
+
+        // Remover modal anterior se existir
+        const existente = document.getElementById('devBypassModal');
+        if (existente) existente.remove();
+
+        const backdrop = document.createElement('div');
+        backdrop.id = 'devBypassModal';
+        backdrop.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px;';
+
+        backdrop.innerHTML = `
+            <div style="background:#1f2937;border-radius:16px;max-width:340px;width:100%;padding:24px;border:1px solid #374151;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+                <div style="text-align:center;margin-bottom:20px;">
+                    <span class="material-icons" style="font-size:36px;color:#60a5fa;">admin_panel_settings</span>
+                    <h3 style="font-family:'Russo One',sans-serif;font-size:1rem;color:#e5e7eb;margin:8px 0 4px;">Acesso Admin</h3>
+                    <p style="font-size:0.75rem;color:#9ca3af;margin:0;">Escolha para onde deseja ir</p>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:10px;">
+                    <button id="devBypassParticipante" style="display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#059669,#047857);color:white;border:none;padding:14px 16px;border-radius:12px;cursor:pointer;font-family:'Inter',sans-serif;font-size:0.85rem;font-weight:600;transition:opacity 0.2s;">
+                        <span class="material-icons" style="font-size:22px;">phone_iphone</span>
+                        <div style="text-align:left;">
+                            <div>App Participante</div>
+                            <div style="font-size:0.7rem;font-weight:400;opacity:0.8;">Ver como participante logado</div>
+                        </div>
+                    </button>
+                    <button id="devBypassAdmin" style="display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:white;border:none;padding:14px 16px;border-radius:12px;cursor:pointer;font-family:'Inter',sans-serif;font-size:0.85rem;font-weight:600;transition:opacity 0.2s;">
+                        <span class="material-icons" style="font-size:22px;">dashboard</span>
+                        <div style="text-align:left;">
+                            <div>App Admin</div>
+                            <div style="font-size:0.7rem;font-weight:400;opacity:0.8;">Painel de gerenciamento</div>
+                        </div>
+                    </button>
+                </div>
+                <button id="devBypassFechar" style="width:100%;margin-top:12px;background:none;border:1px solid #374151;color:#9ca3af;padding:10px;border-radius:10px;cursor:pointer;font-family:'Inter',sans-serif;font-size:0.8rem;transition:color 0.2s;">
+                    Cancelar
+                </button>
+            </div>
+        `;
+
+        document.body.appendChild(backdrop);
+
+        document.getElementById('devBypassParticipante').addEventListener('click', () => {
+            window.location.href = '/api/admin/auth/login?redirect=/participante/';
+        });
+        document.getElementById('devBypassAdmin').addEventListener('click', () => {
+            window.location.href = '/api/admin/auth/login?redirect=/gerenciar.html';
+        });
+        document.getElementById('devBypassFechar').addEventListener('click', () => backdrop.remove());
+        backdrop.addEventListener('click', (e) => { if (e.target === backdrop) backdrop.remove(); });
     },
 
     async _carregarNoticias() {
