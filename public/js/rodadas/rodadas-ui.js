@@ -1,13 +1,15 @@
 // RODADAS UI - Interface e Renderização
+// ✅ v2.5: FIX - Usar configs dinâmicas do servidor (wizard) em vez de hardcoded
 // ✅ v2.4: FIX - Rodada 38 mostra "Encerrada" quando campeonato acabou
 // ✅ v2.3: Tabelas contextuais por rodada (valores de banco e labels de posição)
-//         Rodadas 1-29: 6 times | Rodadas 30+: 4 times
 // Responsável por: renderização de componentes, manipulação DOM, eventos
 
 import {
   POSICAO_CONFIG,
   LIGAS_CONFIG,
   getBancoPorRodada,
+  getBancoPorRodadaAsync,
+  getFaixasPorRodadaAsync,
   RODADA_TRANSICAO_SOBRAL,
 } from "./rodadas-config.js";
 
@@ -241,64 +243,94 @@ export async function selecionarRodada(rodada, carregarDadosCallback) {
 // EXIBIÇÃO DE RANKINGS
 // ==============================
 
-// ✅ v2.3: FUNÇÃO PARA OBTER LABEL DE POSIÇÃO (contextual por rodada)
+// ✅ v2.5: Cache local de faixas (evita fetch repetido na mesma renderização)
+let _faixasCache = { ligaId: null, rodada: null, faixas: null, valores: null };
+
+/**
+ * Pré-carrega faixas e valores do servidor para a rodada.
+ * Chamada UMA VEZ antes de renderizar a lista, evitando N fetches por participante.
+ */
+async function preCarregarConfigRodada(ligaId, rodada) {
+  if (_faixasCache.ligaId === ligaId && _faixasCache.rodada === rodada && _faixasCache.faixas) {
+    return _faixasCache;
+  }
+
+  try {
+    const [faixas, valores] = await Promise.all([
+      getFaixasPorRodadaAsync(ligaId, rodada),
+      getBancoPorRodadaAsync(ligaId, rodada),
+    ]);
+    _faixasCache = { ligaId, rodada, faixas, valores };
+    console.log(`[RODADAS-UI] Config carregada do servidor: ${faixas?.totalTimes || '?'} participantes, ${Object.keys(valores || {}).length} posições`);
+  } catch (e) {
+    console.warn(`[RODADAS-UI] Fallback hardcoded:`, e.message);
+    _faixasCache = {
+      ligaId, rodada,
+      faixas: null,
+      valores: getBancoPorRodada(ligaId, rodada),
+    };
+  }
+  return _faixasCache;
+}
+
+// ✅ v2.5: FUNÇÃO PARA OBTER LABEL DE POSIÇÃO (dinâmico via config do servidor)
 export function getPosLabel(index, total, ligaId, rodada) {
   const pos = index + 1;
+  const faixas = _faixasCache.faixas;
+
+  // Se temos faixas dinâmicas do servidor, usar elas
+  if (faixas && faixas.credito && faixas.debito) {
+    const totalConfig = faixas.totalTimes || total;
+
+    // 1º lugar = MITO
+    if (pos === 1) {
+      return `<span style="color:#fff; font-weight:bold; background:#198754; border-radius:4px; padding:1px 8px; font-size:12px;">MITO</span>`;
+    }
+    // Último ativo = MICO
+    if (pos === totalConfig && totalConfig > 1) {
+      return `<span style="color:#fff; font-weight:bold; background:#dc3545; border-radius:4px; padding:1px 8px; font-size:12px;">MICO</span>`;
+    }
+    // Zona de ganho (crédito) - G2, G3...
+    if (pos >= faixas.credito.inicio && pos <= faixas.credito.fim) {
+      return `<span class="pos-g">G${pos}</span>`;
+    }
+    // Zona neutra
+    if (faixas.neutro && pos >= faixas.neutro.inicio && pos <= faixas.neutro.fim) {
+      return `<span class="pos-neutro">${pos}º</span>`;
+    }
+    // Zona de perda (débito) - Z1, Z2...
+    if (pos >= faixas.debito.inicio && pos <= faixas.debito.fim) {
+      const zoneIndex = totalConfig - pos;
+      return `<span class="pos-z">${pos}º | Z${zoneIndex}</span>`;
+    }
+    return `${pos}°`;
+  }
+
+  // Fallback: lógica hardcoded original (se servidor não respondeu)
   const isLigaCartoleirosSobral = ligaId === LIGAS_CONFIG.CARTOLEIROS_SOBRAL;
 
   if (isLigaCartoleirosSobral) {
-    // ✅ v2.3: Determinar fase baseada na rodada
-    const isFase1 = rodada < RODADA_TRANSICAO_SOBRAL; // Rodadas 1-29: 6 times
+    const isFase1 = rodada < RODADA_TRANSICAO_SOBRAL;
 
     if (isFase1) {
-      // FASE 1: 6 times (rodadas 1-29)
-      if (pos === 1) {
-        return `<span style="color:#fff; font-weight:bold; background:#198754; border-radius:4px; padding:1px 8px; font-size:12px;">MITO</span>`;
-      }
-      if (pos === 2) {
-        return `<span class="pos-g">G2</span>`;
-      }
-      if (pos === 3) {
-        return `<span class="pos-neutro">3º</span>`;
-      }
-      if (pos === 4) {
-        return `<span class="pos-z">Z3</span>`;
-      }
-      if (pos === 5) {
-        return `<span class="pos-z">Z2</span>`;
-      }
-      if (pos === 6) {
-        return `<span style="color:#fff; font-weight:bold; background:#dc3545; border-radius:4px; padding:1px 8px; font-size:12px;">MICO</span>`;
-      }
+      if (pos === 1) return `<span style="color:#fff; font-weight:bold; background:#198754; border-radius:4px; padding:1px 8px; font-size:12px;">MITO</span>`;
+      if (pos === 2) return `<span class="pos-g">G2</span>`;
+      if (pos === 3) return `<span class="pos-neutro">3º</span>`;
+      if (pos === 4) return `<span class="pos-z">Z3</span>`;
+      if (pos === 5) return `<span class="pos-z">Z2</span>`;
+      if (pos === 6) return `<span style="color:#fff; font-weight:bold; background:#dc3545; border-radius:4px; padding:1px 8px; font-size:12px;">MICO</span>`;
     } else {
-      // FASE 2: 4 times (rodadas 30+)
-      if (pos === 1) {
-        return `<span style="color:#fff; font-weight:bold; background:#198754; border-radius:4px; padding:1px 8px; font-size:12px;">MITO</span>`;
-      }
-      if (pos === 2 || pos === 3) {
-        return `<span class="pos-neutro">${pos}º</span>`;
-      }
-      if (pos === 4) {
-        return `<span style="color:#fff; font-weight:bold; background:#dc3545; border-radius:4px; padding:1px 8px; font-size:12px;">MICO</span>`;
-      }
+      if (pos === 1) return `<span style="color:#fff; font-weight:bold; background:#198754; border-radius:4px; padding:1px 8px; font-size:12px;">MITO</span>`;
+      if (pos === 2 || pos === 3) return `<span class="pos-neutro">${pos}º</span>`;
+      if (pos === 4) return `<span style="color:#fff; font-weight:bold; background:#dc3545; border-radius:4px; padding:1px 8px; font-size:12px;">MICO</span>`;
     }
     return `${pos}°`;
   } else {
-    // SUPERCARTOLA - Lógica original
     const config = POSICAO_CONFIG.SUPERCARTOLA;
-
-    if (pos === config.mito.pos) {
-      return `<span style="${config.mito.style}">${config.mito.label}</span>`;
-    }
-    if (config.g2_g11.range[0] <= pos && pos <= config.g2_g11.range[1]) {
-      return `<span class="${config.g2_g11.className}">${config.g2_g11.getLabel(pos)}</span>`;
-    }
-    if (config.zona.condition(pos, total)) {
-      return `<span class="${config.zona.className}">${config.zona.getLabel(pos, total)}</span>`;
-    }
-    if (config.mico.condition(pos, total)) {
-      return `<span class="${config.mico.className}">${config.mico.label}</span>`;
-    }
+    if (pos === config.mito.pos) return `<span style="${config.mito.style}">${config.mito.label}</span>`;
+    if (config.g2_g11.range[0] <= pos && pos <= config.g2_g11.range[1]) return `<span class="${config.g2_g11.className}">${config.g2_g11.getLabel(pos)}</span>`;
+    if (config.zona.condition(pos, total)) return `<span class="${config.zona.className}">${config.zona.getLabel(pos, total)}</span>`;
+    if (config.mico.condition(pos, total)) return `<span class="${config.mico.className}">${config.mico.label}</span>`;
     return `${pos}°`;
   }
 }
@@ -377,7 +409,7 @@ function renderizarCardApp(rank, index, posLabel, banco, isParcial = false) {
 }
 
 // ✅ v2.3: EXIBIR RANKING - TABELAS CONTEXTUAIS POR RODADA
-export function exibirRanking(rankingsDaRodada, rodadaSelecionada, ligaId) {
+export async function exibirRanking(rankingsDaRodada, rodadaSelecionada, ligaId) {
   const rankingList = getElement("rankingList");
 
   // Validar se é array
@@ -417,12 +449,13 @@ export function exibirRanking(rankingsDaRodada, rodadaSelecionada, ligaId) {
   // Ordenar ativos por pontos
   ativos.sort((a, b) => parseFloat(b.pontos || 0) - parseFloat(a.pontos || 0));
 
-  // ✅ v2.3: Usar valores de banco contextuais por rodada
-  const bancoValores = getBancoPorRodada(ligaId, rodadaSelecionada);
+  // ✅ v2.5: Pré-carregar config dinâmica do servidor (faixas + valores)
+  const configRodada = await preCarregarConfigRodada(ligaId, rodadaSelecionada);
+  const bancoValores = configRodada.valores || getBancoPorRodada(ligaId, rodadaSelecionada);
   const totalAtivos = ativos.length;
 
   console.log(
-    `[RODADAS-UI] Rodada ${rodadaSelecionada}: usando tabela de ${Object.keys(bancoValores).length} posições`,
+    `[RODADAS-UI] Rodada ${rodadaSelecionada}: usando tabela de ${Object.keys(bancoValores).length} posições (dinâmico)`,
   );
 
   // Renderizar ativos
@@ -430,7 +463,6 @@ export function exibirRanking(rankingsDaRodada, rodadaSelecionada, ligaId) {
     .map((rank, index) => {
       const banco =
         bancoValores[index + 1] !== undefined ? bancoValores[index + 1] : 0.0;
-      // ✅ v2.3: Passar rodada para getPosLabel
       const posLabel = getPosLabel(
         index,
         totalAtivos,
@@ -479,7 +511,7 @@ export function exibirRanking(rankingsDaRodada, rodadaSelecionada, ligaId) {
 
 
 // EXIBIR RANKING COM PARCIAIS
-export function exibirRankingParciais(
+export async function exibirRankingParciais(
   rankingsParciais,
   rodadaSelecionada,
   ligaId,
@@ -500,7 +532,9 @@ export function exibirRankingParciais(
     (a, b) => parseFloat(b.totalPontos || 0) - parseFloat(a.totalPontos || 0),
   );
 
-  const bancoValores = getBancoPorRodada(ligaId, rodadaSelecionada);
+  // ✅ v2.5: Usar config dinâmica do servidor
+  const configRodada = await preCarregarConfigRodada(ligaId, rodadaSelecionada);
+  const bancoValores = configRodada.valores || getBancoPorRodada(ligaId, rodadaSelecionada);
   const totalAtivos = ativos.length;
 
   let listHTML = ativos
