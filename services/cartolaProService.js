@@ -7,6 +7,7 @@
 
 import axios from "axios";
 import NodeCache from "node-cache";
+import { calcularScoreAtleta, resolverPesoValorizacao, sugerirModo } from './estrategia-sugestao.js';
 
 // Cache para sessões ativas (TTL: 2 horas - tempo médio de sessão Globo)
 const sessionCache = new NodeCache({ stdTTL: 7200 });
@@ -367,13 +368,17 @@ class CartolaProService {
     }
 
     /**
-     * Gera time sugerido com base em algoritmo próprio
+     * Gera time sugerido com base em algoritmo de estrategia
      * @param {number} esquema - ID do esquema de formação (1-7)
      * @param {number} patrimonio - Patrimônio disponível para montar o time
+     * @param {string|number} modoOuPeso - 'mitar'|'equilibrado'|'valorizar' ou 0-100
      * @returns {Promise<{success: boolean, atletas?: Array, totalPreco?: number, error?: string}>}
      */
-    async gerarTimeSugerido(esquema = 3, patrimonio = 100) {
-        CartolaProLogger.info('Gerando time sugerido', { esquema, patrimonio });
+    async gerarTimeSugerido(esquema = 3, patrimonio = 100, modoOuPeso = 'equilibrado') {
+        const pesoValorizacao = resolverPesoValorizacao(modoOuPeso);
+        const modoSugerido = sugerirModo(patrimonio);
+
+        CartolaProLogger.info('Gerando time sugerido', { esquema, patrimonio, pesoValorizacao, modoSugerido: modoSugerido.modo });
 
         try {
             // Buscar atletas do mercado (público, sem token)
@@ -382,24 +387,39 @@ class CartolaProService {
             const clubes = atletasResponse.data.clubes || {};
             const posicoes = atletasResponse.data.posicoes || {};
 
-            // Converter para array e adicionar dados formatados
-            const atletasArray = Object.values(atletas).map(a => ({
-                atletaId: a.atleta_id,
-                nome: a.apelido,
-                posicaoId: a.posicao_id,
-                posicao: posicoes[a.posicao_id]?.nome || 'N/D',
-                posicaoAbreviacao: posicoes[a.posicao_id]?.abreviacao || 'N/D',
-                clubeId: a.clube_id,
-                clube: clubes[a.clube_id]?.nome || 'N/D',
-                clubeAbreviacao: clubes[a.clube_id]?.abreviacao || 'N/D',
-                preco: a.preco_num || 0,
-                media: a.media_num || 0,
-                jogos: a.jogos_num || 0,
-                status: a.status_id, // 7 = provável, 2 = dúvida, etc.
-                foto: a.foto?.replace('FORMATO', '140x140') || null,
-                // Custo-benefício: média / preço (evita divisão por zero)
-                custoBeneficio: a.preco_num > 0 ? (a.media_num / a.preco_num) : 0
-            }));
+            // MPV local simplificado (mesmo calculo do dicasPremiumService)
+            const calcMPV = (preco, jogos = 1) => {
+                if (!preco || preco <= 0) return 0;
+                const fatorPreco = Math.log10(preco + 1) * 0.8;
+                const fatorRodadas = jogos > 5 ? 1.0 : 1.2;
+                return Number(((2.5 + fatorPreco) * fatorRodadas).toFixed(1));
+            };
+
+            // Converter para array e calcular score via modulo centralizado
+            const atletasArray = Object.values(atletas).map(a => {
+                const preco = a.preco_num || 0;
+                const media = a.media_num || 0;
+                const jogos = a.jogos_num || 0;
+                const mpv = calcMPV(preco, jogos);
+
+                return {
+                    atletaId: a.atleta_id,
+                    nome: a.apelido,
+                    posicaoId: a.posicao_id,
+                    posicao: posicoes[a.posicao_id]?.nome || 'N/D',
+                    posicaoAbreviacao: posicoes[a.posicao_id]?.abreviacao || 'N/D',
+                    clubeId: a.clube_id,
+                    clube: clubes[a.clube_id]?.nome || 'N/D',
+                    clubeAbreviacao: clubes[a.clube_id]?.abreviacao || 'N/D',
+                    preco,
+                    media,
+                    jogos,
+                    mpv,
+                    status: a.status_id,
+                    foto: a.foto?.replace('FORMATO', '140x140') || null,
+                    scoreFinal: calcularScoreAtleta({ media, preco, mpv }, pesoValorizacao)
+                };
+            });
 
             // Filtrar apenas jogadores prováveis (status 7)
             const atletasProvaveis = atletasArray.filter(a => a.status === 7 || a.jogos >= 3);
@@ -410,34 +430,27 @@ class CartolaProService {
                 return { success: false, error: 'Esquema de formação inválido' };
             }
 
-            // Selecionar atletas por posição com melhor custo-benefício
+            // Selecionar atletas por posição ordenados por scoreFinal
             const timeSugerido = [];
             let precoTotal = 0;
-            const patrimonioRestante = patrimonio;
 
-            // Função para selecionar melhores atletas de uma posição
             const selecionarAtletas = (posicaoId, quantidade, orcamento) => {
                 const candidatos = atletasProvaveis
                     .filter(a => a.posicaoId === posicaoId && a.preco <= orcamento)
-                    .sort((a, b) => b.custoBeneficio - a.custoBeneficio);
+                    .sort((a, b) => b.scoreFinal - a.scoreFinal);
 
                 return candidatos.slice(0, quantidade);
             };
 
-            // Mapear posição para ID
             const posicaoParaId = { gol: 1, lat: 2, zag: 3, mei: 4, ata: 5, tec: 6 };
+            const totalJogadores = Object.values(esquemaConfig.posicoes).reduce((a, b) => a + b, 0) + 1;
+            const orcamentoPorJogador = patrimonio / totalJogadores;
 
-            // Calcular orçamento por posição (proporcional)
-            const totalJogadores = Object.values(esquemaConfig.posicoes).reduce((a, b) => a + b, 0) + 1; // +1 técnico
-            const orcamentoPorJogador = patrimonioRestante / totalJogadores;
-
-            // Selecionar para cada posição
             for (const [pos, qtd] of Object.entries(esquemaConfig.posicoes)) {
                 const posId = posicaoParaId[pos];
                 const selecionados = selecionarAtletas(posId, qtd, orcamentoPorJogador * qtd * 1.5);
 
                 if (selecionados.length < qtd) {
-                    // Não tem jogadores suficientes disponíveis
                     CartolaProLogger.warn(`Faltam jogadores para posição ${pos}`, {
                         necessario: qtd,
                         disponivel: selecionados.length
@@ -465,7 +478,8 @@ class CartolaProService {
             CartolaProLogger.info('Time sugerido gerado', {
                 totalAtletas: timeSugerido.length,
                 precoTotal,
-                capitaoSugerido
+                capitaoSugerido,
+                pesoValorizacao
             });
 
             return {
@@ -475,7 +489,9 @@ class CartolaProService {
                 patrimonioRestante: patrimonio - precoTotal,
                 esquema: esquemaConfig.nome,
                 capitaoSugerido,
-                algoritmo: 'custo-beneficio-v1' // Futuramente: integrar GatoMestre
+                pesoValorizacao,
+                modoSugerido,
+                algoritmo: 'estrategia-v2'
             };
 
         } catch (error) {

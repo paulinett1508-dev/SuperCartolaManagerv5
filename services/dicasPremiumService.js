@@ -1,10 +1,14 @@
 /**
- * DICAS PREMIUM SERVICE v1.0
+ * DICAS PREMIUM SERVICE v1.1
  * Processa dados da API Cartola para estatisticas avancadas
+ *
+ * v1.1: Modos de estrategia nomeados (mitar/equilibrado/valorizar)
+ *       via modulo estrategia-sugestao.js
  */
 
 import axios from "axios";
 import NodeCache from "node-cache";
+import { calcularScoreAtleta, resolverPesoValorizacao, sugerirModo } from './estrategia-sugestao.js';
 
 const cache = new NodeCache({ stdTTL: 300 }); // 5 min
 
@@ -343,10 +347,13 @@ export function calcularTabelaValorizacao(preco) {
 /**
  * Gera sugestao de escalacao otimizada
  * @param {number} patrimonio - Cartoletas disponiveis
- * @param {number} pesoValorizacao - 0 a 100 (0=mitar, 100=valorizar)
+ * @param {string|number} modoOuPeso - 'mitar'|'equilibrado'|'valorizar' ou 0-100 (retrocompat)
  * @returns {Object} Escalacao sugerida
  */
-export async function gerarSugestaoEscalacao(patrimonio, pesoValorizacao = 50) {
+export async function gerarSugestaoEscalacao(patrimonio, modoOuPeso = 'equilibrado') {
+    const pesoValorizacao = resolverPesoValorizacao(modoOuPeso);
+    const modoSugerido = sugerirModo(patrimonio);
+
     const mercado = await buscarMercado();
     const { atletas, clubes } = mercado;
 
@@ -360,7 +367,7 @@ export async function gerarSugestaoEscalacao(patrimonio, pesoValorizacao = 50) {
         6: 1   // TEC
     };
 
-    // Processar atletas com score combinado
+    // Processar atletas com score centralizado (estrategia-sugestao.js)
     const atletasProcessados = atletas
         .filter(a => a.status_id === 7) // Apenas provaveis
         .map(a => {
@@ -370,19 +377,7 @@ export async function gerarSugestaoEscalacao(patrimonio, pesoValorizacao = 50) {
             const jogos = a.jogos_num || 1;
             const mpv = calcularMPV(preco, jogos);
 
-            // Score de mitar (baseado em media)
-            const scoreMitar = media;
-
-            // Score de valorizar (jogadores baratos com boa media)
-            // Quanto menor o preco e maior a media, melhor
-            const custoBeneficio = media / (preco || 1);
-            const potencialValorizacao = media > mpv ? (media - mpv) * 0.5 : 0;
-            const scoreValorizar = custoBeneficio * 2 + potencialValorizacao;
-
-            // Score combinado baseado no peso
-            const pesoMitar = (100 - pesoValorizacao) / 100;
-            const pesoValor = pesoValorizacao / 100;
-            const scoreFinal = (scoreMitar * pesoMitar) + (scoreValorizar * pesoValor);
+            const scoreFinal = calcularScoreAtleta({ media, preco, mpv, variacao, jogos }, pesoValorizacao);
 
             return {
                 atletaId: a.atleta_id,
@@ -503,6 +498,7 @@ export async function gerarSugestaoEscalacao(patrimonio, pesoValorizacao = 50) {
         },
         formacao: '4-3-3',
         pesoValorizacao,
+        modoSugerido,
         rodada: mercado.rodada
     };
 }
