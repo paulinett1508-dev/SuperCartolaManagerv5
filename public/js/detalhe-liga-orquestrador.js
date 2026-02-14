@@ -365,8 +365,6 @@ class DetalheLigaOrquestrador {
                     }
                     break;
 
-                // REMOVIDO: case "parciais" - módulo substituído por Raio-X da Rodada
-
                 case "regras":
                     console.log('[ORQUESTRADOR] Iniciando regras...');
                     // ✅ v3.3: Carregar Quill e executar scripts manualmente
@@ -474,7 +472,6 @@ class DetalheLigaOrquestrador {
             top10: `<div id="top10-content"><div class="loading-state">Carregando top 10...</div></div>`,
             "fluxo-financeiro": `<div id="fluxo-financeiro-content"><div class="loading-state">Carregando fluxo financeiro...</div></div>`,
             participantes: `<div id="participantes-content"><div class="loading-state">Carregando participantes...</div></div>`,
-            parciais: `<div id="parciais-content"><div class="loading-state">Carregando parciais...</div></div>`,
             "capitao-luxo": `<div id="capitao-luxo-content"><div class="capitao-luxo-loading"><div class="spinner"></div><p>Carregando Capitão de Luxo...</p></div></div>`,
             regras: `<div id="regras-admin-container"><div style="text-align:center;padding:40px;color:rgba(255,255,255,0.5);">Carregando regras...</div></div>`,
         };
@@ -604,7 +601,6 @@ class DetalheLigaOrquestrador {
         const names = {
             participantes: "Participantes",
             "ranking-geral": "Classificação",
-            parciais: "Parciais",
             top10: "Top 10",
             rodadas: "Rodadas",
             "melhor-mes": "Melhor Mês",
