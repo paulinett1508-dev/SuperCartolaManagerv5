@@ -404,6 +404,7 @@ function atualizarCardsHomeUI(data) {
         pontosTotal,
         ultimaRodada,
         rodadaAtual,
+        ultimaRodadaDisputada,
         minhasRodadas,
         saldoFinanceiro,
         timeId
@@ -480,7 +481,9 @@ function atualizarCardsHomeUI(data) {
     }
 
     if (rankingSaldoEl) {
-        rankingSaldoEl.textContent = rodadaAtual ? `R${rodadaAtual}` : '--';
+        // Saldo financeiro reflete até a última rodada FINALIZADA, não a atual/aberta
+        const rodadaSaldo = ultimaRodadaDisputada || (rodadaAtual > 0 ? rodadaAtual - 1 : 0);
+        rankingSaldoEl.textContent = rodadaSaldo ? `R${rodadaSaldo}` : '--';
     }
 
     // === PONTOS RANKING GERAL ===
@@ -1035,7 +1038,9 @@ function renderizarHome(container, data, ligaId) {
     }
 
     if (rankingSaldoEl) {
-        rankingSaldoEl.textContent = rodadaAtual ? `R${rodadaAtual}` : '--';
+        // Saldo financeiro reflete até a última rodada FINALIZADA, não a atual/aberta
+        const rodadaSaldo = ultimaRodadaDisputada || (rodadaAtual > 0 ? rodadaAtual - 1 : 0);
+        rankingSaldoEl.textContent = rodadaSaldo ? `R${rodadaSaldo}` : '--';
     }
 
     // Pontos Ranking Geral
