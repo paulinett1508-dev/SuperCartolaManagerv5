@@ -241,40 +241,166 @@ function renderizarDistribuicao(dados) {
 }
 
 /**
- * Busca dados de contexto/disputas e renderiza "O que vem por aí..."
+ * Busca dados de contexto/disputas e renderiza Performance Geral + O que vem por aí
  */
 async function carregarEExibirUpcoming() {
-    const container = document.getElementById('xrayUpcomingLista');
-    if (!container) return;
-
     try {
         const url = `/api/rodada-contexto/${_ligaId}/${_rodada}/${_timeId}${_temporada ? `?temporada=${_temporada}` : ''}`;
         const response = await fetch(url);
 
-        if (!response.ok) {
-            container.innerHTML = '<p style="color:var(--xray-text-muted);text-align:center;padding:20px;">Dados indisponíveis</p>';
-            return;
-        }
+        if (!response.ok) return;
 
         const contexto = await response.json();
-        renderizarUpcoming(contexto.disputas || {});
+        const disputas = contexto.disputas || {};
+
+        // Seção 1: Performance Geral (módulos individuais)
+        renderizarPerformanceGeral(disputas);
+
+        // Seção 2: O que vem por aí (competições + em breve)
+        renderizarUpcoming(disputas);
     } catch (error) {
-        if (window.Log) Log.error('PARTICIPANTE-XRAY', 'Erro ao carregar upcoming:', error);
-        container.innerHTML = '<p style="color:var(--xray-text-muted);text-align:center;padding:20px;">Erro ao carregar dados</p>';
+        if (window.Log) Log.error('PARTICIPANTE-XRAY', 'Erro ao carregar contexto:', error);
     }
 }
 
+/**
+ * Renderiza cards compactos de performance individual na grid 2x2
+ * Módulos: Capitão de Luxo, Artilheiro Campeão, Luva de Ouro, TOP 10
+ */
+async function renderizarPerformanceGeral(disputas) {
+    const section = document.getElementById('xrayPerfSection');
+    const grid = document.getElementById('xrayPerfGrid');
+    if (!section || !grid) return;
+
+    const cards = [];
+
+    // Capitão de Luxo
+    if (disputas.capitao_luxo) {
+        const cap = disputas.capitao_luxo;
+        cards.push(`
+            <div class="xray-perf-card mod-capitao">
+                <div class="xray-perf-icon">👑</div>
+                <div class="xray-perf-info">
+                    <div class="xray-perf-title">Capitão de Luxo</div>
+                    <div class="xray-perf-value">${cap.sua_posicao}º</div>
+                    <div class="xray-perf-sub">${cap.seus_pontos.toFixed(1)} pts acumulados</div>
+                </div>
+            </div>
+        `);
+    }
+
+    // Artilheiro Campeão
+    if (disputas.artilheiro) {
+        const art = disputas.artilheiro;
+        cards.push(`
+            <div class="xray-perf-card mod-artilheiro">
+                <div class="xray-perf-icon">🎯</div>
+                <div class="xray-perf-info">
+                    <div class="xray-perf-title">Artilheiro Campeão</div>
+                    <div class="xray-perf-value">${art.sua_posicao}º</div>
+                    <div class="xray-perf-sub">${art.seus_gols} gols • saldo ${art.seu_saldo || 0}</div>
+                </div>
+            </div>
+        `);
+    }
+
+    // Luva de Ouro
+    if (disputas.luva_ouro) {
+        const luva = disputas.luva_ouro;
+        cards.push(`
+            <div class="xray-perf-card mod-luva">
+                <div class="xray-perf-icon">🧤</div>
+                <div class="xray-perf-info">
+                    <div class="xray-perf-title">Luva de Ouro</div>
+                    <div class="xray-perf-value">${luva.sua_posicao}º</div>
+                    <div class="xray-perf-sub">${luva.seus_pontos?.toFixed(1) || 0} pts</div>
+                </div>
+            </div>
+        `);
+    }
+
+    // TOP 10 - buscar separadamente se módulo ativo
+    try {
+        const top10Card = await buscarTop10Card();
+        if (top10Card) cards.push(top10Card);
+    } catch (e) {
+        // Silencioso se TOP 10 não disponível
+    }
+
+    if (cards.length === 0) {
+        section.style.display = 'none';
+        return;
+    }
+
+    grid.innerHTML = cards.join('');
+    section.style.display = '';
+}
+
+/**
+ * Busca cache do TOP 10 e retorna card HTML se participante está nos Mitos ou Micos
+ */
+async function buscarTop10Card() {
+    try {
+        // Busca o cache TOP 10 mais recente (sem rodada = backend retorna último)
+        const url = `/api/top10/cache/${_ligaId}?temporada=${_temporada || new Date().getFullYear()}`;
+        const response = await fetch(url);
+        if (!response.ok) return null;
+
+        const data = await response.json();
+        if (!data.cached) return null;
+
+        const mitos = data.mitos || [];
+        const micos = data.micos || [];
+
+        // Verificar se participante está nos Mitos
+        const meuMito = mitos.find(m => m.timeId === _timeId);
+        if (meuMito) {
+            return `
+                <div class="xray-perf-card mod-top10">
+                    <div class="xray-perf-icon">🏅</div>
+                    <div class="xray-perf-info">
+                        <div class="xray-perf-title">TOP 10 - Mito</div>
+                        <div class="xray-perf-value">${meuMito.posicao}º</div>
+                        <div class="xray-perf-sub">${meuMito.pontos?.toFixed(1) || 0} pts</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Verificar se está nos Micos
+        const meuMico = micos.find(m => m.timeId === _timeId);
+        if (meuMico) {
+            return `
+                <div class="xray-perf-card mod-top10">
+                    <div class="xray-perf-icon">😬</div>
+                    <div class="xray-perf-info">
+                        <div class="xray-perf-title">TOP 10 - Mico</div>
+                        <div class="xray-perf-value">${meuMico.posicao}º</div>
+                        <div class="xray-perf-sub">${meuMico.pontos?.toFixed(1) || 0} pts</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        return null; // Participante não está no TOP 10
+    } catch (e) {
+        return null;
+    }
+}
+
+/**
+ * Renderiza "O que vem por aí..." - apenas competições/ligas
+ * PC, Mata-Mata (ativos) + placeholders "Em breve"
+ */
 function renderizarUpcoming(disputas) {
     const container = document.getElementById('xrayUpcomingLista');
     if (!container) return;
 
     const cards = [];
 
-    // Pontos Corridos - próximo adversário
+    // Pontos Corridos
     if (disputas.pontos_corridos) {
         const pc = disputas.pontos_corridos;
-
-        // Resultado da rodada encerrada
         const resultIcon = pc.seu_confronto.resultado === 'vitoria' ? '✅' :
                           pc.seu_confronto.resultado === 'derrota' ? '❌' : '⚖️';
         const resultText = pc.seu_confronto.resultado === 'vitoria' ? 'Vitória' :
@@ -328,64 +454,7 @@ function renderizarUpcoming(disputas) {
         `);
     }
 
-    // Artilheiro Campeão
-    if (disputas.artilheiro) {
-        const art = disputas.artilheiro;
-        let destaque = '';
-        if (art.assumiu_lideranca) destaque = '🔥 Assumiu a liderança!';
-        else if (art.perdeu_lideranca) destaque = '⚠️ Perdeu a liderança';
-        else if (art.rival) destaque = `Empatado com ${escapeHtml(art.rival)}`;
-
-        cards.push(`
-            <div class="xray-upcoming-card">
-                <div class="xray-upcoming-icon">🎯</div>
-                <div class="xray-upcoming-info">
-                    <div class="xray-upcoming-title">ARTILHEIRO CAMPEÃO</div>
-                    <div class="xray-upcoming-desc">
-                        ${art.sua_posicao}º lugar com ${art.seus_gols} gols (saldo: ${art.seu_saldo || 0})
-                    </div>
-                    ${destaque ? `<div class="xray-upcoming-meta">${destaque}</div>` : ''}
-                </div>
-                <span class="xray-upcoming-badge posicao">${art.sua_posicao}º</span>
-            </div>
-        `);
-    }
-
-    // Luva de Ouro
-    if (disputas.luva_ouro) {
-        const luva = disputas.luva_ouro;
-        cards.push(`
-            <div class="xray-upcoming-card">
-                <div class="xray-upcoming-icon">🧤</div>
-                <div class="xray-upcoming-info">
-                    <div class="xray-upcoming-title">LUVA DE OURO</div>
-                    <div class="xray-upcoming-desc">
-                        ${luva.sua_posicao}º lugar • ${luva.seus_pontos?.toFixed(1) || 0} pts
-                    </div>
-                </div>
-                <span class="xray-upcoming-badge posicao">${luva.sua_posicao}º</span>
-            </div>
-        `);
-    }
-
-    // Capitão de Luxo
-    if (disputas.capitao_luxo) {
-        const cap = disputas.capitao_luxo;
-        cards.push(`
-            <div class="xray-upcoming-card">
-                <div class="xray-upcoming-icon">👑</div>
-                <div class="xray-upcoming-info">
-                    <div class="xray-upcoming-title">CAPITÃO DE LUXO</div>
-                    <div class="xray-upcoming-desc">
-                        ${cap.sua_posicao}º lugar • ${cap.seus_pontos.toFixed(1)} pts acumulados
-                    </div>
-                </div>
-                <span class="xray-upcoming-badge posicao">${cap.sua_posicao}º</span>
-            </div>
-        `);
-    }
-
-    // Melhor do Mês
+    // Melhor do Mês (ativo se existir)
     if (disputas.melhor_mes) {
         const mes = disputas.melhor_mes;
         const nomesMes = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
@@ -404,10 +473,26 @@ function renderizarUpcoming(disputas) {
         `);
     }
 
-    if (cards.length === 0) {
-        container.innerHTML = '<p style="color:var(--xray-text-muted);text-align:center;padding:20px;">Nenhuma disputa ativa no momento.</p>';
-        return;
-    }
+    // === PLACEHOLDERS "EM BREVE" ===
+    const emBreve = [
+        { icon: '🌎', nome: 'Bolão Copa do Mundo', desc: 'Palpites nos jogos da Copa' },
+        { icon: '🏆', nome: 'Bolão Libertadores', desc: 'Palpites na Libertadores' },
+        { icon: '⚔️', nome: 'Copa de Times SC', desc: 'Torneio eliminatório entre times' },
+        { icon: '🎲', nome: 'RestaUM', desc: 'Sobrevivência rodada a rodada' },
+    ];
+
+    emBreve.forEach(item => {
+        cards.push(`
+            <div class="xray-upcoming-card em-breve">
+                <div class="xray-upcoming-icon">${item.icon}</div>
+                <div class="xray-upcoming-info">
+                    <div class="xray-upcoming-title">${item.nome}</div>
+                    <div class="xray-upcoming-desc">${item.desc}</div>
+                </div>
+                <span class="xray-upcoming-badge breve">Em breve</span>
+            </div>
+        `);
+    });
 
     container.innerHTML = cards.join('');
 }

@@ -482,6 +482,109 @@
     word-break: break-all;
 }
 
+/* === PERFORMANCE GERAL === */
+.xray-perf-section {
+    background: var(--xray-surface-elevated);
+    border: 1px solid var(--xray-border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.xray-perf-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.xray-perf-card {
+    background: var(--xray-surface);
+    border: 1px solid var(--xray-border);
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+    overflow: hidden;
+}
+
+.xray-perf-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+}
+
+.xray-perf-card.mod-capitao::before { background: var(--module-capitao-primary, #8b5cf6); }
+.xray-perf-card.mod-artilheiro::before { background: var(--module-artilheiro-primary, #22c55e); }
+.xray-perf-card.mod-luva::before { background: var(--module-luva-primary, #ffd700); }
+.xray-perf-card.mod-top10::before { background: var(--xray-primary); }
+
+.xray-perf-icon {
+    font-size: 22px;
+    flex-shrink: 0;
+    width: 32px;
+    text-align: center;
+}
+
+.xray-perf-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.xray-perf-title {
+    font-family: var(--xray-font-brand);
+    font-size: 10px;
+    font-weight: 400;
+    color: var(--xray-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.xray-perf-value {
+    font-family: var(--xray-font-mono);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--xray-text-white);
+    line-height: 1.2;
+}
+
+.xray-perf-sub {
+    font-size: 10px;
+    color: var(--xray-text-dim);
+    margin-top: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.xray-perf-card.mod-capitao .xray-perf-value { color: var(--module-capitao-primary, #8b5cf6); }
+.xray-perf-card.mod-artilheiro .xray-perf-value { color: var(--module-artilheiro-primary, #22c55e); }
+.xray-perf-card.mod-luva .xray-perf-value { color: var(--module-luva-primary, #ffd700); }
+.xray-perf-card.mod-top10 .xray-perf-value { color: var(--xray-primary); }
+
+/* === "EM BREVE" CARDS === */
+.xray-upcoming-card.em-breve {
+    opacity: 0.45;
+    pointer-events: none;
+    position: relative;
+}
+
+.xray-upcoming-card.em-breve .xray-upcoming-badge.breve {
+    background: rgba(255,255,255,0.08);
+    color: var(--xray-text-dim);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
 /* === O QUE VEM POR AÍ === */
 .xray-upcoming-section {
     background: var(--xray-surface-elevated);
@@ -683,7 +786,16 @@
             <div class="xray-distrib-bars" id="xrayDistribBars"></div>
         </div>
 
-        <!-- O que vem por aí -->
+        <!-- Performance Geral (Módulos individuais) -->
+        <div class="xray-perf-section" id="xrayPerfSection" style="display:none;">
+            <h3 class="xray-section-title">
+                <span class="material-icons">emoji_events</span>
+                Performance Geral
+            </h3>
+            <div class="xray-perf-grid" id="xrayPerfGrid"></div>
+        </div>
+
+        <!-- O que vem por aí (Competições/Ligas) -->
         <div class="xray-upcoming-section" id="xrayUpcomingSection">
             <h3 class="xray-section-title">
                 <span class="material-icons">rocket_launch</span>

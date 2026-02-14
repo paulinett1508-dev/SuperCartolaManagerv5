@@ -37,8 +37,8 @@ const RXrayState = {
 // CONSTANTES
 // ============================================
 const RXRAY_STORAGE_KEY = "rxray-fab-position";
-const RXRAY_CACHE_KEY = "rxray-cache";
-const RXRAY_CACHE_DURATION = 60 * 60 * 1000; // 1 hora
+const RXRAY_CACHE_KEY = "rxray-cache-v2";
+const RXRAY_CACHE_DURATION = 30 * 60 * 1000; // 30 minutos
 
 // ============================================
 // INICIALIZAÇÃO
