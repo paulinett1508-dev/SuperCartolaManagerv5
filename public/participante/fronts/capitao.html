@@ -340,6 +340,41 @@
         background: rgba(139, 92, 246, 0.4) !important;
     }
 
+    /* ============================================
+       NOVO LAYOUT: Botão Ver Histórico Compacto
+       ============================================ */
+    .btn-ver-historico-app {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: rgba(139, 92, 246, 0.15);
+        border: 1px solid rgba(139, 92, 246, 0.25);
+        color: #a78bfa;
+        padding: 6px 10px;
+        border-radius: 8px;
+        font-size: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-top: 6px;
+        font-family: 'JetBrains Mono', monospace;
+    }
+
+    .btn-ver-historico-app:hover {
+        background: rgba(139, 92, 246, 0.25);
+        border-color: rgba(139, 92, 246, 0.4);
+        color: #c4b5fd;
+    }
+
+    .btn-ver-historico-app:active {
+        transform: scale(0.98);
+    }
+
+    /* Cards clicáveis */
+    .capitao-card {
+        cursor: pointer;
+    }
+
     @media (max-width: 768px) {
         .capitao-participante {
             padding: 10px;
