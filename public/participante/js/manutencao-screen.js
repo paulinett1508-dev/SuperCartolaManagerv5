@@ -2,8 +2,8 @@
 // manutencao-screen.js - Tela "Calma aê!" v2.1
 // =====================================================================
 // Exibe tela de manutenção amigável quando admin ativa o modo.
-// v2.1: 4 botões - Ranking Geral, Ranking da Rodada, Dino Game, Atualizar Parciais
-// v2.0: 3 botões - Ranking Geral, Ranking da Rodada, Dino Game
+// v2.1: 4 botões - Ranking Geral, Ranking da Rodada, Jogo de Pênaltis, Atualizar Parciais
+// v2.0: 3 botões - Ranking Geral, Ranking da Rodada, Jogo de Pênaltis
 // =====================================================================
 
 const ManutencaoScreen = {
@@ -12,9 +12,9 @@ const ManutencaoScreen = {
     _rankingRodadaCarregado: false,
     _observer: null,
     _config: null,
-    _dinoAnimFrame: null,
-    _dinoKeyHandler: null,
-    _painelAtivo: null, // 'geral' | 'rodada' | 'dino'
+    _penaltyAnimFrame: null,
+    _penaltyKeyHandler: null,
+    _painelAtivo: null, // 'geral' | 'rodada' | 'penalty'
 
     ativar(config = null) {
         if (this._ativo) return;
@@ -115,7 +115,7 @@ const ManutencaoScreen = {
         if (btnRodada) {
             btnRodada.style.display = custom.mostrar_ultima_rodada !== false ? 'flex' : 'none';
         }
-        // Dino game sempre visível durante manutenção
+        // Jogo de pênaltis sempre visível durante manutenção
     },
 
     _esconderQuickBar() {
@@ -137,14 +137,14 @@ const ManutencaoScreen = {
             this._observer = null;
         }
 
-        // Cleanup dino game
-        if (this._dinoAnimFrame) {
-            cancelAnimationFrame(this._dinoAnimFrame);
-            this._dinoAnimFrame = null;
+        // Cleanup penalty game
+        if (this._penaltyAnimFrame) {
+            cancelAnimationFrame(this._penaltyAnimFrame);
+            this._penaltyAnimFrame = null;
         }
-        if (this._dinoKeyHandler) {
-            document.removeEventListener('keydown', this._dinoKeyHandler);
-            this._dinoKeyHandler = null;
+        if (this._penaltyKeyHandler) {
+            document.removeEventListener('keydown', this._penaltyKeyHandler);
+            this._penaltyKeyHandler = null;
         }
 
         const tela = document.getElementById('manutencaoScreen');
@@ -177,12 +177,12 @@ const ManutencaoScreen = {
     // =====================================================================
     async carregarRankingGeral() {
         const conteudo = document.getElementById('manutencaoConteudo');
-        const dinoContainer = document.getElementById('manutencaoDinoContainer');
+        const dinoContainer = document.getElementById('manutencaoPenaltyContainer');
         const btn = document.getElementById('manutencaoBtnRankingGeral');
         if (!conteudo) return;
 
-        // Esconder dino game se aberto
-        this._fecharDinoGame();
+        // Esconder jogo de pênaltis se aberto
+        this._fecharPenaltyGame();
         if (dinoContainer) dinoContainer.style.display = 'none';
 
         // Toggle se já carregado
@@ -266,12 +266,12 @@ const ManutencaoScreen = {
     // =====================================================================
     async carregarRankingRodada() {
         const conteudo = document.getElementById('manutencaoConteudo');
-        const dinoContainer = document.getElementById('manutencaoDinoContainer');
+        const dinoContainer = document.getElementById('manutencaoPenaltyContainer');
         const btn = document.getElementById('manutencaoBtnRankingRodada');
         if (!conteudo) return;
 
-        // Esconder dino game se aberto
-        this._fecharDinoGame();
+        // Esconder jogo de pênaltis se aberto
+        this._fecharPenaltyGame();
         if (dinoContainer) dinoContainer.style.display = 'none';
 
         // Toggle se já carregado e ativo
@@ -565,10 +565,10 @@ const ManutencaoScreen = {
         try {
             // Sempre recarregar ranking da rodada (parciais)
             const conteudo = document.getElementById('manutencaoConteudo');
-            const dinoContainer = document.getElementById('manutencaoDinoContainer');
+            const dinoContainer = document.getElementById('manutencaoPenaltyContainer');
 
-            // Fechar dino game se aberto
-            this._fecharDinoGame();
+            // Fechar jogo de pênaltis se aberto
+            this._fecharPenaltyGame();
             if (dinoContainer) dinoContainer.style.display = 'none';
 
             const timeId = window.participanteAuth?.timeId;
@@ -627,9 +627,9 @@ const ManutencaoScreen = {
     // =====================================================================
     // PAINEL 3: Cobrança de Pênalti (arcade 8-bit)
     // =====================================================================
-    abrirDinoGame() {
+    abrirPenaltyGame() {
         const conteudo = document.getElementById('manutencaoConteudo');
-        const dinoContainer = document.getElementById('manutencaoDinoContainer');
+        const dinoContainer = document.getElementById('manutencaoPenaltyContainer');
         if (!dinoContainer) return;
 
         // Esconder ranking se aberto
@@ -637,7 +637,7 @@ const ManutencaoScreen = {
 
         // Toggle
         if (this._painelAtivo === 'dino') {
-            this._fecharDinoGame();
+            this._fecharPenaltyGame();
             dinoContainer.style.display = 'none';
             this._painelAtivo = null;
             return;
@@ -645,61 +645,173 @@ const ManutencaoScreen = {
 
         this._painelAtivo = 'dino';
         dinoContainer.style.display = 'block';
+
+        // Mostrar tela de seleção de modo
+        this._mostrarSelecaoModo();
+    },
+
+    _mostrarSelecaoModo() {
+        const dinoContainer = document.getElementById('manutencaoPenaltyContainer');
+        if (!dinoContainer) return;
+
         dinoContainer.innerHTML = `
-            <div style="text-align:center;margin-bottom:12px;">
-                <h3 style="font-family:'Russo One',sans-serif;font-size:1rem;color:var(--app-pos-gol-light);margin:0 0 8px;">
-                    ⚽ Cobrança de Pênalti
+            <div style="text-align:center;margin-bottom:16px;">
+                <h3 style="font-family:'Russo One',sans-serif;font-size:1.1rem;color:var(--app-pos-gol-light);margin:0 0 8px;">
+                    ⚽ Jogo de Pênaltis
                 </h3>
                 <p style="font-size:0.75rem;color:#9ca3af;margin:0;">
-                    Toque no canto do gol para chutar!
+                    Escolha seu modo de jogo
                 </p>
             </div>
-            <canvas id="dinoCanvas" width="360" height="220"
-                style="display:block;margin:0 auto;background:#0f172a;border-radius:12px;border:1px solid #374151;max-width:100%;touch-action:none;"></canvas>
-            <div id="dinoScore" style="text-align:center;margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:#fbbf24;">
-                ⚽ 0 gols | Cobrança 1
+            <div style="display:flex;flex-direction:column;gap:12px;max-width:320px;margin:0 auto;">
+                <button id="btnModoStriker" style="background:linear-gradient(135deg,#10b981,#059669);color:white;border:none;padding:16px;border-radius:12px;font-family:'Russo One',sans-serif;font-size:0.95rem;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:10px;">
+                    <span style="font-size:1.5rem;">⚽</span>
+                    <span>COBRAR PÊNALTIS</span>
+                </button>
+                <button id="btnModoKeeper" style="background:linear-gradient(135deg,var(--app-pos-gol),#ea580c);color:white;border:none;padding:16px;border-radius:12px;font-family:'Russo One',sans-serif;font-size:0.95rem;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:10px;">
+                    <span style="font-size:1.5rem;">🧤</span>
+                    <span>SER GOLEIRO</span>
+                </button>
             </div>
-            <div style="text-align:center;margin-top:6px;">
-                <button onclick="window.ManutencaoScreen && ManutencaoScreen.abrirDinoGame()"
+            <div style="text-align:center;margin-top:16px;">
+                <button onclick="window.ManutencaoScreen && ManutencaoScreen.abrirPenaltyGame()"
                     style="background:none;border:none;color:#6b7280;font-size:0.75rem;cursor:pointer;font-family:'Inter',sans-serif;text-decoration:underline;">
-                    Fechar jogo
+                    Voltar
                 </button>
             </div>
         `;
 
-        this._iniciarDinoGame();
+        document.getElementById('btnModoStriker')?.addEventListener('click', () => {
+            this._gameMode = 'striker';
+            this._mostrarSelecaoDificuldade();
+        });
+
+        document.getElementById('btnModoKeeper')?.addEventListener('click', () => {
+            this._gameMode = 'keeper';
+            this._mostrarSelecaoDificuldade();
+        });
     },
 
-    _fecharDinoGame() {
-        if (this._dinoAnimFrame) {
-            cancelAnimationFrame(this._dinoAnimFrame);
-            this._dinoAnimFrame = null;
+    _mostrarSelecaoDificuldade() {
+        const dinoContainer = document.getElementById('manutencaoPenaltyContainer');
+        if (!dinoContainer) return;
+
+        const modoTexto = this._gameMode === 'striker' ? 'Cobrar Pênaltis' : 'Ser Goleiro';
+
+        dinoContainer.innerHTML = `
+            <div style="text-align:center;margin-bottom:16px;">
+                <h3 style="font-family:'Russo One',sans-serif;font-size:1.1rem;color:var(--app-pos-gol-light);margin:0 0 4px;">
+                    ${this._gameMode === 'striker' ? '⚽' : '🧤'} ${modoTexto}
+                </h3>
+                <p style="font-size:0.75rem;color:#9ca3af;margin:0;">
+                    Escolha a dificuldade
+                </p>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;max-width:320px;margin:0 auto;">
+                <button class="btnDificuldade" data-diff="easy" style="background:linear-gradient(135deg,#10b981,#059669);color:white;border:none;padding:14px;border-radius:10px;font-family:'Inter',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:space-between;">
+                    <span>🟢 FÁCIL</span>
+                    <span style="font-size:0.7rem;opacity:0.8;">Goleiro lento</span>
+                </button>
+                <button class="btnDificuldade" data-diff="medium" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border:none;padding:14px;border-radius:10px;font-family:'Inter',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:space-between;">
+                    <span>🟡 MÉDIO</span>
+                    <span style="font-size:0.7rem;opacity:0.8;">Goleiro padrão</span>
+                </button>
+                <button class="btnDificuldade" data-diff="hard" style="background:linear-gradient(135deg,#f97316,#ea580c);color:white;border:none;padding:14px;border-radius:10px;font-family:'Inter',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:space-between;">
+                    <span>🟠 DIFÍCIL</span>
+                    <span style="font-size:0.7rem;opacity:0.8;">Goleiro rápido</span>
+                </button>
+                <button class="btnDificuldade" data-diff="veryhard" style="background:linear-gradient(135deg,#ef4444,#dc2626);color:white;border:none;padding:14px;border-radius:10px;font-family:'Inter',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:space-between;">
+                    <span>🔴 MUITO DIFÍCIL</span>
+                    <span style="font-size:0.7rem;opacity:0.8;">Goleiro expert</span>
+                </button>
+            </div>
+            <div style="text-align:center;margin-top:16px;">
+                <button onclick="window.ManutencaoScreen && ManutencaoScreen._mostrarSelecaoModo()"
+                    style="background:none;border:none;color:#6b7280;font-size:0.75rem;cursor:pointer;font-family:'Inter',sans-serif;text-decoration:underline;">
+                    ← Voltar
+                </button>
+            </div>
+        `;
+
+        document.querySelectorAll('.btnDificuldade').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this._gameDifficulty = btn.dataset.diff;
+                this._iniciarPenaltyGame();
+            });
+            btn.addEventListener('mouseenter', () => {
+                btn.style.transform = 'translateY(-2px)';
+                btn.style.boxShadow = '0 4px 12px rgba(255,255,255,0.15)';
+            });
+            btn.addEventListener('mouseleave', () => {
+                btn.style.transform = 'translateY(0)';
+                btn.style.boxShadow = 'none';
+            });
+        });
+    },
+
+    _fecharPenaltyGame() {
+        if (this._penaltyAnimFrame) {
+            cancelAnimationFrame(this._penaltyAnimFrame);
+            this._penaltyAnimFrame = null;
         }
-        if (this._dinoKeyHandler) {
-            document.removeEventListener('keydown', this._dinoKeyHandler);
-            this._dinoKeyHandler = null;
+        if (this._penaltyKeyHandler) {
+            document.removeEventListener('keydown', this._penaltyKeyHandler);
+            this._penaltyKeyHandler = null;
         }
     },
 
-    _iniciarDinoGame() {
-        const canvas = document.getElementById('dinoCanvas');
+    _iniciarPenaltyGame() {
+        const dinoContainer = document.getElementById('manutencaoPenaltyContainer');
+        if (!dinoContainer) return;
+
+        const modoTexto = this._gameMode === 'striker' ? 'Cobrar Pênaltis' : 'Defender Pênaltis';
+        const diffEmoji = { easy: '🟢', medium: '🟡', hard: '🟠', veryhard: '🔴' };
+        const diffTexto = { easy: 'Fácil', medium: 'Médio', hard: 'Difícil', veryhard: 'Muito Difícil' };
+
+        dinoContainer.innerHTML = `
+            <div style="text-align:center;margin-bottom:12px;">
+                <h3 style="font-family:'Russo One',sans-serif;font-size:1rem;color:var(--app-pos-gol-light);margin:0 0 4px;">
+                    ${this._gameMode === 'striker' ? '⚽' : '🧤'} ${modoTexto}
+                </h3>
+                <p style="font-size:0.7rem;color:#9ca3af;margin:0;">
+                    ${diffEmoji[this._gameDifficulty]} ${diffTexto[this._gameDifficulty]} | ${this._gameMode === 'striker' ? 'Clique na zona do gol' : 'Defenda o pênalti!'}
+                </p>
+            </div>
+            <canvas id="penaltyCanvas" width="360" height="240"
+                style="display:block;margin:0 auto;background:#0f172a;border-radius:12px;border:1px solid #374151;max-width:100%;touch-action:none;"></canvas>
+            <div id="penaltyScore" style="text-align:center;margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:#fbbf24;">
+                ${this._gameMode === 'striker' ? '⚽ 0 gols' : '🧤 0 defesas'} | ${this._gameMode === 'striker' ? 'Cobrança' : 'Pênalti'} 1
+            </div>
+            <div style="text-align:center;margin-top:6px;font-size:0.68rem;color:#6b7280;font-family:'Inter',sans-serif;">
+                💡 Use teclado: Q/W/E (altura) + A/S/D (canto) ou clique no gol
+            </div>
+            <div style="text-align:center;margin-top:6px;">
+                <button onclick="window.ManutencaoScreen && ManutencaoScreen._mostrarSelecaoDificuldade()"
+                    style="background:none;border:none;color:#6b7280;font-size:0.75rem;cursor:pointer;font-family:'Inter',sans-serif;text-decoration:underline;">
+                    ← Voltar
+                </button>
+            </div>
+        `;
+
+        const canvas = document.getElementById('penaltyCanvas');
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
 
-        this._fecharDinoGame();
+        this._fecharPenaltyGame();
 
         const W = canvas.width;
         const H = canvas.height;
 
         // Layout
-        const goalTop = 28;
-        const goalH = 65;
+        const goalTop = 32;
+        const goalH = 75;
         const goalW = 240;
         const goalL = (W - goalW) / 2;
         const goalR = goalL + goalW;
         const goalB = goalTop + goalH;
         const grassY = goalB + 4;
         const zoneW = goalW / 3;
+        const zoneH = goalH / 3;
 
         // Ball
         const ballStartX = W / 2;
@@ -712,6 +824,16 @@ const ManutencaoScreen = {
         const kBaseY = goalB - kH - 2;
         const kBaseX = W / 2 - kW / 2;
 
+        // Difficulty settings
+        const difficultySettings = {
+            easy: { baseAccuracy: 0.15, maxAccuracy: 0.35, saveChance: 0.45 },
+            medium: { baseAccuracy: 0.30, maxAccuracy: 0.55, saveChance: 0.60 },
+            hard: { baseAccuracy: 0.50, maxAccuracy: 0.75, saveChance: 0.75 },
+            veryhard: { baseAccuracy: 0.70, maxAccuracy: 0.90, saveChance: 0.85 }
+        };
+
+        const currentDiff = difficultySettings[this._gameDifficulty || 'medium'];
+
         // State
         let state = 'aiming';
         let gols = 0;
@@ -720,42 +842,96 @@ const ManutencaoScreen = {
         const totalCobradas = 5;
         let resultado = '';
         let resultTimer = 0;
-        let chosenZone = -1;
+        let chosenZone = -1; // 0-8 (row * 3 + col)
+        let chosenHeight = -1; // 0=low, 1=mid, 2=high
+        let chosenSide = -1; // 0=left, 1=center, 2=right
         let keeperZone = -1;
         let hoverZone = -1;
-        let ballAnim = { sx: 0, sy: 0, tx: 0, ty: 0, p: 0 };
-        let keeperAnim = { sx: 0, tx: 0, p: 0 };
+        let ballAnim = { sx: 0, sy: 0, tx: 0, ty: 0, p: 0, height: 1 };
+        let keeperAnim = { sx: 0, sy: 0, tx: 0, ty: 0, p: 0 };
         let keeperX = kBaseX;
+        let keeperY = kBaseY;
         let frame = 0;
 
-        const getAccuracy = () => Math.min(0.55, 0.15 + cobradas * 0.025);
+        const gameMode = this._gameMode || 'striker';
+
+        const getAccuracy = () => {
+            const progress = cobradas / totalCobradas;
+            return currentDiff.baseAccuracy + (currentDiff.maxAccuracy - currentDiff.baseAccuracy) * progress;
+        };
 
         const resetGame = () => {
             gols = 0; cobradas = 0; defesas = 0;
-            state = 'aiming'; keeperX = kBaseX;
+            state = 'aiming'; keeperX = kBaseX; keeperY = kBaseY;
             resultado = ''; hoverZone = -1;
+        };
+
+        const zoneToCoords = (zone) => {
+            const row = Math.floor(zone / 3); // 0=low, 1=mid, 2=high
+            const col = zone % 3; // 0=left, 1=center, 2=right
+            const x = goalL + col * zoneW + zoneW / 2;
+            const y = goalB - row * zoneH - zoneH / 2;
+            return { x, y, row, col };
         };
 
         const shoot = (zone) => {
             if (state !== 'aiming') return;
             chosenZone = zone;
+            const coords = zoneToCoords(zone);
+            chosenHeight = coords.row;
+            chosenSide = coords.col;
 
             // Keeper AI
             if (Math.random() < getAccuracy()) {
                 keeperZone = chosenZone;
             } else {
-                const opts = [0, 1, 2].filter(z => z !== chosenZone);
+                const allZones = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+                const opts = allZones.filter(z => z !== chosenZone);
                 keeperZone = opts[Math.floor(Math.random() * opts.length)];
             }
 
-            const targetX = goalL + zone * zoneW + zoneW / 2;
-            const targetY = goalTop + goalH * 0.45;
-            ballAnim = { sx: ballStartX, sy: ballStartY, tx: targetX, ty: targetY, p: 0 };
+            ballAnim = { sx: ballStartX, sy: ballStartY, tx: coords.x, ty: coords.y, p: 0, height: coords.row };
 
-            const kTarget = goalL + keeperZone * zoneW + zoneW / 2 - kW / 2;
-            keeperAnim = { sx: keeperX, tx: kTarget, p: 0 };
+            const kCoords = zoneToCoords(keeperZone);
+            const kTargetX = kCoords.x - kW / 2;
+            const kTargetY = kCoords.row === 2 ? kBaseY - 15 : (kCoords.row === 1 ? kBaseY - 5 : kBaseY + 5);
+            keeperAnim = { sx: keeperX, sy: keeperY, tx: kTargetX, ty: kTargetY, p: 0 };
 
             state = 'shooting';
+        };
+
+        const aiShoot = () => {
+            if (state !== 'aiming') return;
+
+            // AI escolhe zona baseado na dificuldade
+            const allZones = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+            // AI evita centro (zona 4) em dificuldades altas
+            let preferredZones = allZones;
+            if (this._gameDifficulty === 'hard' || this._gameDifficulty === 'veryhard') {
+                preferredZones = allZones.filter(z => z !== 4); // Evita centro
+            }
+
+            chosenZone = preferredZones[Math.floor(Math.random() * preferredZones.length)];
+            const coords = zoneToCoords(chosenZone);
+            chosenHeight = coords.row;
+            chosenSide = coords.col;
+
+            ballAnim = { sx: ballStartX, sy: ballStartY, tx: coords.x, ty: coords.y, p: 0, height: coords.row };
+
+            // Keeper (player) não se move ainda
+            keeperZone = -1;
+
+            state = 'ai_shooting';
+        };
+
+        const defend = (zone) => {
+            if (state !== 'ai_shooting') return;
+            keeperZone = zone;
+            const kCoords = zoneToCoords(zone);
+            const kTargetX = kCoords.x - kW / 2;
+            const kTargetY = kCoords.row === 2 ? kBaseY - 15 : (kCoords.row === 1 ? kBaseY - 5 : kBaseY + 5);
+            keeperAnim = { sx: keeperX, sy: keeperY, tx: kTargetX, ty: kTargetY, p: 0 };
+            state = 'defending';
         };
 
         // Input
@@ -771,40 +947,101 @@ const ManutencaoScreen = {
         const handleClick = (e) => {
             const pos = getCanvasPos(e);
 
-            if (state === 'gameover') { resetGame(); return; }
-            if (state === 'result') { state = 'aiming'; keeperX = kBaseX; hoverZone = -1; return; }
+            if (state === 'gameover') {
+                this._mostrarSelecaoDificuldade();
+                return;
+            }
+            if (state === 'result') {
+                if (gameMode === 'striker') {
+                    state = 'aiming';
+                    keeperX = kBaseX;
+                    keeperY = kBaseY;
+                    hoverZone = -1;
+                } else {
+                    state = 'aiming';
+                    keeperX = kBaseX;
+                    keeperY = kBaseY;
+                    hoverZone = -1;
+                    // AI chuta após delay
+                    setTimeout(() => { if (state === 'aiming') aiShoot(); }, 800);
+                }
+                return;
+            }
 
-            if (state === 'aiming' && pos.y >= goalTop && pos.y <= goalB + 20 && pos.x >= goalL - 10 && pos.x <= goalR + 10) {
-                const zone = Math.min(2, Math.max(0, Math.floor((pos.x - goalL) / zoneW)));
-                shoot(zone);
+            if (pos.y >= goalTop && pos.y <= goalB && pos.x >= goalL && pos.x <= goalR) {
+                const col = Math.min(2, Math.max(0, Math.floor((pos.x - goalL) / zoneW)));
+                const row = Math.min(2, Math.max(0, Math.floor((goalB - pos.y) / zoneH)));
+                const zone = row * 3 + col;
+
+                if (gameMode === 'striker' && state === 'aiming') {
+                    shoot(zone);
+                } else if (gameMode === 'keeper' && state === 'ai_shooting') {
+                    defend(zone);
+                }
             }
         };
 
         canvas.addEventListener('click', handleClick);
         canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleClick(e); });
         canvas.addEventListener('mousemove', (e) => {
-            if (state !== 'aiming') { hoverZone = -1; return; }
+            if ((gameMode === 'striker' && state !== 'aiming') || (gameMode === 'keeper' && state !== 'ai_shooting')) {
+                hoverZone = -1;
+                return;
+            }
             const pos = getCanvasPos(e);
-            if (pos.y >= goalTop && pos.y <= goalB + 20 && pos.x >= goalL - 10 && pos.x <= goalR + 10) {
-                hoverZone = Math.min(2, Math.max(0, Math.floor((pos.x - goalL) / zoneW)));
+            if (pos.y >= goalTop && pos.y <= goalB && pos.x >= goalL && pos.x <= goalR) {
+                const col = Math.min(2, Math.max(0, Math.floor((pos.x - goalL) / zoneW)));
+                const row = Math.min(2, Math.max(0, Math.floor((goalB - pos.y) / zoneH)));
+                hoverZone = row * 3 + col;
             } else { hoverZone = -1; }
         });
 
         const keyHandler = (e) => {
-            if (state === 'aiming') {
-                if (e.key === 'ArrowLeft' || e.key === 'a') { e.preventDefault(); shoot(0); }
-                else if (e.key === 'ArrowUp' || e.key === 's' || e.key === 'ArrowDown') { e.preventDefault(); shoot(1); }
-                else if (e.key === 'ArrowRight' || e.key === 'd') { e.preventDefault(); shoot(2); }
+            if (gameMode === 'striker' && state === 'aiming') {
+                // Q/W/E + A/S/D para grid 3x3
+                const keyMap = {
+                    'q': 6, 'w': 7, 'e': 8, // Top row (high)
+                    'a': 3, 's': 4, 'd': 5, // Middle row (mid)
+                    'z': 0, 'x': 1, 'c': 2  // Bottom row (low)
+                };
+                if (keyMap[e.key.toLowerCase()] !== undefined) {
+                    e.preventDefault();
+                    shoot(keyMap[e.key.toLowerCase()]);
+                }
+            } else if (gameMode === 'keeper' && state === 'ai_shooting') {
+                const keyMap = {
+                    'q': 6, 'w': 7, 'e': 8,
+                    'a': 3, 's': 4, 'd': 5,
+                    'z': 0, 'x': 1, 'c': 2
+                };
+                if (keyMap[e.key.toLowerCase()] !== undefined) {
+                    e.preventDefault();
+                    defend(keyMap[e.key.toLowerCase()]);
+                }
             } else if (state === 'result' || state === 'gameover') {
                 if (e.code === 'Space' || e.key === ' ') {
                     e.preventDefault();
-                    if (state === 'gameover') resetGame();
-                    else { state = 'aiming'; keeperX = kBaseX; hoverZone = -1; }
+                    if (state === 'gameover') {
+                        this._mostrarSelecaoDificuldade();
+                    } else {
+                        if (gameMode === 'striker') {
+                            state = 'aiming';
+                            keeperX = kBaseX;
+                            keeperY = kBaseY;
+                            hoverZone = -1;
+                        } else {
+                            state = 'aiming';
+                            keeperX = kBaseX;
+                            keeperY = kBaseY;
+                            hoverZone = -1;
+                            setTimeout(() => { if (state === 'aiming') aiShoot(); }, 800);
+                        }
+                    }
                 }
             }
         };
         document.addEventListener('keydown', keyHandler);
-        this._dinoKeyHandler = keyHandler;
+        this._penaltyKeyHandler = keyHandler;
 
         // Draw helpers
         const px = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); };
@@ -1069,7 +1306,7 @@ const ManutencaoScreen = {
             }
 
             // Score div
-            const scoreEl = document.getElementById('dinoScore');
+            const scoreEl = document.getElementById('penaltyScore');
             if (scoreEl) {
                 const atual = cobradas + (state === 'aiming' ? 1 : 0);
                 scoreEl.textContent = state === 'gameover'
@@ -1077,10 +1314,10 @@ const ManutencaoScreen = {
                     : `⚽ ${gols} gols | Cobrança ${atual} de ${totalCobradas}`;
             }
 
-            this._dinoAnimFrame = requestAnimationFrame(loop);
+            this._penaltyAnimFrame = requestAnimationFrame(loop);
         };
 
-        this._dinoAnimFrame = requestAnimationFrame(loop);
+        this._penaltyAnimFrame = requestAnimationFrame(loop);
     },
 
     // =====================================================================
