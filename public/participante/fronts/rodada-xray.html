@@ -482,6 +482,87 @@
     word-break: break-all;
 }
 
+/* === O QUE VEM POR AÍ === */
+.xray-upcoming-section {
+    background: var(--xray-surface-elevated);
+    border: 1px solid var(--xray-border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.xray-upcoming-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.xray-upcoming-card {
+    background: var(--xray-surface);
+    border: 1px solid var(--xray-border);
+    border-radius: 10px;
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.xray-upcoming-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+    width: 40px;
+    text-align: center;
+}
+
+.xray-upcoming-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.xray-upcoming-title {
+    font-family: var(--xray-font-brand);
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--xray-primary);
+    margin-bottom: 4px;
+}
+
+.xray-upcoming-desc {
+    font-size: 13px;
+    color: var(--xray-text-white);
+    line-height: 1.4;
+}
+
+.xray-upcoming-meta {
+    font-size: 11px;
+    color: var(--xray-text-muted);
+    margin-top: 2px;
+}
+
+.xray-upcoming-badge {
+    font-family: var(--xray-font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.xray-upcoming-badge.classificado {
+    background: rgba(34,197,94,0.15);
+    color: var(--xray-success);
+}
+
+.xray-upcoming-badge.eliminado {
+    background: rgba(239,68,68,0.15);
+    color: var(--xray-danger);
+}
+
+.xray-upcoming-badge.posicao {
+    background: rgba(255,69,0,0.15);
+    color: var(--xray-primary);
+}
+
 /* === LOADING & EMPTY STATE === */
 .xray-loading {
     display: flex;
@@ -602,13 +683,13 @@
             <div class="xray-distrib-bars" id="xrayDistribBars"></div>
         </div>
 
-        <!-- Atletas Detalhados -->
-        <div class="xray-atletas-section">
+        <!-- O que vem por aí -->
+        <div class="xray-upcoming-section" id="xrayUpcomingSection">
             <h3 class="xray-section-title">
-                <span class="material-icons">group</span>
-                Escalação Detalhada
+                <span class="material-icons">rocket_launch</span>
+                O que vem por aí...
             </h3>
-            <div id="xrayAtletasLista"></div>
+            <div id="xrayUpcomingLista" class="xray-upcoming-lista"></div>
         </div>
 
     </div>

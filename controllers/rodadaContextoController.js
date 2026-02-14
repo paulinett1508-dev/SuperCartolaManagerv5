@@ -118,7 +118,8 @@ export const obterContextoRodada = async (req, res) => {
         }
 
         // 5. Buscar dados de cada módulo ativo usando service
-        if (modulosAtivos.pontos_corridos) {
+        // Nomes usam camelCase conforme Liga.modulos_ativos
+        if (modulosAtivos.pontosCorridos) {
             contexto.disputas.pontos_corridos = await disputasService.calcularPontosCorridos(
                 ligaIdObj,
                 numRodada,
@@ -127,7 +128,7 @@ export const obterContextoRodada = async (req, res) => {
             );
         }
 
-        if (modulosAtivos.mata_mata) {
+        if (modulosAtivos.mataMata) {
             contexto.disputas.mata_mata = await disputasService.calcularMataMata(
                 ligaIdObj,
                 numRodada,
@@ -136,7 +137,7 @@ export const obterContextoRodada = async (req, res) => {
             );
         }
 
-        if (modulosAtivos.artilheiro_campeao) {
+        if (modulosAtivos.artilheiro) {
             contexto.disputas.artilheiro = await disputasService.calcularArtilheiro(
                 ligaIdObj,
                 numRodada,
@@ -145,7 +146,7 @@ export const obterContextoRodada = async (req, res) => {
             );
         }
 
-        if (modulosAtivos.luva_de_ouro) {
+        if (modulosAtivos.luvaOuro) {
             contexto.disputas.luva_ouro = await disputasService.calcularLuvaOuro(
                 ligaIdObj,
                 numRodada,
@@ -154,7 +155,7 @@ export const obterContextoRodada = async (req, res) => {
             );
         }
 
-        if (modulosAtivos.capitao_de_luxo) {
+        if (modulosAtivos.capitaoLuxo) {
             contexto.disputas.capitao_luxo = await disputasService.calcularCapitaoLuxo(
                 ligaIdObj,
                 numRodada,
@@ -163,7 +164,7 @@ export const obterContextoRodada = async (req, res) => {
             );
         }
 
-        if (modulosAtivos.melhor_mes) {
+        if (modulosAtivos.melhorMes) {
             contexto.disputas.melhor_mes = await disputasService.calcularMelhorMes(
                 ligaIdObj,
                 numRodada,

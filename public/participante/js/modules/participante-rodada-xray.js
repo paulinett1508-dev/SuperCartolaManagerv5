@@ -95,7 +95,7 @@ function renderizar(dados) {
     renderizarCapitao(dados);
     renderizarPosicoes(dados);
     renderizarDistribuicao(dados);
-    renderizarAtletas(dados);
+    carregarEExibirUpcoming();
 }
 
 function renderizarSubtitulo(dados) {
@@ -240,42 +240,176 @@ function renderizarDistribuicao(dados) {
     }).join('');
 }
 
-function renderizarAtletas(dados) {
-    const container = document.getElementById('xrayAtletasLista');
+/**
+ * Busca dados de contexto/disputas e renderiza "O que vem por aí..."
+ */
+async function carregarEExibirUpcoming() {
+    const container = document.getElementById('xrayUpcomingLista');
     if (!container) return;
 
-    const atletas = dados.atletas || [];
+    try {
+        const url = `/api/rodada-contexto/${_ligaId}/${_rodada}/${_timeId}${_temporada ? `?temporada=${_temporada}` : ''}`;
+        const response = await fetch(url);
 
-    if (atletas.length === 0) {
-        container.innerHTML = '<p style="color:var(--xray-text-muted);text-align:center;padding:20px;">Sem dados de escalação</p>';
+        if (!response.ok) {
+            container.innerHTML = '<p style="color:var(--xray-text-muted);text-align:center;padding:20px;">Dados indisponíveis</p>';
+            return;
+        }
+
+        const contexto = await response.json();
+        renderizarUpcoming(contexto.disputas || {});
+    } catch (error) {
+        if (window.Log) Log.error('PARTICIPANTE-XRAY', 'Erro ao carregar upcoming:', error);
+        container.innerHTML = '<p style="color:var(--xray-text-muted);text-align:center;padding:20px;">Erro ao carregar dados</p>';
+    }
+}
+
+function renderizarUpcoming(disputas) {
+    const container = document.getElementById('xrayUpcomingLista');
+    if (!container) return;
+
+    const cards = [];
+
+    // Pontos Corridos - próximo adversário
+    if (disputas.pontos_corridos) {
+        const pc = disputas.pontos_corridos;
+
+        // Resultado da rodada encerrada
+        const resultIcon = pc.seu_confronto.resultado === 'vitoria' ? '✅' :
+                          pc.seu_confronto.resultado === 'derrota' ? '❌' : '⚖️';
+        const resultText = pc.seu_confronto.resultado === 'vitoria' ? 'Vitória' :
+                          pc.seu_confronto.resultado === 'derrota' ? 'Derrota' : 'Empate';
+
+        cards.push(`
+            <div class="xray-upcoming-card">
+                <div class="xray-upcoming-icon">⚽</div>
+                <div class="xray-upcoming-info">
+                    <div class="xray-upcoming-title">PONTOS CORRIDOS</div>
+                    <div class="xray-upcoming-desc">
+                        ${resultIcon} ${resultText} contra ${escapeHtml(pc.seu_confronto.adversario.nome)}
+                    </div>
+                    <div class="xray-upcoming-meta">
+                        ${pc.minha_posicao}º lugar • ${pc.zona}${pc.mudanca_posicao > 0 ? ` • Subiu ${pc.mudanca_posicao} posição(ões)` : pc.mudanca_posicao < 0 ? ` • Caiu ${Math.abs(pc.mudanca_posicao)} posição(ões)` : ''}
+                    </div>
+                    ${pc.proximo_confronto ? `<div class="xray-upcoming-meta" style="margin-top:4px;">📅 Próximo: vs ${escapeHtml(pc.proximo_confronto.adversario.nome)} (Rodada ${pc.proximo_confronto.rodada})</div>` : ''}
+                </div>
+                <span class="xray-upcoming-badge posicao">${pc.minha_posicao}º</span>
+            </div>
+        `);
+    }
+
+    // Mata-Mata
+    if (disputas.mata_mata) {
+        const mm = disputas.mata_mata;
+        const isClassificado = mm.seu_confronto.resultado === 'classificado';
+        const statusText = isClassificado ? 'Classificado!' : mm.seu_confronto.resultado === 'eliminado' ? 'Eliminado' : 'Aguardando';
+        const statusIcon = isClassificado ? '🏆' : mm.seu_confronto.resultado === 'eliminado' ? '💔' : '⏳';
+
+        let descExtra = '';
+        if (isClassificado && mm.proxima_fase) {
+            descExtra = `<div class="xray-upcoming-meta" style="margin-top:4px;">🔜 Próxima fase: ${escapeHtml(mm.proxima_fase)}</div>`;
+        }
+
+        cards.push(`
+            <div class="xray-upcoming-card">
+                <div class="xray-upcoming-icon">🏆</div>
+                <div class="xray-upcoming-info">
+                    <div class="xray-upcoming-title">MATA-MATA (${escapeHtml(mm.fase_atual)}) • Edição ${mm.edicao}</div>
+                    <div class="xray-upcoming-desc">
+                        ${statusIcon} ${statusText} — vs ${escapeHtml(mm.seu_confronto.adversario.nome)}
+                    </div>
+                    <div class="xray-upcoming-meta">
+                        Você ${mm.seu_confronto.voce.toFixed(1)} × ${mm.seu_confronto.adversario.pontos.toFixed(1)} ${escapeHtml(mm.seu_confronto.adversario.nome)}
+                    </div>
+                    ${descExtra}
+                </div>
+                <span class="xray-upcoming-badge ${isClassificado ? 'classificado' : 'eliminado'}">${statusText}</span>
+            </div>
+        `);
+    }
+
+    // Artilheiro Campeão
+    if (disputas.artilheiro) {
+        const art = disputas.artilheiro;
+        let destaque = '';
+        if (art.assumiu_lideranca) destaque = '🔥 Assumiu a liderança!';
+        else if (art.perdeu_lideranca) destaque = '⚠️ Perdeu a liderança';
+        else if (art.rival) destaque = `Empatado com ${escapeHtml(art.rival)}`;
+
+        cards.push(`
+            <div class="xray-upcoming-card">
+                <div class="xray-upcoming-icon">🎯</div>
+                <div class="xray-upcoming-info">
+                    <div class="xray-upcoming-title">ARTILHEIRO CAMPEÃO</div>
+                    <div class="xray-upcoming-desc">
+                        ${art.sua_posicao}º lugar com ${art.seus_gols} gols (saldo: ${art.seu_saldo || 0})
+                    </div>
+                    ${destaque ? `<div class="xray-upcoming-meta">${destaque}</div>` : ''}
+                </div>
+                <span class="xray-upcoming-badge posicao">${art.sua_posicao}º</span>
+            </div>
+        `);
+    }
+
+    // Luva de Ouro
+    if (disputas.luva_ouro) {
+        const luva = disputas.luva_ouro;
+        cards.push(`
+            <div class="xray-upcoming-card">
+                <div class="xray-upcoming-icon">🧤</div>
+                <div class="xray-upcoming-info">
+                    <div class="xray-upcoming-title">LUVA DE OURO</div>
+                    <div class="xray-upcoming-desc">
+                        ${luva.sua_posicao}º lugar • ${luva.seus_sgs} SGs
+                    </div>
+                </div>
+                <span class="xray-upcoming-badge posicao">${luva.sua_posicao}º</span>
+            </div>
+        `);
+    }
+
+    // Capitão de Luxo
+    if (disputas.capitao_luxo) {
+        const cap = disputas.capitao_luxo;
+        cards.push(`
+            <div class="xray-upcoming-card">
+                <div class="xray-upcoming-icon">👑</div>
+                <div class="xray-upcoming-info">
+                    <div class="xray-upcoming-title">CAPITÃO DE LUXO</div>
+                    <div class="xray-upcoming-desc">
+                        ${cap.sua_posicao}º lugar • ${cap.seus_pontos.toFixed(1)} pts acumulados
+                    </div>
+                </div>
+                <span class="xray-upcoming-badge posicao">${cap.sua_posicao}º</span>
+            </div>
+        `);
+    }
+
+    // Melhor do Mês
+    if (disputas.melhor_mes) {
+        const mes = disputas.melhor_mes;
+        const nomesMes = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        cards.push(`
+            <div class="xray-upcoming-card">
+                <div class="xray-upcoming-icon">📅</div>
+                <div class="xray-upcoming-info">
+                    <div class="xray-upcoming-title">MELHOR DO MÊS (${nomesMes[mes.mes]}/${mes.ano})</div>
+                    <div class="xray-upcoming-desc">
+                        ${mes.sua_posicao}º lugar • ${mes.seus_pontos.toFixed(1)} pts
+                    </div>
+                    ${mes.rodadas_restantes > 0 ? `<div class="xray-upcoming-meta">${mes.rodadas_restantes} rodada(s) restante(s) no mês</div>` : ''}
+                </div>
+                <span class="xray-upcoming-badge posicao">${mes.sua_posicao}º</span>
+            </div>
+        `);
+    }
+
+    if (cards.length === 0) {
+        container.innerHTML = '<p style="color:var(--xray-text-muted);text-align:center;padding:20px;">Nenhuma disputa ativa no momento.</p>';
         return;
     }
 
-    container.innerHTML = atletas.map(atleta => {
-        const pontosClass = atleta.pontos_efetivos > 0 ? 'positivo' :
-                           atleta.pontos_efetivos < 0 ? 'negativo' : 'neutro';
-
-        const tags = [];
-        if (atleta.is_capitao) tags.push('<span class="xray-capitao-tag">C</span>');
-        if (atleta.is_reserva) tags.push('<span class="xray-reserva-tag">RES</span>');
-
-        const escudoUrl = atleta.clube_id ? `/escudos/${atleta.clube_id}.png` : '/escudos/default.png';
-
-        return `
-            <div class="xray-atleta-row">
-                <span class="xray-atleta-pos-badge" style="background:${atleta.posicao_cor}">${atleta.posicao_sigla}</span>
-                <img class="xray-atleta-clube-icon" src="${escudoUrl}" onerror="this.src='/escudos/default.png'" alt="">
-                <div class="xray-atleta-info">
-                    <div class="xray-atleta-nome">
-                        ${escapeHtml(atleta.apelido)}
-                        ${tags.join('')}
-                    </div>
-                    <div class="xray-atleta-sub">${atleta.posicao_nome}</div>
-                </div>
-                <span class="xray-atleta-pontos ${pontosClass}">${formatarPontos(atleta.pontos_efetivos)}</span>
-            </div>
-        `;
-    }).join('');
+    container.innerHTML = cards.join('');
 }
 
 // === HELPERS ===

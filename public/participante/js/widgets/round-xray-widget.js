@@ -321,7 +321,8 @@ function criarModal() {
 
                 <!-- MOVIMENTAÇÕES -->
                 <div class="rxray-section">
-                    <h4>🎖️ Mudanças na Liga</h4>
+                    <h4>🎖️ Mudanças no Ranking Geral</h4>
+                    <p class="rxray-section-sub" id="rxrayMovSub"></p>
                     <div id="rxrayMovimentacoes"></div>
                 </div>
 
@@ -530,19 +531,25 @@ function renderizarPerformance(performance) {
 
 function renderizarMovimentacoes(movimentacoes) {
     const container = document.getElementById("rxrayMovimentacoes");
+    const subEl = document.getElementById("rxrayMovSub");
+
+    if (subEl) {
+        subEl.textContent = `Variações de posição após a Rodada ${RXrayState.rodadaConsolidada}`;
+    }
 
     if (!movimentacoes || movimentacoes.length === 0) {
         container.innerHTML = '<p class="rxray-empty">Sem mudanças significativas nesta rodada.</p>';
         return;
     }
 
+    const meuTimeId = RXrayState.timeId;
+
     const movHTML = movimentacoes.slice(0, 5).map(mov => {
-        if (mov.tipo === "subida") {
-            return `<div class="mov-item">↗️ ${escapeHtml(mov.time)}: ${mov.de}º → ${mov.para}º</div>`;
-        } else if (mov.tipo === "queda") {
-            return `<div class="mov-item">↘️ ${escapeHtml(mov.time)}: ${mov.de}º → ${mov.para}º</div>`;
-        }
-        return "";
+        const isMe = Number(mov.timeId) === Number(meuTimeId);
+        const meClass = isMe ? " mov-item-me" : "";
+        const icon = mov.tipo === "subida" ? "↗️" : "↘️";
+        const label = isMe ? "Você" : escapeHtml(mov.time);
+        return `<div class="mov-item${meClass}">${icon} ${label}: ${mov.de}º → ${mov.para}º</div>`;
     }).join("");
 
     container.innerHTML = movHTML;

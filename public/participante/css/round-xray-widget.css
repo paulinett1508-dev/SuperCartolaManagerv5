@@ -329,6 +329,14 @@
     color: var(--rxray-danger);
 }
 
+/* Subtítulo de seção */
+.rxray-section-sub {
+    font-size: 12px;
+    color: var(--rxray-text-muted);
+    margin: -8px 0 12px 0;
+    font-style: italic;
+}
+
 /* Movimentações */
 .mov-item {
     padding: 8px 12px;
@@ -337,6 +345,11 @@
     margin-bottom: 8px;
     font-size: 13px;
     color: var(--rxray-text-white);
+}
+
+.mov-item-me {
+    border-left: 3px solid var(--rxray-primary);
+    font-weight: 600;
 }
 
 .mov-item:last-child {
