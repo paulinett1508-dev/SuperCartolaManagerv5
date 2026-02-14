@@ -52,7 +52,7 @@ export async function inicializarRaioXWidget(participante, mercadoStatus) {
 
     // Verificar se deve exibir
     if (deveExibirWidget(mercadoStatus)) {
-        RXrayState.rodadaConsolidada = mercadoStatus.rodada_atual;
+        RXrayState.rodadaConsolidada = mercadoStatus.rodada_atual - 1;
         await mostrarWidget();
     } else {
         esconderWidget();
