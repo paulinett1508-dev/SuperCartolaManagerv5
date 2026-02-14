@@ -1369,7 +1369,7 @@ const ManutencaoScreen = {
         document.body.appendChild(backdrop);
 
         document.getElementById('devBypassParticipante').addEventListener('click', () => {
-            window.location.href = '/api/admin/auth/login?redirect=/participante/';
+            window.location.href = '/participante-login.html';
         });
         document.getElementById('devBypassAdmin').addEventListener('click', () => {
             window.location.href = '/api/admin/auth/login?redirect=/gerenciar.html';
