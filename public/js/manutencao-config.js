@@ -125,6 +125,7 @@ const ManutencaoConfig = {
             document.getElementById('customMostrarUltimaRodada').checked = c.mostrar_ultima_rodada !== false;
 
             if (c.imagem_url) {
+                this.imagemUpload = c.imagem_url;
                 this.mostrarImagemPreview(c.imagem_url);
             }
         }
