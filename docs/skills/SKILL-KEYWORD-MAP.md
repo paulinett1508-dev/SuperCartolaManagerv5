@@ -169,6 +169,15 @@ Sistema de ativação inteligente de skills baseado em palavras-chave contextuai
 | **NÃO confundir** | Refactoring pontual → `code`; Refactoring de lógica de negócio → `league-architect` primeiro |
 | **Localização** | `docs/skills/03-utilities/Refactor-Monolith.md` |
 
+#### usage-report
+| Tipo | Keywords |
+|------|----------|
+| **Primárias** | `usage`, `custo`, `cost`, `quanto gastei`, `métricas da sessão`, `tokens consumidos` |
+| **Frases PT-BR** | "quanto custou", "qual o custo", "custo da sessão", "mostra o usage", "mostra o custo", "quanto tá custando", "quanto foi", "quanto deu", "quanto saiu", "preço da sessão", "tá caro?", "gastei quanto?" |
+| **Contexto** | Consulta de custo/tokens da sessão ativa, após finalizar tarefas, monitoramento de gastos |
+| **NÃO confundir** | Métricas de performance do app → `cache-auditor`; Métricas de banco → `db-guardian` |
+| **Localização** | `docs/skills/03-utilities/usage-report.md` |
+
 #### stitch-adapter
 | Tipo | Keywords |
 |------|----------|
@@ -284,6 +293,9 @@ Consulta rápida: "o usuário disse X → qual skill usar?"
 | "tem certeza disso?" | `fact-checker` | Validação de fatos |
 | "antes de codar, verifique" | `ai-problems-detection` | Pré-check |
 | "esse arquivo tá enorme" | `Refactor-Monolith` | Decomposição |
+| "quanto gastei?" | `usage-report` | Custo da sessão |
+| "custo da sessão" | `usage-report` | Métricas de uso |
+| "tá caro?" | `usage-report` | Alerta de custo |
 | "adaptar código do stitch" | `stitch-adapter` | Conversão HTML externo |
 | "recebi html do google stitch" | `stitch-adapter` | Adaptação de código |
 | "crie no stitch um card de..." | `stitch-adapter` | Geração via MCP Stitch |
@@ -318,6 +330,8 @@ Consulta rápida: "o usuário disse X → qual skill usar?"
 | Design Stitch → Código (Manual) | `stitch-adapter` → `frontend-crafter` (ajustes) |
 | Design Figma → Código (Fallback) | Figma MCP → `stitch-adapter` (transformer React → Vanilla) |
 | Documentação | `system-scribe` |
+| Consulta de custo | `usage-report` |
+| Deploy completo com custo | `git-commit-push` → `replit-pull` → `usage-report` |
 | Consulta API Cartola | `cartola-api` → `fact-checker` |
 
 ---
