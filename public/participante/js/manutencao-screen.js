@@ -91,12 +91,27 @@ const ManutencaoScreen = {
             header.style.borderColor = custom.cor_primaria + '40'; // 25% opacity
         }
 
-        // Exibir imagem se houver
+        // Exibir imagem hero customizada (valoriza imagem completa)
+        const imagemContainer = tela.querySelector('.manutencao-imagem');
+        const logoFallback = tela.querySelector('.manutencao-logo');
+
         if (custom.imagem_url) {
-            const imagemContainer = tela.querySelector('.manutencao-imagem');
+            // Mostrar imagem hero
             if (imagemContainer) {
-                imagemContainer.innerHTML = `<img src="${custom.imagem_url}" alt="Banner" style="width:100%;max-height:200px;object-fit:cover;border-radius:12px;margin-bottom:16px;">`;
+                imagemContainer.innerHTML = `<img src="${custom.imagem_url}" alt="Imagem de Manutenção">`;
                 imagemContainer.style.display = 'block';
+            }
+            // Esconder logo fallback
+            if (logoFallback) {
+                logoFallback.style.display = 'none';
+            }
+        } else {
+            // Sem imagem customizada: usar logo fallback
+            if (imagemContainer) {
+                imagemContainer.style.display = 'none';
+            }
+            if (logoFallback) {
+                logoFallback.style.display = 'block';
             }
         }
 

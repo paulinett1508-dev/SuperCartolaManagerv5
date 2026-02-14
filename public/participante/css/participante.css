@@ -873,6 +873,33 @@ body {
     border-radius: var(--app-radius-xl);
 }
 
+/* Imagem Hero - Valoriza imagem completa quando customizada */
+.manutencao-imagem {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto var(--app-space-6);
+}
+
+.manutencao-imagem img {
+    width: 100%;
+    max-height: 350px;
+    object-fit: contain; /* Não corta a imagem, mostra completa */
+    border-radius: var(--app-radius-lg);
+}
+
+/* Responsividade: altura menor em mobile */
+@media (max-height: 700px) {
+    .manutencao-imagem img {
+        max-height: 250px;
+    }
+}
+
+@media (max-width: 480px) {
+    .manutencao-imagem img {
+        max-height: 280px;
+    }
+}
+
 .manutencao-card-mensagem {
     background: #1f2937;
     border-radius: 20px;
