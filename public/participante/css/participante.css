@@ -835,19 +835,26 @@ body {
 
 .manutencao-dev-bypass {
     position: absolute;
-    top: 10px;
+    top: 12px;
     right: 14px;
-    font-size: 0.65rem;
-    color: var(--app-text-dim);
-    text-decoration: none;
-    font-family: var(--app-font-mono);
-    padding: var(--app-space-1) var(--app-space-2);
-    border-radius: var(--app-radius-sm);
-    transition: color var(--app-transition-normal);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.7rem;
+    font-family: var(--app-font-base);
+    font-weight: 600;
+    color: var(--app-text-muted);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 6px 12px;
+    border-radius: var(--app-radius-md);
+    cursor: pointer;
+    transition: background var(--app-transition-normal), color var(--app-transition-normal);
 }
 
-.manutencao-dev-bypass:hover {
-    color: var(--app-text-muted);
+.manutencao-dev-bypass:active {
+    background: rgba(255, 255, 255, 0.18);
+    color: var(--app-text-primary);
 }
 
 .manutencao-card-principal {

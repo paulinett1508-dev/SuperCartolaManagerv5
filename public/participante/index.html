@@ -890,11 +890,12 @@
              TELA DE MANUTENÇÃO - "Calma aê!" v2.0
              ===================================================== -->
         <div id="manutencaoScreen" class="manutencao-screen">
-            <!-- Dev bypass link (discreto) -->
-            <a id="devBypassLink" href="#" onclick="window.ManutencaoScreen && ManutencaoScreen.iniciarDevBypass(); return false;"
+            <!-- Dev bypass: login admin para testar app em manutenção -->
+            <button id="devBypassLink" onclick="window.ManutencaoScreen && ManutencaoScreen.iniciarDevBypass();"
                 class="manutencao-dev-bypass">
-                dev
-            </a>
+                <span class="material-icons" style="font-size:14px;">admin_panel_settings</span>
+                Admin
+            </button>
 
             <!-- Card principal -->
             <div class="manutencao-card-principal">
