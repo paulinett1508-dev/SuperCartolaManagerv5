@@ -10,6 +10,8 @@ import Rodada from "../models/Rodada.js";
 import Time from "../models/Time.js";
 import Liga from "../models/Liga.js";
 import CartolaOficialDump from "../models/CartolaOficialDump.js";
+import RankingTurno from "../models/RankingTurno.js";
+import RankingGeralCache from "../models/RankingGeralCache.js";
 import mongoose from "mongoose";
 import { isSeasonFinished, logBlockedOperation, SEASON_CONFIG } from "../utils/seasonGuard.js";
 import { CURRENT_SEASON } from "../config/seasons.js";
@@ -238,7 +240,25 @@ export const popularRodadas = async (req, res) => {
       }
     }
 
-    // 3. RESPOSTA
+    // 3. INVALIDAR CACHES DE RANKING (garante reconsolidação com dados frescos)
+    // ✅ v3.2: Após popular rodadas, os caches ficam stale e precisam ser recalculados
+    try {
+      const ligaIdForCache = new mongoose.Types.ObjectId(ligaId);
+      const deletedTurno = await RankingTurno.deleteMany({
+        ligaId: ligaIdForCache,
+        temporada: CURRENT_SEASON,
+        status: { $ne: "consolidado" },
+      });
+      const deletedGeral = await RankingGeralCache.deleteMany({
+        ligaId: ligaIdForCache,
+        temporada: CURRENT_SEASON,
+      });
+      console.log(`[POPULAR-RODADAS] 🗑️ Caches invalidados: ${deletedTurno.deletedCount} RankingTurno, ${deletedGeral.deletedCount} RankingGeralCache`);
+    } catch (cacheErr) {
+      console.warn(`[POPULAR-RODADAS] ⚠️ Erro ao invalidar caches (não-bloqueante):`, cacheErr.message);
+    }
+
+    // 4. RESPOSTA
     const mensagem =
       rodadaInicio === rodadaFim
         ? `Rodada ${rodadaInicio} populada com sucesso`
@@ -308,7 +328,7 @@ async function processarRodada(
 
     try {
       // Buscar da API do Cartola FC
-      const url = `https://api.cartolafc.globo.com/time/id/${time.timeId}/${rodada}`;
+      const url = `https://api.cartola.globo.com/time/id/${time.timeId}/${rodada}`;
       const response = await fetch(url);
 
       if (response.ok) {

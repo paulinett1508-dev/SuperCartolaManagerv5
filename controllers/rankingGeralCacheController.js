@@ -109,11 +109,13 @@ async function calcularRankingConsolidado(ligaId, rodadaFinal, temporada) {
 
   const pipeline = [
     // Filtrar apenas rodadas da liga, temporada e até a rodada final
+    // ✅ FIX: Excluir rodadas não jogadas do cálculo
     {
       $match: {
         ligaId: ligaObjectId,
         rodada: { $lte: rodadaFinal },
-        temporada
+        temporada,
+        rodadaNaoJogada: { $ne: true }
       }
     },
     // Agrupar por time e somar pontos

@@ -62,11 +62,30 @@ export async function buscarRankingTurno(ligaId, turno, temporada = new Date().g
         // turno "geral" consolidado: continuar para checar parciais antes de retornar
     }
 
-    // Verificar se precisa consolidar
-    const precisaConsolidar =
+    // ✅ v3.4: Verificar se precisa consolidar — check robusto por contagem de registros
+    // Além do número da rodada, verifica se a quantidade de registros no banco mudou
+    // Isso detecta repopulações e populações parciais (rodada populada em batches)
+    let precisaConsolidar =
         !snapshot ||
         snapshot.rodada_atual < rodadaAtual ||
         (rodadaAtual >= fim && snapshot.status !== "consolidado");
+
+    // ✅ v3.4: Check extra — contar registros atuais vs quando o snapshot foi criado
+    if (!precisaConsolidar && snapshot && snapshot.status !== "consolidado") {
+        const totalRegistrosAtual = await Rodada.countDocuments({
+            ligaId: ligaObjectId,
+            temporada,
+            rodada: { $gte: inicio, $lte: fim },
+            rodadaNaoJogada: { $ne: true },
+        });
+        const totalRegistrosSnapshot = (snapshot.ranking || []).reduce(
+            (acc, r) => acc + (r.rodadas_jogadas || 0), 0
+        );
+        if (totalRegistrosAtual !== totalRegistrosSnapshot) {
+            console.log(`${LOG_PREFIX} ⚠️ Contagem de registros diverge (DB: ${totalRegistrosAtual} vs Snapshot: ${totalRegistrosSnapshot}), forçando reconsolidação...`);
+            precisaConsolidar = true;
+        }
+    }
 
     if (precisaConsolidar) {
         console.log(`${LOG_PREFIX} 🔄 Consolidando ranking turno ${turno} - Temporada ${temporada}...`);

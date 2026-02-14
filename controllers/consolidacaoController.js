@@ -458,7 +458,7 @@ export const consolidarRodada = async (req, res) => {
         // 9. Buscar status do mercado (SEASON GUARD: usar valores fixos se temporada encerrada)
         let statusMercado = { rodada_atual: 38, mes_atual: 12 };
         if (!isSeasonFinished()) {
-            statusMercado = await fetch('https://api.cartolafc.globo.com/mercado/status')
+            statusMercado = await fetch('https://api.cartola.globo.com/mercado/status')
                 .then(r => r.json())
                 .catch(() => ({ rodada_atual: 38, mes_atual: 12 }));
         }
