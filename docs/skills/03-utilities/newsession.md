@@ -4,11 +4,12 @@ Handover para nova sessao - carrega contexto do trabalho em andamento e instrui 
 
 ---
 
-## STATUS ATUAL: AUDIT-004 COMPLETO - RANKING OK
+## STATUS ATUAL: AUDIT-005 COMPLETO - FAIXAS DINAMICAS OK
 
 **Data:** 14/02/2026
-**Ultima acao:** AUDIT-004 totalmente concluido. 4 bugs corrigidos, deployados, R3 repopulada e ranking reconsolidado.
-**Sessao anterior:** 13/02/2026 (AUDIT-004: 4 bugs ranking corrigidos + AUDIT-001/002/003 financeiras + cache stale resolvido)
+**Ultima acao:** AUDIT-005 (faixas dinamicas ranking) concluido. 3 bugs corrigidos + skill git-commit-push simplificada. Tudo deployado.
+**Sessao anterior:** 14/02/2026 morning (AUDIT-004 completo: 4 bugs ranking, R3 repopulada, ranking reconsolidado)
+**Sessao 13/02/2026:** AUDIT-004: 4 bugs ranking corrigidos + AUDIT-001/002/003 financeiras + cache stale resolvido
 
 ---
 
@@ -45,6 +46,36 @@ Handover para nova sessao - carrega contexto do trabalho em andamento e instrui 
 - ~~**Repopular R3** via painel admin com `repopular: true`~~ ✅ FEITO (14/02)
 - ~~**Reconsolidar ranking**~~ ✅ FEITO (auto-reconsolidacao apos repopulacao)
 - ~~**Deploy** das mudancas~~ ✅ DEPLOYED (commits 213012d, 5c52818 "Published your App")
+
+---
+
+## AUDIT-005: FAIXAS DINAMICAS RANKING (14/02/2026)
+
+**Problema:** Ranking da rodada exibia faixas financeiras (MITO/G2-G11/Z1-Z11/MICO) e valores hardcoded para 32 times, ignorando a configuracao do wizard (`gerenciar-modulos.html`). Liga com menos participantes via valores errados.
+
+### Bugs encontrados e corrigidos
+
+| # | Bug | Severidade | Arquivo | Fix |
+|---|-----|-----------|---------|-----|
+| 1 | `rodadas-ui.js` usava `getBancoPorRodada` (sync/hardcoded) ignorando config do wizard | **HIGH** | `public/js/rodadas/rodadas-ui.js` | Migrado para `getBancoPorRodadaAsync` + `getFaixasPorRodadaAsync` com cache `preCarregarConfigRodada()` |
+| 2 | `getPosLabel` hardcoded por liga (32 times SuperCartola, 6/4 Sobral) | **HIGH** | `public/js/rodadas/rodadas-ui.js` | Reescrita para usar faixas dinamicas do servidor, fallback hardcoded |
+| 3 | `buscarConfiguracoes` retornava `liga.times.length` em vez de config do wizard | MODERATE | `controllers/ligaController.js` | Prioriza `config.ranking_rodada.total_participantes` sobre `liga.times.length` |
+
+### Root cause
+
+O wizard de modulos (`gerenciar-modulos.html`) salvava corretamente no `ModuleConfig` e propagava para `liga.configuracoes.ranking_rodada` via `propagarRankingRodadaParaLiga()`. Porem o frontend (`rodadas-ui.js`) NUNCA consumia esses dados — usava funcoes sync com valores hardcoded. O endpoint `buscarConfiguracoes` tambem retornava `total_participantes` errado (contagem bruta de times em vez do valor configurado).
+
+### Arquivos modificados
+
+| Arquivo | Mudanca |
+|---------|---------|
+| `public/js/rodadas/rodadas-ui.js` | Bug 1+2: imports async, `preCarregarConfigRodada()` com cache, `getPosLabel` dinamico, `exibirRanking`/`exibirRankingParciais` agora async |
+| `public/js/rodadas/rodadas-orquestrador.js` | Added `await` nas chamadas a `exibirRanking` (agora async) |
+| `controllers/ligaController.js` | Bug 3: `total_participantes` prioriza config wizard L1189 |
+
+### Deploy
+- Commit `9564750` - fix(rodadas): usar configs dinamicas do wizard
+- Pushed e deployado em 14/02/2026
 
 ---
 
@@ -128,10 +159,14 @@ Handover para nova sessao - carrega contexto do trabalho em andamento e instrui 
 
 | Arquivo | Papel | Status |
 |---------|-------|--------|
-| `utils/saldo-calculator.js` | FONTE DA VERDADE | Correto (v2.0) |
+| `utils/saldo-calculator.js` | FONTE DA VERDADE financeira | Correto (v2.0) |
 | `routes/tesouraria-routes.js` | 4 endpoints financeiros | FIXADO v3.3 |
 | `controllers/fluxoFinanceiroController.js` | Calculo real-time | v8.12.0 OK |
 | `controllers/extratoFinanceiroCacheController.js` | Cache + funcoes compartilhadas | v6.9 (lancamentosIniciais fix aplicado) |
+| `controllers/ligaController.js` | buscarConfiguracoes + CRUD liga | FIXADO (total_participantes dinamico) |
+| `public/js/rodadas/rodadas-ui.js` | Render ranking rodada + faixas financeiras | FIXADO (async dinamico, AUDIT-005) |
+| `public/js/rodadas/rodadas-config.js` | Config sync/async faixas e valores | Correto (fonte das funcoes async) |
+| `public/js/rodadas/rodadas-orquestrador.js` | Orquestracao fluxo rodadas | FIXADO (awaits adicionados) |
 | `public/participante/js/modules/participante-extrato-ui.js` | Render extrato app | v11.0 AUDITADO OK |
 | `public/participante/css/_app-tokens.css` | Tokens CSS cores | Correto |
 | `scripts/auditoria-financeira-completa.js` | Script auditoria completa | Correto v1.1 |
@@ -161,10 +196,12 @@ node scripts/auditoria-financeira-completa.js --dry-run --temporada=2025
 **PROXIMA SESSAO:**
 1. ~~Investigar e corrigir bug cache stale financeiro~~ ✅ RESOLVIDO
 2. ~~Rodar script reconciliacao~~ ✅ EXECUTADO (15/15 corrigidos)
-3. ~~Decidir sobre trabalho nao commitado~~ ✅ Resolvido (ja commitados)
-4. ~~Auditoria Ranking Geral (R3 nao aparecia)~~ ✅ 4 bugs corrigidos (AUDIT-004)
-5. ~~Deploy dos fixes do ranking~~ ✅ DEPLOYED (commits 213012d, 5c52818 - verificado 14/02)
+3. ~~Decidir sobre trabalho nao commitado~~ ✅ Resolvido
+4. ~~Auditoria Ranking Geral (R3 nao aparecia)~~ ✅ AUDIT-004 (4 bugs)
+5. ~~Deploy dos fixes do ranking~~ ✅ DEPLOYED
 6. ~~Repopular R3 + reconsolidar ranking~~ ✅ FEITO via painel admin (14/02)
-7. ~~Commitar todos os fixes pendentes~~ ✅ Tudo commitado (verificado 14/02 - 0 linhas diff)
-8. AUDIT-001 Fase 3 se houver tempo (cosmetico)
-9. Verificar temporada 2025 caches (formato antigo, reconciliacao nao suporta)
+7. ~~Commitar todos os fixes pendentes~~ ✅ Tudo commitado
+8. ~~Auditoria faixas ranking (valores errados)~~ ✅ AUDIT-005 (3 bugs, commit 9564750)
+9. ~~Simplificar FASE 6 skill git-commit-push~~ ✅ FEITO (commit b4e9c88)
+10. AUDIT-001 Fase 3 se houver tempo (cosmetico)
+11. Verificar temporada 2025 caches (formato antigo, reconciliacao nao suporta)
