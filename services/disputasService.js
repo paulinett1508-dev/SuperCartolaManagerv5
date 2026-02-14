@@ -3,6 +3,7 @@
 // Funções para calcular dados de cada módulo competitivo da liga
 // =====================================================================
 
+import mongoose from "mongoose";
 import PontosCorridosCache from "../models/PontosCorridosCache.js";
 import MataMataCache from "../models/MataMataCache.js";
 import ArtilheiroCampeao from "../models/ArtilheiroCampeao.js";
@@ -12,6 +13,28 @@ import MelhorMesCache from "../models/MelhorMesCache.js";
 import Rodada from "../models/Rodada.js";
 
 const LOG_PREFIX = "[DISPUTAS-SERVICE]";
+
+/**
+ * Retorna as fases aplicáveis de acordo com o tamanho do torneio
+ * Replica lógica do frontend (participante-mata-mata.js)
+ */
+function getFasesParaTamanho(tamanho) {
+    if (tamanho >= 32) return ["primeira", "oitavas", "quartas", "semis", "final"];
+    if (tamanho >= 16) return ["oitavas", "quartas", "semis", "final"];
+    if (tamanho >= 8) return ["quartas", "semis", "final"];
+    return [];
+}
+
+/**
+ * Nomes legíveis das fases do Mata-Mata
+ */
+const NOMES_FASES = {
+    primeira: "1ª Fase",
+    oitavas: "Oitavas",
+    quartas: "Quartas",
+    semis: "Semifinal",
+    final: "Final",
+};
 
 /**
  * Calcula dados completos de Pontos Corridos
@@ -180,38 +203,118 @@ export async function calcularPontosCorridos(ligaId, rodada, timeId, temporada) 
  */
 export async function calcularMataMata(ligaId, rodada, timeId, temporada) {
     try {
-        // Buscar cache mais recente (pode ter múltiplas edições)
-        const cache = await MataMataCache.findOne({
+        // Buscar todas as edições do mata-mata para esta liga/temporada
+        const caches = await MataMataCache.find({
             liga_id: String(ligaId),
             temporada: temporada,
         })
-            .sort({ rodada_atual: -1 })
+            .sort({ edicao: -1 })
             .lean();
 
-        if (!cache || !cache.dados_torneio) {
-            console.log(`${LOG_PREFIX} [MM] Cache não encontrado`);
+        if (!caches || caches.length === 0) {
+            console.log(`${LOG_PREFIX} [MM] Nenhum cache encontrado`);
             return null;
         }
 
-        const torneio = cache.dados_torneio;
+        // Iterar edições (mais recente primeiro) até encontrar o time
+        for (const cache of caches) {
+            const torneio = cache.dados_torneio;
+            if (!torneio) continue;
 
-        // A estrutura de dados_torneio varia dependendo da implementação
-        // Normalmente tem: { fases: [...], confrontos: [...], vencedor: ... }
+            const tamanho = torneio.metadata?.tamanhoTorneio || cache.tamanhoTorneio || 16;
+            const fases = getFasesParaTamanho(tamanho);
 
-        // TODO: Implementar parsing completo do dados_torneio
-        // Por enquanto, retornar estrutura básica
+            let ultimaFase = null;
+            let meuConfronto = null;
+            let foiEliminado = false;
 
-        return {
-            fase_atual: "Oitavas", // Placeholder - extrair de torneio.faseAtual ou similar
-            seu_confronto: {
-                voce: 0,
-                adversario: { nome: "Adversário", pontos: 0, timeId: 0 },
-                resultado: "pendente", // "classificado", "eliminado", "pendente"
-                diferenca: 0,
-            },
-            proxima_fase: null,
-            chave_completa: [],
-        };
+            // Iterar fases em ordem para encontrar a última participação do time
+            for (const fase of fases) {
+                const confrontos = torneio[fase];
+                if (!confrontos || !Array.isArray(confrontos) || confrontos.length === 0) continue;
+
+                const confronto = confrontos.find(c =>
+                    Number(c.timeA?.timeId) === timeId || Number(c.timeB?.timeId) === timeId
+                );
+
+                if (confronto) {
+                    ultimaFase = fase;
+                    meuConfronto = confronto;
+
+                    // Verificar se foi eliminado nesta fase
+                    const souTimeA = Number(confronto.timeA?.timeId) === timeId;
+                    const meusPts = parseFloat(souTimeA ? confronto.timeA?.pontos : confronto.timeB?.pontos) || 0;
+                    const advPts = parseFloat(souTimeA ? confronto.timeB?.pontos : confronto.timeA?.pontos) || 0;
+
+                    if (meusPts > 0 && advPts > 0 && meusPts < advPts) {
+                        foiEliminado = true;
+                    }
+                }
+            }
+
+            // Se não encontrou o time em nenhuma fase desta edição, pular
+            if (!ultimaFase || !meuConfronto) continue;
+
+            // Montar resposta com dados reais
+            const souTimeA = Number(meuConfronto.timeA?.timeId) === timeId;
+            const eu = souTimeA ? meuConfronto.timeA : meuConfronto.timeB;
+            const adversario = souTimeA ? meuConfronto.timeB : meuConfronto.timeA;
+
+            const meusPontos = parseFloat(eu?.pontos) || 0;
+            const advPontos = parseFloat(adversario?.pontos) || 0;
+
+            // Determinar resultado
+            let resultado = "pendente";
+            if (meusPontos > 0 && advPontos > 0) {
+                resultado = meusPontos > advPontos ? "classificado" : "eliminado";
+            }
+
+            // Calcular próxima fase
+            let proximaFase = null;
+            if (resultado === "classificado") {
+                const idx = fases.indexOf(ultimaFase);
+                if (idx >= 0 && idx < fases.length - 1) {
+                    proximaFase = NOMES_FASES[fases[idx + 1]] || fases[idx + 1];
+                }
+            }
+
+            // Montar chave completa da fase atual (todos os confrontos)
+            const chaveCompleta = (torneio[ultimaFase] || []).map(c => ({
+                jogo: c.jogo,
+                timeA: {
+                    nome: c.timeA?.nome_cartola || c.timeA?.nome_cartoleiro || "?",
+                    pontos: parseFloat(c.timeA?.pontos) || 0,
+                    timeId: Number(c.timeA?.timeId) || 0,
+                },
+                timeB: {
+                    nome: c.timeB?.nome_cartola || c.timeB?.nome_cartoleiro || "?",
+                    pontos: parseFloat(c.timeB?.pontos) || 0,
+                    timeId: Number(c.timeB?.timeId) || 0,
+                },
+            }));
+
+            return {
+                edicao: cache.edicao,
+                fase_atual: NOMES_FASES[ultimaFase] || ultimaFase,
+                seu_confronto: {
+                    voce: meusPontos,
+                    adversario: {
+                        nome: adversario?.nome_cartola || adversario?.nome_cartoleiro || "Adversário",
+                        pontos: advPontos,
+                        timeId: Number(adversario?.timeId) || 0,
+                        escudo: adversario?.url_escudo_png || null,
+                    },
+                    resultado,
+                    diferenca: parseFloat(Math.abs(meusPontos - advPontos).toFixed(2)),
+                },
+                proxima_fase: proximaFase,
+                chave_completa: chaveCompleta,
+            };
+        }
+
+        // Time não participou de nenhuma edição
+        console.log(`${LOG_PREFIX} [MM] Time ${timeId} não encontrado em nenhuma edição`);
+        return null;
     } catch (error) {
         console.error(`${LOG_PREFIX} [MM] Erro:`, error);
         return null;
@@ -238,17 +341,18 @@ export async function calcularArtilheiro(ligaId, rodada, timeId, temporada) {
             return null;
         }
 
-        // Ordenar por gols pro
+        // Ordenar por gols pro (ranking atual)
         const ranking = dados.dados
             .map(d => ({
                 timeId: d.timeId,
                 nome: d.nomeCartoleiro,
                 gols: d.golsPro,
                 saldo: d.saldoGols,
+                detalhePorRodada: d.detalhePorRodada,
             }))
             .sort((a, b) => {
                 if (b.gols !== a.gols) return b.gols - a.gols;
-                return b.saldo - a.saldo; // Desempate por saldo
+                return b.saldo - a.saldo;
             });
 
         const minhaPosicao = ranking.findIndex(r => r.timeId === timeId) + 1;
@@ -268,42 +372,71 @@ export async function calcularArtilheiro(ligaId, rodada, timeId, temporada) {
                 rival = segundo.nome;
             }
 
-            // TODO: Comparar com rodada anterior para detectar mudanças
-            // Requer buscar ArtilheiroCampeao da rodada anterior
-        }
+            // Recalcular ranking da rodada anterior usando detalhePorRodada
+            if (rodada > 1) {
+                const rankingAnterior = ranking
+                    .map(r => {
+                        // Subtrair gols desta rodada para obter acumulado até rodada N-1
+                        const golsEstaRodada = extrairGolsDaRodada(r.detalhePorRodada, rodada);
+                        return {
+                            timeId: r.timeId,
+                            gols: r.gols - golsEstaRodada,
+                        };
+                    })
+                    .sort((a, b) => b.gols - a.gols);
 
-        // Buscar atacante da rodada (atletas que fizeram gols)
-        const rodadaData = await Rodada.findOne({
-            ligaId: ligaId,
-            rodada: rodada,
-            temporada: temporada,
-            timeId: timeId,
-        }).lean();
+                const liderAnterior = rankingAnterior[0];
+                const liderAtual = ranking[0];
 
-        let atletaRodada = null;
-        if (rodadaData && rodadaData.atletas) {
-            // Encontrar atacantes (posicao_id === 5)
-            const atacantes = rodadaData.atletas.filter(a => a.posicao_id === 5);
+                // Verificar mudanças para o time consultado
+                const minhaPosAnterior = rankingAnterior.findIndex(r => r.timeId === timeId) + 1;
 
-            // Pegar o que mais pontuou
-            if (atacantes.length > 0) {
-                const melhorAtacante = atacantes.sort((a, b) =>
-                    (b.pontos_num || 0) - (a.pontos_num || 0)
-                )[0];
-
-                atletaRodada = {
-                    nome: melhorAtacante.apelido,
-                    pontos: melhorAtacante.pontos_num || 0,
-                    // Gols não estão diretamente na Rodada, precisaria buscar em Gols
-                    gols: 0,
-                };
+                if (minhaPosicao === 1 && minhaPosAnterior > 1) {
+                    assumiu_lideranca = true;
+                } else if (minhaPosAnterior === 1 && minhaPosicao > 1) {
+                    perdeu_lideranca = true;
+                }
             }
         }
 
+        // Buscar gols da rodada via GolsConsolidados
+        let atletaRodada = null;
+        try {
+            const GolsConsolidados = mongoose.model("GolsConsolidados");
+            const golsRodada = await GolsConsolidados.findOne({
+                ligaId: String(ligaId),
+                timeId: timeId,
+                rodada: rodada,
+                temporada: temporada,
+            }).lean();
+
+            if (golsRodada && golsRodada.jogadores && golsRodada.jogadores.length > 0) {
+                // Pegar o jogador com mais gols na rodada
+                const artilheiroRodada = [...golsRodada.jogadores]
+                    .filter(j => j.gols > 0)
+                    .sort((a, b) => b.gols - a.gols)[0];
+
+                if (artilheiroRodada) {
+                    atletaRodada = {
+                        nome: artilheiroRodada.nome,
+                        gols: artilheiroRodada.gols,
+                        pontos: 0,
+                    };
+                }
+            }
+        } catch (e) {
+            // GolsConsolidados pode não estar registrado ainda, fallback silencioso
+            console.log(`${LOG_PREFIX} [ART] GolsConsolidados não disponível, pulando gols da rodada`);
+        }
+
+        // Remover detalhePorRodada do retorno (dados internos)
         return {
             classificacao: ranking.slice(0, 5).map((r, i) => ({
                 posicao: i + 1,
-                ...r,
+                timeId: r.timeId,
+                nome: r.nome,
+                gols: r.gols,
+                saldo: r.saldo,
             })),
             sua_posicao: minhaPosicao,
             seus_gols: meusDados?.gols || 0,
@@ -317,6 +450,28 @@ export async function calcularArtilheiro(ligaId, rodada, timeId, temporada) {
         console.error(`${LOG_PREFIX} [ART] Erro:`, error);
         return null;
     }
+}
+
+/**
+ * Extrai gols de uma rodada específica do detalhePorRodada
+ * Trata tanto Map (mongoose) quanto Object/Array (após .lean())
+ */
+function extrairGolsDaRodada(detalhePorRodada, rodada) {
+    if (!detalhePorRodada) return 0;
+
+    // Caso 1: É um Object (Map convertido por .lean()) com chaves string
+    if (typeof detalhePorRodada === "object" && !Array.isArray(detalhePorRodada)) {
+        const entrada = detalhePorRodada[String(rodada)] || detalhePorRodada[rodada];
+        return entrada?.golsPro || 0;
+    }
+
+    // Caso 2: É um Array (formato do controller)
+    if (Array.isArray(detalhePorRodada)) {
+        const entrada = detalhePorRodada.find(d => d.rodada === rodada || d.rodada === String(rodada));
+        return entrada?.golsPro || 0;
+    }
+
+    return 0;
 }
 
 /**
