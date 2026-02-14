@@ -31,6 +31,7 @@ export const MODULOS_DISPONIVEIS = [
     'luva_ouro',
     'artilheiro',
     'capitao_luxo',
+    'raio_x',
     'tiro_certo',
     'resta_um'
 ];

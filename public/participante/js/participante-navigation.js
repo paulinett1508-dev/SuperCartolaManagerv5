@@ -395,6 +395,12 @@ class ParticipanteNavigation {
             return;
         }
 
+        // Verificar se módulo está ativo na liga
+        if (!this.moduloEstaAtivo('raioX')) {
+            if (window.Log) Log.debug('PARTICIPANTE-NAV', '⏭️ Widget Raio-X ignorado (módulo desativado)');
+            return;
+        }
+
         try {
             const module = await import('/participante/js/widgets/round-xray-widget.js');
 

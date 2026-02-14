@@ -65,6 +65,9 @@ export async function inicializarRaioXWidget(participante, mercadoStatus) {
 function deveExibirWidget(mercadoStatus) {
     if (!mercadoStatus) return false;
 
+    // Verificar se módulo está ativo na liga
+    if (!window.participanteNavigation?.moduloEstaAtivo?.('raioX')) return false;
+
     // Rodada consolidada (não em andamento)
     const rodadaConsolidada = mercadoStatus.rodada_atual > 0
         && !mercadoStatus.rodada_em_andamento;

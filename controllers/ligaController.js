@@ -890,6 +890,7 @@ const mapearModuloId = (moduloFrontend) => {
     luvaOuro: "luva_ouro",
     capitaoLuxo: "capitao_luxo",
     campinho: "campinho",
+    raioX: "raio_x",
     dicas: "dicas",
     participantes: "participantes",
     premiacoes: "premiacoes",

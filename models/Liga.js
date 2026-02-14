@@ -112,6 +112,7 @@ const ligaSchema = new mongoose.Schema({
             capitaoLuxo: false,
             campinho: false,
             dicas: false,
+            raioX: false,
             // Atalhos da home do participante
             participantes: true,
             premiacoes: true,
