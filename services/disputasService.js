@@ -158,7 +158,6 @@ export async function calcularPontosCorridos(ligaId, rodada, timeId, temporada) 
         }
 
         // Buscar próximo confronto (rodada PC + 1)
-        // Só inclui se o adversário tem dados reais (nome != "N/D")
         let proximoConfronto = null;
         const cacheProximo = await PontosCorridosCache.findOne({
             liga_id: String(ligaId),
@@ -174,9 +173,24 @@ export async function calcularPontosCorridos(ligaId, rodada, timeId, temporada) 
             if (confrontoProx) {
                 const sou_time1_prox = confrontoProx.time1.id === timeId;
                 const adversarioProx = sou_time1_prox ? confrontoProx.time2 : confrontoProx.time1;
-                const nomeAdv = adversarioProx.nome_cartola || adversarioProx.nome;
+                let nomeAdv = adversarioProx.nome_cartola || adversarioProx.nome;
 
-                // Só inclui se o adversário tem nome válido
+                // Fallback: se nome é "N/D" mas tem ID, buscar na collection Rodada
+                if ((!nomeAdv || nomeAdv === "N/D") && adversarioProx.id) {
+                    const advRodada = await Rodada.findOne({
+                        ligaId: ligaId,
+                        temporada: temporada,
+                        timeId: adversarioProx.id,
+                    }).select("nome_cartola escudo").lean();
+
+                    if (advRodada) {
+                        nomeAdv = advRodada.nome_cartola;
+                        if (!adversarioProx.escudo && advRodada.escudo) {
+                            adversarioProx.escudo = advRodada.escudo;
+                        }
+                    }
+                }
+
                 if (nomeAdv && nomeAdv !== "N/D") {
                     proximoConfronto = {
                         rodada: rodadaPC + 1,

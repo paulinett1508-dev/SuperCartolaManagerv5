@@ -398,30 +398,51 @@ function renderizarUpcoming(disputas) {
 
     const cards = [];
 
-    // Pontos Corridos
+    // Pontos Corridos - foco no PRÓXIMO jogo
     if (disputas.pontos_corridos) {
         const pc = disputas.pontos_corridos;
-        const resultIcon = pc.seu_confronto.resultado === 'vitoria' ? '✅' :
-                          pc.seu_confronto.resultado === 'derrota' ? '❌' : '⚖️';
-        const resultText = pc.seu_confronto.resultado === 'vitoria' ? 'Vitória' :
-                          pc.seu_confronto.resultado === 'derrota' ? 'Derrota' : 'Empate';
 
-        cards.push(`
-            <div class="xray-upcoming-card">
-                <div class="xray-upcoming-icon">⚽</div>
-                <div class="xray-upcoming-info">
-                    <div class="xray-upcoming-title">PONTOS CORRIDOS</div>
-                    <div class="xray-upcoming-desc">
-                        ${resultIcon} ${resultText} contra ${escapeHtml(pc.seu_confronto.adversario.nome)}
+        if (pc.proximo_confronto) {
+            // Próximo jogo disponível - destaque principal
+            const resultIcon = pc.seu_confronto.resultado === 'vitoria' ? '✅' :
+                              pc.seu_confronto.resultado === 'derrota' ? '❌' : '⚖️';
+
+            cards.push(`
+                <div class="xray-upcoming-card">
+                    <div class="xray-upcoming-icon">⚽</div>
+                    <div class="xray-upcoming-info">
+                        <div class="xray-upcoming-title">PONTOS CORRIDOS • Rodada ${pc.proximo_confronto.rodada}</div>
+                        <div class="xray-upcoming-desc">
+                            Próximo: vs ${escapeHtml(pc.proximo_confronto.adversario.nome)}
+                        </div>
+                        <div class="xray-upcoming-meta">
+                            ${pc.minha_posicao}º lugar • ${pc.zona}
+                        </div>
+                        <div class="xray-upcoming-meta" style="margin-top:2px;">
+                            ${resultIcon} Última: ${pc.seu_confronto.voce.toFixed(1)} × ${pc.seu_confronto.adversario.pontos.toFixed(1)} ${escapeHtml(pc.seu_confronto.adversario.nome)}
+                        </div>
                     </div>
-                    <div class="xray-upcoming-meta">
-                        ${pc.minha_posicao}º lugar • ${pc.zona}${pc.mudanca_posicao > 0 ? ` • Subiu ${pc.mudanca_posicao} posição(ões)` : pc.mudanca_posicao < 0 ? ` • Caiu ${Math.abs(pc.mudanca_posicao)} posição(ões)` : ''}
-                    </div>
-                    ${pc.proximo_confronto ? `<div class="xray-upcoming-meta" style="margin-top:4px;">📅 Próximo: vs ${escapeHtml(pc.proximo_confronto.adversario.nome)} (Rodada ${pc.proximo_confronto.rodada})</div>` : ''}
+                    <span class="xray-upcoming-badge posicao">${pc.minha_posicao}º</span>
                 </div>
-                <span class="xray-upcoming-badge posicao">${pc.minha_posicao}º</span>
-            </div>
-        `);
+            `);
+        } else {
+            // Sem próximo jogo definido - mostra status atual
+            cards.push(`
+                <div class="xray-upcoming-card">
+                    <div class="xray-upcoming-icon">⚽</div>
+                    <div class="xray-upcoming-info">
+                        <div class="xray-upcoming-title">PONTOS CORRIDOS</div>
+                        <div class="xray-upcoming-desc">
+                            ${pc.minha_posicao}º lugar • ${pc.zona}
+                        </div>
+                        <div class="xray-upcoming-meta">
+                            Próximo adversário será definido em breve
+                        </div>
+                    </div>
+                    <span class="xray-upcoming-badge posicao">${pc.minha_posicao}º</span>
+                </div>
+            `);
+        }
     }
 
     // Mata-Mata
