@@ -182,7 +182,6 @@ Documentação das skills: [`docs/skills/`](docs/skills/) (agnóstico, Markdown 
 | "tá complexo", "duplicado", "antes de codar" | **ai-problems-detection** | Utility |
 | "refatorar arquivo grande", "separar módulos" | **Refactor-Monolith** | Utility |
 | "adaptar código do stitch", "html do google stitch" | **stitch-adapter** | Utility |
-| "custo", "usage", "quanto gastei", "tá caro?" | **usage-report** | Utility |
 | "API Cartola", "endpoint", "scout", "mercado" | **cartola-api** | Project |
 | "auditar cache", "cache lento", "Service Worker" | **cache-auditor** | Project |
 | "auditar módulo", "checklist módulo" | **auditor-module** | Project |
@@ -247,7 +246,6 @@ As keywords ativam a mesma skill automaticamente (ver tabela acima).
 | `/ux-auditor-app` | "auditar UX do app", "revisar design participante", "visual do app tá ok?" |
 | `/newsession` | "nova sessão", "salvar contexto" |
 | `/liste-pr-github [período]` | "listar PRs", "PRs de hoje", "merges da semana" |
-| `/usage-report` | "custo", "usage", "quanto gastei", "tá caro?" |
 
 > **`/liste-pr-github`** - Lista PRs do GitHub via API. Períodos: `hoje`, `ontem`, `semana`, `mes`, `YYYY-MM-DD` ou range `YYYY-MM-DD YYYY-MM-DD`. Sem argumento lista os últimos 10.
 
