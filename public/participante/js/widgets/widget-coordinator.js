@@ -69,7 +69,7 @@ class WidgetCoordinator {
         }
 
         try {
-            const response = await fetch(`/api/status-mercado/${this.participante.ligaId}`);
+            const response = await fetch('/api/cartola/mercado-status');
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}`);
             }

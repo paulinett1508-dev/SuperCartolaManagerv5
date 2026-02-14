@@ -406,7 +406,7 @@ class ParticipanteNavigation {
 
             if (module.inicializarRaioXWidget) {
                 // Buscar status do mercado
-                const mercadoStatus = await fetch(`/api/status-mercado/${this.participanteData?.ligaId}`).then(r => r.json()).catch(() => null);
+                const mercadoStatus = await fetch('/api/cartola/mercado-status').then(r => r.json()).catch(() => null);
 
                 await module.inicializarRaioXWidget({
                     ligaId: this.participanteData?.ligaId,
