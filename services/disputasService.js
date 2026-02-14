@@ -49,31 +49,53 @@ export async function calcularPontosCorridos(ligaId, rodada, timeId, temporada) 
         // IMPORTANTE: rodada_consolidada no PontosCorridosCache é a rodada da LIGA PC,
         // NÃO a rodada do Brasileirão/Cartola. A numeração é independente.
         // Ex: Liga PC rodada 2 pode ter sido disputada na rodada 3 do Brasileirão.
-        // Por isso buscamos o cache MAIS RECENTE da liga, sem filtrar por rodada.
-        const cache = await PontosCorridosCache.findOne({
+        // Buscamos os caches mais recentes e escolhemos o primeiro com dados completos.
+        const caches = await PontosCorridosCache.find({
             liga_id: String(ligaId),
             temporada: temporada,
         })
             .sort({ rodada_consolidada: -1 })
             .lean();
 
-        if (!cache) {
+        if (!caches || caches.length === 0) {
             console.log(`${LOG_PREFIX} [PC] Nenhum cache encontrado para liga=${ligaId} temp=${temporada}`);
+            return null;
+        }
+
+        // Encontrar o cache mais recente que tenha dados reais para este time
+        // (ignora caches incompletos onde confrontos estão zerados/N/D)
+        let cache = null;
+        let meuConfronto = null;
+
+        for (const candidato of caches) {
+            const confronto = candidato.confrontos?.find(c =>
+                c.time1.id === timeId || c.time2.id === timeId
+            );
+
+            if (!confronto) continue;
+
+            // Verificar se o confronto tem dados reais (não é 0×0 com nomes vazios)
+            const temDados = (confronto.time1.pontos !== 0 || confronto.time2.pontos !== 0)
+                && confronto.time1.nome_cartola !== "N/D"
+                && confronto.time2.nome_cartola !== "N/D";
+
+            if (temDados) {
+                cache = candidato;
+                meuConfronto = confronto;
+                break;
+            }
+
+            console.log(`${LOG_PREFIX} [PC] Cache PC R${candidato.rodada_consolidada} incompleto (confronto sem dados), tentando anterior...`);
+        }
+
+        if (!cache || !meuConfronto) {
+            console.log(`${LOG_PREFIX} [PC] Nenhum cache com dados completos encontrado para time ${timeId}`);
             return null;
         }
 
         const rodadaPC = cache.rodada_consolidada;
         console.log(`${LOG_PREFIX} [PC] Usando cache da rodada PC ${rodadaPC} (Brasileirão rodada ${rodada})`);
 
-        // Encontrar confronto do time
-        const meuConfronto = cache.confrontos?.find(c =>
-            c.time1.id === timeId || c.time2.id === timeId
-        );
-
-        if (!meuConfronto) {
-            console.log(`${LOG_PREFIX} [PC] Confronto não encontrado para time ${timeId}`);
-            return null;
-        }
 
         // Determinar quem é quem
         const sou_time1 = meuConfronto.time1.id === timeId;
@@ -136,6 +158,7 @@ export async function calcularPontosCorridos(ligaId, rodada, timeId, temporada) 
         }
 
         // Buscar próximo confronto (rodada PC + 1)
+        // Só inclui se o adversário tem dados reais (nome != "N/D")
         let proximoConfronto = null;
         const cacheProximo = await PontosCorridosCache.findOne({
             liga_id: String(ligaId),
@@ -151,15 +174,19 @@ export async function calcularPontosCorridos(ligaId, rodada, timeId, temporada) 
             if (confrontoProx) {
                 const sou_time1_prox = confrontoProx.time1.id === timeId;
                 const adversarioProx = sou_time1_prox ? confrontoProx.time2 : confrontoProx.time1;
+                const nomeAdv = adversarioProx.nome_cartola || adversarioProx.nome;
 
-                proximoConfronto = {
-                    rodada: rodadaPC + 1,
-                    adversario: {
-                        nome: adversarioProx.nome_cartola || adversarioProx.nome,
-                        timeId: adversarioProx.id,
-                        escudo: adversarioProx.escudo,
-                    },
-                };
+                // Só inclui se o adversário tem nome válido
+                if (nomeAdv && nomeAdv !== "N/D") {
+                    proximoConfronto = {
+                        rodada: rodadaPC + 1,
+                        adversario: {
+                            nome: nomeAdv,
+                            timeId: adversarioProx.id,
+                            escudo: adversarioProx.escudo,
+                        },
+                    };
+                }
             }
         }
 
