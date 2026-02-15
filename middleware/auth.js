@@ -71,6 +71,18 @@ export const PAGINAS_ADMIN = [
   "/preencher-liga.html",
   // ✅ Notificador - Sistema de avisos in-app
   "/notificador.html",
+  // ✅ Fase 1 - Páginas que estavam sem proteção (integradas ao orquestrador)
+  "/admin-orchestrator.html",
+  "/github-analytics-unified.html",
+  "/api-football-analytics.html",
+  "/dashboard-saude.html",
+  "/dashboard-analytics.html",
+  "/admin-analises-ia.html",
+  "/admin-validacao-migracao.html",
+  "/modo-manutencao.html",
+  "/modo-manutencao-avancado.html",
+  "/migrar-localstorage-mongodb.html",
+  "/wizard-primeira-liga.html",
 ];
 
 /**

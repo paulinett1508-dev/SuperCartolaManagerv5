@@ -22,6 +22,7 @@
             min-height: 100vh;
             font-family: var(--font-family-base);
             padding: 2rem 1rem;
+            flex: 1;
         }
 
         .notificador-container {
@@ -259,14 +260,10 @@
         }
     </style>
 </head>
-<body class="notificador-page">
+<body>
+    <div id="sidebar-placeholder"></div>
+    <main class="app-main notificador-page">
     <div class="notificador-container">
-        <div style="margin-bottom: 1rem;">
-            <a href="painel.html" class="notificador-btn-voltar">
-                <span class="material-icons">arrow_back</span>
-                Voltar ao Painel
-            </a>
-        </div>
 
         <div class="notificador-header">
             <div>
@@ -288,7 +285,9 @@
             <!-- Avisos renderizados via JS -->
         </div>
     </div>
+    </main>
 
+    <script src="js/admin-shell.js"></script>
     <script type="module" src="/js/admin/notificador-management.js"></script>
 </body>
 </html>

@@ -15,9 +15,9 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             min-height: 100vh;
-            padding: 20px;
             color: #fff;
         }
+        .consolidacao-main { padding: 20px; flex: 1; }
         .container { max-width: 1200px; margin: 0 auto; }
         h1 {
             text-align: center;
@@ -321,6 +321,8 @@
     </style>
 </head>
 <body>
+    <div id="sidebar-placeholder"></div>
+    <main class="app-main consolidacao-main">
     <div class="container">
         <h1>
             <span class="material-icons">lock</span>
@@ -691,6 +693,17 @@
         // INICIALIZAR
         // ============================================================
         document.addEventListener('DOMContentLoaded', carregarLigas);
+
+        // ✅ SPA: Reinicializar ao navegar via sidebar
+        window.addEventListener('spa:navigated', (e) => {
+            const { pageName } = e.detail || {};
+            if (pageName === 'admin-consolidacao.html') {
+                console.log('[CONSOLIDACAO] Reinicializando após navegação SPA...');
+                carregarLigas();
+            }
+        });
     </script>
+    </main>
+    <script src="js/admin-shell.js"></script>
 </body>
 </html>
