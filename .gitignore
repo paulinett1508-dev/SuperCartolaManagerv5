@@ -1,5 +1,7 @@
 node_modules/
 .env
+.env.local
+.env.*.local
 *.log
 .DS_Store
 dist/
@@ -11,3 +13,6 @@ build/
 .ux-auto-fix-backup/
 nul
 data/backups/
+
+# MCP config contém credenciais - NUNCA commitar
+.mcp.json

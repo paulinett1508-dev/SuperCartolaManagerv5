@@ -318,50 +318,15 @@ function calcularPontosTotais(data) {
 }
 
 async function buscarConfrontos(ligaId, timeId) {
-    try {
-        // Buscar confronto de Pontos Corridos
-        const pcRes = await fetch(`/api/pontos-corridos/${ligaId}/confronto/${timeId}`);
-        let pontosCorridos = null;
-        if (pcRes.ok) {
-            pontosCorridos = await pcRes.json();
-        }
-
-        // Buscar confronto de Mata-mata
-        const mmRes = await fetch(`/api/mata-mata/${ligaId}/confronto/${timeId}`);
-        let mataMata = null;
-        if (mmRes.ok) {
-            mataMata = await mmRes.json();
-        }
-
-        // Retornar o confronto mais relevante
-        if (mataMata?.ativo) {
-            return {
-                tipo: 'mata-mata',
-                adversario: mataMata.adversario,
-                placar: mataMata.placar,
-                fase: mataMata.fase
-            };
-        }
-
-        if (pontosCorridos?.adversario) {
-            return {
-                tipo: 'pontos-corridos',
-                adversario: pontosCorridos.adversario,
-                placar: pontosCorridos.placar,
-                posicao: pontosCorridos.posicao
-            };
-        }
-
-        return null;
-    } catch (error) {
-        if (window.Log) Log.debug("PARTICIPANTE-CAMPINHO", "Sem confrontos ativos");
-        return null;
-    }
+    // TODO-MEDIUM: Implementar quando endpoints de confronto individual existirem no backend
+    // Endpoints /api/pontos-corridos/:ligaId/confronto/:timeId e
+    // /api/mata-mata/:ligaId/confronto/:timeId ainda não foram implementados
+    return null;
 }
 
 async function tentarBuscarAtletasPontuados() {
     try {
-        const response = await fetch('/api/cartola-proxy/atletas/pontuados');
+        const response = await fetch('/api/cartola/atletas/pontuados');
         if (!response.ok) return { atletas: {} };
         return await response.json();
     } catch (error) {

@@ -125,6 +125,7 @@ const ManutencaoConfig = {
             document.getElementById('customMostrarUltimaRodada').checked = c.mostrar_ultima_rodada !== false;
 
             if (c.imagem_url) {
+                this.imagemUpload = c.imagem_url;
                 this.mostrarImagemPreview(c.imagem_url);
             }
         }
@@ -241,6 +242,31 @@ const ManutencaoConfig = {
         return config;
     },
 
+    async salvar() {
+        try {
+            const config = this.coletarConfiguracao();
+
+            const response = await fetchWithTimeout('/api/admin/manutencao/configurar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(config)
+            }, 10000);
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Erro ao salvar');
+            }
+
+            this.estadoAtual = await response.json();
+            this.atualizarStatusIndicator();
+            this.atualizarStatusAtual();
+            this.mostrarSucesso('Configuração salva com sucesso!');
+        } catch (error) {
+            console.error('Erro ao salvar:', error);
+            this.mostrarErro('Erro ao salvar configuração: ' + error.message);
+        }
+    },
+
     async ativar() {
         const confirmou = await SuperModal.confirm({
             title: 'Ativar Modo Manutenção',
@@ -310,6 +336,7 @@ const ManutencaoConfig = {
 
     selecionarImagem() {
         const input = document.getElementById('uploadImagem');
+        input.value = '';
         input.click();
 
         input.onchange = async (e) => {

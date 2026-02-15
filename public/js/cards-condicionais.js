@@ -168,7 +168,6 @@ const MODULO_TO_CARD_MAP = {
     'pontos_corridos': 'pontos-corridos',
     'mataMata': 'mata-mata',
     'mata_mata': 'mata-mata',
-    'parciais': 'parciais',
     'fluxoFinanceiro': 'fluxo-financeiro',
     'fluxo_financeiro': 'fluxo-financeiro'
 };

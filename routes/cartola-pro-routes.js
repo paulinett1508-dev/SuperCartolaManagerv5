@@ -8,6 +8,7 @@ import express from "express";
 import cartolaProService from "../services/cartolaProService.js";
 import { verificarParticipantePremium } from "../utils/premium-participante.js";
 import { setupGloboOAuthRoutes, verificarAutenticacaoGlobo, getGloboToken } from "../config/globo-oauth.js";
+import { sugerirModo, listarModos } from "../services/estrategia-sugestao.js";
 
 const router = express.Router();
 
@@ -129,14 +130,30 @@ router.get("/mercado", verificarSessaoParticipante, verificarPremium, async (req
 });
 
 // =====================================================================
-// GET /api/cartola-pro/sugestao - Time Sugerido (Algoritmo Proprio)
+// GET /api/cartola-pro/modos - Listar modos de estrategia disponiveis
+// =====================================================================
+router.get("/modos", verificarSessaoParticipante, (req, res) => {
+    res.json({ success: true, modos: listarModos() });
+});
+
+// =====================================================================
+// GET /api/cartola-pro/modo-sugerido - Sugerir modo por patrimonio
+// =====================================================================
+router.get("/modo-sugerido", verificarSessaoParticipante, (req, res) => {
+    const patrimonio = parseFloat(req.query.patrimonio) || 100;
+    res.json({ success: true, ...sugerirModo(patrimonio) });
+});
+
+// =====================================================================
+// GET /api/cartola-pro/sugestao - Time Sugerido (Algoritmo Estrategia v2)
 // =====================================================================
 router.get("/sugestao", verificarSessaoParticipante, verificarPremium, async (req, res) => {
     try {
         const esquema = parseInt(req.query.esquema) || 3; // 4-3-3 padrao
         const patrimonio = parseFloat(req.query.patrimonio) || 100;
+        const modo = req.query.modo || 'equilibrado';
 
-        const resultado = await cartolaProService.gerarTimeSugerido(esquema, patrimonio);
+        const resultado = await cartolaProService.gerarTimeSugerido(esquema, patrimonio, modo);
 
         res.json(resultado);
 

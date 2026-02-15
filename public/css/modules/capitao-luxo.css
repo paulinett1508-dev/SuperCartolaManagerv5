@@ -560,3 +560,113 @@
     padding: 6px 4px;
   }
 }
+
+/* =============================================
+   NOVO LAYOUT: Botão Ver Histórico + Progresso
+   v2.0 - Layout limpo sem chips inline
+   ============================================= */
+
+.capitao-linha-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+/* Botão Ver Histórico */
+.btn-ver-historico {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  color: #a78bfa;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-ver-historico:hover {
+  background: rgba(139, 92, 246, 0.25);
+  border-color: rgba(139, 92, 246, 0.5);
+  color: #c4b5fd;
+  transform: translateY(-1px);
+}
+
+.btn-ver-historico:active {
+  transform: translateY(0);
+}
+
+/* Barra de Progresso */
+.capitao-progresso-container {
+  position: relative;
+  flex: 1;
+  height: 20px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.capitao-progresso-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #8b5cf6 0%, #a78bfa 100%);
+  border-radius: 10px;
+  transition: width 0.3s ease;
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+}
+
+.capitao-progresso-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.5px;
+}
+
+/* Ajuste da coluna nome para acomodar novo layout */
+.capitao-luxo-ranking-table .col-nome {
+  min-width: 300px;
+}
+
+/* Mobile: Esconder barra de progresso, manter botão */
+@media (max-width: 1024px) {
+  .capitao-linha-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .capitao-progresso-container {
+    width: 100%;
+  }
+
+  .btn-ver-historico {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .capitao-progresso-container {
+    height: 16px;
+  }
+
+  .capitao-progresso-label {
+    font-size: 9px;
+  }
+
+  .btn-ver-historico {
+    font-size: 10px;
+    padding: 5px 10px;
+  }
+}

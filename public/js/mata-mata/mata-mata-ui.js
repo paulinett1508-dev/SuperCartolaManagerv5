@@ -119,6 +119,12 @@ function setupEdicaoSelector(container, ligaId, onEdicaoChange) {
 function setupFaseButtons(container, onFaseClick) {
   container.querySelectorAll(".fase-btn").forEach((btn) => {
     btn.addEventListener("click", function () {
+      // ✅ Bloquear clique em fases desabilitadas (rodada futura)
+      if (this.classList.contains("disabled")) {
+        console.warn(`[MATA-UI] Fase bloqueada: ${this.getAttribute("data-fase")}`);
+        return;
+      }
+
       const edicaoSelect = document.getElementById("edicao-select");
       const edicaoAtual = edicaoSelect ? parseInt(edicaoSelect.value) : null;
 
@@ -296,6 +302,21 @@ export function renderTabelaMataMata(
             .join("")}
         </tbody>
       </table>
+    </div>
+  `;
+}
+
+// ✅ Função para renderizar fase bloqueada (rodada futura)
+export function renderFaseBloqueada(containerId, faseLabel, rodadaPontosNum) {
+  const contentElement = document.getElementById(containerId);
+  if (!contentElement) return;
+
+  contentElement.innerHTML = `
+    <div class="mata-mata-fase-bloqueada">
+      <span class="material-symbols-outlined" style="font-size: 48px; color: #6b7280;">lock</span>
+      <h4>Fase Bloqueada</h4>
+      <p>A fase <strong>${esc(faseLabel)}</strong> será disputada na <strong>Rodada ${rodadaPontosNum}</strong> do Brasileirão.</p>
+      <p class="fase-bloqueada-sub">Os confrontos serão exibidos quando a rodada for iniciada.</p>
     </div>
   `;
 }

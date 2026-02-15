@@ -98,6 +98,9 @@
         <!-- ✅ Widget "O que tá rolando?" -->
         <link rel="stylesheet" href="css/whats-happening.css" />
 
+        <!-- ✅ Widget "Raio-X da Rodada" -->
+        <link rel="stylesheet" href="css/round-xray-widget.css" />
+
         <!-- ✅ CSS CRÍTICO INLINE v7 - Manipulação via JS, CSS é fallback -->
         <style id="critical-splash-fix">
             /* ============================================
@@ -890,22 +893,23 @@
              TELA DE MANUTENÇÃO - "Calma aê!" v2.0
              ===================================================== -->
         <div id="manutencaoScreen" class="manutencao-screen">
-            <!-- Dev bypass link (discreto) -->
-            <a id="devBypassLink" href="#" onclick="window.ManutencaoScreen && ManutencaoScreen.iniciarDevBypass(); return false;"
+            <!-- Dev bypass: login admin para testar app em manutenção -->
+            <button id="devBypassLink" onclick="window.ManutencaoScreen && ManutencaoScreen.iniciarDevBypass();"
                 class="manutencao-dev-bypass">
-                dev
-            </a>
+                <span class="material-icons" style="font-size:14px;">admin_panel_settings</span>
+                Admin
+            </button>
 
             <!-- Card principal -->
             <div class="manutencao-card-principal">
-                <!-- Logo animado -->
+                <!-- Imagem Hero (customizada) - aparece quando configurada -->
+                <div class="manutencao-imagem" style="display:none;"></div>
+
+                <!-- Logo Fallback - só aparece quando NÃO há imagem customizada -->
                 <img src="/img/newlogo-supercartola.png" alt="Super Cartola" class="manutencao-logo">
 
                 <!-- Card com mensagem (customizável) -->
                 <div class="manutencao-header manutencao-card-mensagem">
-                    <!-- Imagem customizada (opcional) -->
-                    <div class="manutencao-imagem" style="display:none;"></div>
-
                     <h1 class="manutencao-titulo">
                         🛠️ Calma aê!
                     </h1>
@@ -928,7 +932,7 @@
                             <span class="material-icons" style="font-size:22px;color:#34d399;">leaderboard</span>
                             <span class="btn-text">Ranking da Rodada</span>
                         </button>
-                        <button id="manutencaoBtnDino" onclick="window.ManutencaoScreen && ManutencaoScreen.abrirDinoGame()"
+                        <button id="manutencaoBtnPenalty" onclick="window.ManutencaoScreen && ManutencaoScreen.abrirPenaltyGame()"
                             class="manutencao-btn">
                             <span style="font-size:22px;"><span class="material-icons">sports_soccer</span></span>
                             <span class="btn-text">Cobrança de Pênalti</span>
@@ -944,8 +948,8 @@
                 <!-- Conteúdo dinâmico (ranking) -->
                 <div id="manutencaoConteudo" class="manutencao-conteudo"></div>
 
-                <!-- Container Dino Game -->
-                <div id="manutencaoDinoContainer" class="manutencao-conteudo"></div>
+                <!-- Container Jogo de Pênaltis -->
+                <div id="manutencaoPenaltyContainer" class="manutencao-conteudo"></div>
 
                 <!-- Notícias do time do coração (carrega automaticamente) -->
                 <div id="manutencaoNoticias" class="manutencao-noticias"></div>
@@ -967,7 +971,7 @@
                 }
                 #manutencaoBtnRankingGeral:hover,
                 #manutencaoBtnRankingRodada:hover,
-                #manutencaoBtnDino:hover {
+                #manutencaoBtnPenalty:hover {
                     transform: scale(1.02);
                     background: rgba(255,255,255,0.1) !important;
                     border-color: #4b5563 !important;
@@ -979,7 +983,7 @@
                 }
                 #manutencaoBtnRankingGeral:active,
                 #manutencaoBtnRankingRodada:active,
-                #manutencaoBtnDino:active,
+                #manutencaoBtnPenalty:active,
                 #manutencaoBtnRefresh:active {
                     transform: scale(0.98);
                 }
@@ -2856,5 +2860,8 @@
 
             console.log('[REGRAS] Modal Regras 2026 carregado');
         </script>
+
+        <!-- COMPONENTE: MODAL DE HISTÓRICO CAPITÃO DE LUXO -->
+        <script src="../js/components/capitao-historico-modal.js"></script>
     </body>
 </html>

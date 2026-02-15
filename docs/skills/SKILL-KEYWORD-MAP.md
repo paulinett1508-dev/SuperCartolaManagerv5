@@ -318,6 +318,7 @@ Consulta rápida: "o usuário disse X → qual skill usar?"
 | Design Stitch → Código (Manual) | `stitch-adapter` → `frontend-crafter` (ajustes) |
 | Design Figma → Código (Fallback) | Figma MCP → `stitch-adapter` (transformer React → Vanilla) |
 | Documentação | `system-scribe` |
+| Deploy completo | `git-commit-push` → `replit-pull` |
 | Consulta API Cartola | `cartola-api` → `fact-checker` |
 
 ---

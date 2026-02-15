@@ -416,49 +416,38 @@ bash git status
 
 ---
 
+### FASE 6: LEMBRETE DE CUSTO DA SESSÃO
+
+**Limitação:** `/usage` é um slash command interno do Claude Code. Não pode ser executado via bash nem capturado programaticamente. Qualquer tentativa de `bash claude usage` falha silenciosamente.
+
+#### 6.1 O que fazer
+Ao final do push, incluir lembrete para o usuário:
+```
+Para ver o custo desta sessão, execute /usage no Claude Code.
+```
+
+#### 6.2 Regra
+- **NÃO** tentar executar `claude usage` via bash (não funciona)
+- **NÃO** simular ou inventar valores de custo
+- Apenas lembrar o usuário que `/usage` existe como comando interativo
+
+---
+
 ## 📊 OUTPUT FINAL
 
 ### Template de Resposta
 ```markdown
-🚀 **GIT PUSH EXECUTADO**
+**GIT PUSH EXECUTADO**
 
-✅ **Commit:** [hash] - [mensagem]
-📂 **Arquivos:** [quantidade] modificados
-🌿 **Branch:** [nome da branch]
-📡 **Remote:** origin/[branch]
+**Commit:** [hash] - [mensagem]
+**Arquivos:** [quantidade] modificados
+**Branch:** [nome da branch] → origin/[branch]
 
-📋 **Resumo das Mudanças:**
+**Resumo:**
 - [módulo 1]: [descrição]
 - [módulo 2]: [descrição]
 
-🔍 **Validações:**
-✅ Syntax check passou
-✅ Multi-tenant validado
-✅ Security checks OK
-
-🔗 **GitHub:** https://github.com/[repo]/commit/[hash]
-```
-
-### Exemplo Real
-```markdown
-🚀 **GIT PUSH EXECUTADO**
-
-✅ **Commit:** a3f2b91 - feat(extrato): adiciona cálculo de saldo de acertos
-📂 **Arquivos:** 3 modificados
-🌿 **Branch:** main
-📡 **Remote:** origin/main
-
-📋 **Resumo das Mudanças:**
-- controllers/extratoController.js: nova função calcularSaldoAcertos()
-- public/js/extrato/core.js: integração frontend
-- routes/extrato-routes.js: endpoint para buscar acertos
-
-🔍 **Validações:**
-✅ Syntax check passou
-✅ Multi-tenant validado
-✅ Security checks OK
-
-🔗 **GitHub:** https://github.com/paulinett1508-dev/SuperCartolaManagerv5/commit/a3f2b91
+Para ver custo da sessão: /usage
 ```
 
 ---
@@ -597,6 +586,12 @@ bash git diff | grep "console\.log" && echo "⚠️ Remova debug code"
 - [ ] Push bem-sucedido
 - [ ] Status limpo (working tree clean)
 
+### Custo (Pós-Push)
+- [ ] Executar /usage para capturar métricas
+- [ ] Exibir tokens input/output
+- [ ] Exibir custo total da sessão
+- [ ] Exibir duração da sessão
+
 ---
 
 ## 🎯 FLUXO VISUAL
@@ -617,23 +612,23 @@ bash git diff | grep "console\.log" && echo "⚠️ Remova debug code"
 💬 FASE 3: MENSAGEM
    Gerar commit message descritiva
           ↓
-📦 FASE 4: STAGING
-   git add (inteligente ou completo)
+📦 FASE 4: STAGING + COMMIT
+   git add → git commit -m "[mensagem]"
           ↓
-💾 FASE 5: COMMIT
-   git commit -m "[mensagem]"
-          ↓
-🔄 FASE 6: PRÉ-PUSH
+🔄 FASE 5: PRÉ-PUSH
    Verificar divergências
           ↓
    🔀 Divergência? → Pull/Rebase → Resolver
    ✅ Limpo? → Continuar
           ↓
-🚀 FASE 7: PUSH
+🚀 FASE 5: PUSH
    git push origin [branch]
           ↓
+💰 FASE 6: USAGE REPORT
+   /usage → capturar métricas da sessão
+          ↓
 ✅ CONCLUSÃO
-   Confirmar sucesso + resumo
+   Confirmar sucesso + resumo + custo
 ```
 
 ---
@@ -651,7 +646,8 @@ SKILL EXECUTA:
 4. git add .
 5. git commit -m "[mensagem]"
 6. git push origin main
-7. Responde: ✅ Push realizado (commit a3f2b91)
+7. /usage → captura custo
+8. Responde: ✅ Push realizado (commit a3f2b91) + 💰 Custo: $0.32
 ```
 
 ### Caso 2: Múltiplas Mudanças
@@ -664,7 +660,8 @@ SKILL EXECUTA:
 3. Mensagem → "feat: integra acertos em extrato e mata-mata"
 4. Adiciona bullets detalhando cada módulo
 5. Executa commit + push
-6. Responde: ✅ Push com 12 arquivos
+6. /usage → captura custo
+7. Responde: ✅ Push com 12 arquivos + 💰 Custo: $1.15
 ```
 
 ### Caso 3: Hotfix Urgente
@@ -677,7 +674,8 @@ SKILL EXECUTA:
 3. Mensagem → "hotfix: corrige vazamento de dados multi-tenant"
 4. Commit + push
 5. Cria tag hotfix-YYYYMMDD-HHMM
-6. Responde: 🚨 Hotfix enviado + tag criada
+6. /usage → captura custo
+7. Responde: 🚨 Hotfix enviado + tag criada + 💰 Custo: $0.18
 ```
 
 ### Caso 4: Conflitos Detectados
@@ -695,6 +693,8 @@ SKILL EXECUTA:
    2. Resolva marcações <<< === >>>
    3. Execute: git add extrato.js && git rebase --continue
    4. Solicite novo push"
+   
+   💰 Custo parcial da sessão: $0.09
 ```
 
 ---
@@ -734,12 +734,6 @@ const escopo = determinarEscopoPrincipal(arquivos, mapeamento);
 
 ---
 
-**STATUS:** 🚀 GIT COMMIT & PUSH PROTOCOL - AUTOMATED & SMART
-
-**Versão:** 1.0 (Senior Full-Stack Edition)
-
-**Última atualização:** 2026-01-23
-
 ---
 
 ## 🔐 SEGURANÇA E COMPLIANCE
@@ -763,4 +757,8 @@ bash grep -q "node_modules" .gitignore || echo "⚠️ Adicione node_modules ao 
 
 ---
 
-**ATIVADO E PRONTO PARA USO!** 🎯
+**STATUS:** 🚀 GIT COMMIT & PUSH PROTOCOL - AUTOMATED, SMART & COST-AWARE
+
+**Versão:** 1.1 (Senior Full-Stack Edition + Usage Tracking)
+
+**Última atualização:** 2026-02-14

@@ -1498,8 +1498,19 @@ function renderizarDetalhamentoRodada(rodadaData, isParcial = false, inativos = 
         `;
     }
 
+    // Botão Raio-X da Rodada (somente se não for parcial e tiver dados do meu time)
+    let xrayBtnHTML = '';
+    if (!isParcial && meuPartIndex >= 0) {
+        xrayBtnHTML = `
+            <button class="rodada-xray-btn" onclick="window.xrayParams={rodada:${rodadaNum},temporada:${TEMPORADA_ATUAL}};window.participanteNav?.navegarPara('rodada-xray')">
+                <span class="material-icons" style="font-size:16px">biotech</span>
+                Raio-X da Rodada
+            </button>
+        `;
+    }
+
     // Construir HTML com separadores de zona
-    let html = meuResumoHTML;
+    let html = meuResumoHTML + xrayBtnHTML;
 
     // Zona de Ganho
     if (zonaGanho.length > 0 && !isParcial) {

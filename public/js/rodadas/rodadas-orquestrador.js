@@ -204,7 +204,7 @@ export async function carregarDadosRodada(rodadaSelecionada) {
     if (dadosHistoricos && Array.isArray(dadosHistoricos) && dadosHistoricos.length > 0) {
       // ✅ Dados encontrados - exibir independente do status do mercado
       console.log(`[RODADAS-ORQUESTRADOR] ✅ Dados históricos encontrados: ${dadosHistoricos.length} participantes`);
-      exibirRanking(dadosHistoricos, rodadaSelecionada, ligaIdAtual);
+      await exibirRanking(dadosHistoricos, rodadaSelecionada, ligaIdAtual);
       const btnRefresh = document.getElementById("btnRefreshParciais");
       if (btnRefresh) btnRefresh.style.display = "none";
     } else if (rodadaConsolidada) {
@@ -266,7 +266,7 @@ async function carregarRodadaFinalizada(rodada) {
     rankingsData = [];
   }
 
-  exibirRanking(rankingsData, rodada, ligaIdAtual);
+  await exibirRanking(rankingsData, rodada, ligaIdAtual);
 
   const btnRefresh = document.getElementById("btnRefreshParciais");
   if (btnRefresh) {

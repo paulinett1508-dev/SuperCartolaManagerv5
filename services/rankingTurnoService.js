@@ -46,14 +46,14 @@ export async function buscarRankingTurno(ligaId, turno, temporada = new Date().g
 
     const rodadaAtual = ultimaRodada?.rodada || 0;
 
-    // ✅ v3.2: Validar snapshots "consolidados" - corrigir snapshots stale
+    // ✅ v3.3: Validar snapshots "consolidados" - forçar reconsolidação se stale
     // Um turno "geral" (1-38) só pode ser consolidado se rodadaAtual >= 38
     if (snapshot && snapshot.status === "consolidado") {
         if (rodadaAtual < fim) {
-            // Snapshot incorretamente marcado como consolidado - corrigir
-            console.log(`${LOG_PREFIX} ⚠️ Snapshot consolidado stale detectado (R${snapshot.rodada_atual} < R${fim}), reconsolidando...`);
-            snapshot.status = "em_andamento";
-            await snapshot.save();
+            // Snapshot incorretamente marcado como consolidado - deletar para forçar reconsolidação
+            console.log(`${LOG_PREFIX} ⚠️ Snapshot consolidado stale detectado (R${snapshot.rodada_atual} vs rodadaAtual R${rodadaAtual}, fim R${fim}), deletando para reconsolidar...`);
+            await RankingTurno.deleteOne({ _id: snapshot._id });
+            snapshot = null;
         } else if (turno !== "geral") {
             // Turnos 1 e 2 consolidados podem retornar direto (são imutáveis)
             console.log(`${LOG_PREFIX} ✅ Retornando snapshot consolidado turno ${turno}`);
@@ -62,11 +62,30 @@ export async function buscarRankingTurno(ligaId, turno, temporada = new Date().g
         // turno "geral" consolidado: continuar para checar parciais antes de retornar
     }
 
-    // Verificar se precisa consolidar
-    const precisaConsolidar =
+    // ✅ v3.4: Verificar se precisa consolidar — check robusto por contagem de registros
+    // Além do número da rodada, verifica se a quantidade de registros no banco mudou
+    // Isso detecta repopulações e populações parciais (rodada populada em batches)
+    let precisaConsolidar =
         !snapshot ||
         snapshot.rodada_atual < rodadaAtual ||
         (rodadaAtual >= fim && snapshot.status !== "consolidado");
+
+    // ✅ v3.4: Check extra — contar registros atuais vs quando o snapshot foi criado
+    if (!precisaConsolidar && snapshot && snapshot.status !== "consolidado") {
+        const totalRegistrosAtual = await Rodada.countDocuments({
+            ligaId: ligaObjectId,
+            temporada,
+            rodada: { $gte: inicio, $lte: fim },
+            rodadaNaoJogada: { $ne: true },
+        });
+        const totalRegistrosSnapshot = (snapshot.ranking || []).reduce(
+            (acc, r) => acc + (r.rodadas_jogadas || 0), 0
+        );
+        if (totalRegistrosAtual !== totalRegistrosSnapshot) {
+            console.log(`${LOG_PREFIX} ⚠️ Contagem de registros diverge (DB: ${totalRegistrosAtual} vs Snapshot: ${totalRegistrosSnapshot}), forçando reconsolidação...`);
+            precisaConsolidar = true;
+        }
+    }
 
     if (precisaConsolidar) {
         console.log(`${LOG_PREFIX} 🔄 Consolidando ranking turno ${turno} - Temporada ${temporada}...`);
@@ -203,7 +222,7 @@ export async function consolidarRankingTurno(ligaId, turno, rodadaAtualGeral, te
         }
 
         timesPontos[timeId].pontos += pontos;
-        if (!registro.rodadaNaoJogada && pontos > 0) {
+        if (!registro.rodadaNaoJogada) {
             timesPontos[timeId].rodadas_jogadas++;
         }
     });
@@ -272,10 +291,12 @@ export async function consolidarRankingTurno(ligaId, turno, rodadaAtualGeral, te
 
 /**
  * Força reconsolidação de todos os turnos de uma liga
+ * @param {string|ObjectId} ligaId - ID da liga
+ * @param {number} temporada - Ano da temporada (opcional, default: ano atual)
  */
-export async function reconsolidarTodosOsTurnos(ligaId) {
+export async function reconsolidarTodosOsTurnos(ligaId, temporada = new Date().getFullYear()) {
     console.log(
-        `${LOG_PREFIX} 🔄 Reconsolidando todos os turnos para liga ${ligaId}`,
+        `${LOG_PREFIX} 🔄 Reconsolidando todos os turnos para liga ${ligaId} - Temporada: ${temporada}`,
     );
 
     const ligaObjectId =
@@ -283,8 +304,8 @@ export async function reconsolidarTodosOsTurnos(ligaId) {
             ? new mongoose.Types.ObjectId(ligaId)
             : ligaId;
 
-    // Buscar última rodada
-    const ultimaRodada = await Rodada.findOne({ ligaId: ligaObjectId })
+    // Buscar última rodada (filtrada por temporada para não misturar dados de anos anteriores)
+    const ultimaRodada = await Rodada.findOne({ ligaId: ligaObjectId, temporada })
         .sort({ rodada: -1 })
         .select("rodada")
         .lean();
@@ -293,9 +314,9 @@ export async function reconsolidarTodosOsTurnos(ligaId) {
 
     // Consolidar cada turno
     const resultados = {
-        turno1: await consolidarRankingTurno(ligaObjectId, "1", rodadaAtual),
-        turno2: await consolidarRankingTurno(ligaObjectId, "2", rodadaAtual),
-        geral: await consolidarRankingTurno(ligaObjectId, "geral", rodadaAtual),
+        turno1: await consolidarRankingTurno(ligaObjectId, "1", rodadaAtual, temporada),
+        turno2: await consolidarRankingTurno(ligaObjectId, "2", rodadaAtual, temporada),
+        geral: await consolidarRankingTurno(ligaObjectId, "geral", rodadaAtual, temporada),
     };
 
     return resultados;

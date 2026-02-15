@@ -628,8 +628,10 @@ function setupEventListeners() {
     select.addEventListener("change", async (e) => {
       pararAutoRefresh(); // ✅ v8.0: Parar polling ao mudar edição
       estado.edicaoSelecionada = parseInt(e.target.value);
-      // ✅ v7.3: Usar primeira fase válida para o tamanho do torneio
-      const primeiraFaseValida = getFasesAtuais()[0] || "quartas";
+      // ✅ v8.2: Re-renderizar navegação com bloqueio correto para nova edição
+      atualizarNavegacaoFases();
+      // ✅ v7.3: Usar primeira fase válida e liberada para o tamanho do torneio
+      const primeiraFaseValida = estado.faseSelecionada || getFasesAtuais()[0] || "quartas";
       estado.faseSelecionada = primeiraFaseValida;
       atualizarBotoesFases();
       await carregarTodasFases(estado.edicaoSelecionada);
@@ -642,7 +644,12 @@ function setupEventListeners() {
   if (phasesNav) {
     phasesNav.addEventListener("click", async (e) => {
       const btn = e.target.closest(".mm-phase-btn");
-      if (!btn || btn.classList.contains("disabled")) return;
+      if (!btn) return;
+      // ✅ v8.2: Bloquear clique em fases cuja rodada não chegou
+      if (btn.classList.contains("disabled")) {
+        if (window.Log) Log.warn(`[MATA-MATA] 🔒 Fase bloqueada: ${btn.dataset.fase}`);
+        return;
+      }
 
       const fase = btn.dataset.fase;
       if (!fase) return;
@@ -688,6 +695,7 @@ function atualizarBotoesFases() {
 
 // =====================================================================
 // ✅ v7.3: ATUALIZAR NAVEGAÇÃO DE FASES DINAMICAMENTE
+// ✅ v8.2: Desabilitar botões de fases cuja rodada não chegou
 // =====================================================================
 function atualizarNavegacaoFases() {
   const phasesNav = document.getElementById("mmPhasesNav");
@@ -702,21 +710,41 @@ function atualizarNavegacaoFases() {
     final: "FINAL",
   };
 
+  // ✅ v8.2: Calcular bloqueio baseado na rodadaAtual e edição selecionada
+  const edicaoConfig = estado.edicaoSelecionada
+    ? EDICOES_MATA_MATA.find(e => e.id === estado.edicaoSelecionada)
+    : null;
+
   // Recriar botões com apenas as fases válidas
   phasesNav.innerHTML = fasesAtivas
-    .map((fase, idx) => `
-      <button class="mm-phase-btn${idx === 0 ? ' active' : ''}" data-fase="${fase}">
-        ${faseLabels[fase] || fase.toUpperCase()}
+    .map((fase, idx) => {
+      // ✅ Verificar se a rodada desta fase já chegou
+      let isDisabled = false;
+      if (edicaoConfig && estado.rodadaAtual > 0) {
+        const rodadaDaFase = edicaoConfig.rodadaInicial + idx;
+        isDisabled = estado.rodadaAtual < rodadaDaFase;
+      }
+      const disabledClass = isDisabled ? ' disabled' : '';
+      const lockIcon = isDisabled ? ' 🔒' : '';
+      return `
+      <button class="mm-phase-btn${idx === 0 && !isDisabled ? ' active' : ''}${disabledClass}" data-fase="${fase}" ${isDisabled ? 'title="Aguardando rodada"' : ''}>
+        ${faseLabels[fase] || fase.toUpperCase()}${lockIcon}
       </button>
-    `)
+    `;
+    })
     .join('');
 
-  // Definir primeira fase como selecionada se não houver
-  if (!estado.faseSelecionada || !fasesAtivas.includes(estado.faseSelecionada)) {
-    estado.faseSelecionada = fasesAtivas[0];
+  // Definir primeira fase como selecionada se não houver ou se está bloqueada
+  const fasesLiberadas = fasesAtivas.filter((fase, idx) => {
+    if (!edicaoConfig || estado.rodadaAtual <= 0) return true;
+    return estado.rodadaAtual >= edicaoConfig.rodadaInicial + idx;
+  });
+
+  if (!estado.faseSelecionada || !fasesLiberadas.includes(estado.faseSelecionada)) {
+    estado.faseSelecionada = fasesLiberadas[0] || fasesAtivas[0];
   }
 
-  if (window.Log) Log.info(`[MATA-MATA] 🔄 Navegação atualizada: ${fasesAtivas.join(', ')}`);
+  if (window.Log) Log.info(`[MATA-MATA] 🔄 Navegação atualizada: ${fasesAtivas.join(', ')} (liberadas: ${fasesLiberadas.join(', ')})`);
 }
 
 // =====================================================================
@@ -865,6 +893,30 @@ function atualizarInfoFase(fase) {
 async function carregarFase(edicao, fase) {
   const container = document.getElementById("mata-mata-container");
   if (!container) return;
+
+  // ✅ v8.2: Bloquear fases cuja rodada não chegou
+  const edicaoConfig = EDICOES_MATA_MATA.find(e => e.id === edicao);
+  if (edicaoConfig && estado.rodadaAtual > 0) {
+    const fasesAtivas = getFasesAtuais();
+    const faseIndex = fasesAtivas.indexOf(fase);
+    if (faseIndex >= 0) {
+      const rodadaDaFase = edicaoConfig.rodadaInicial + faseIndex;
+      if (estado.rodadaAtual < rodadaDaFase) {
+        if (window.Log) Log.info(`[MATA-MATA] 🔒 Fase ${fase} bloqueada - Rodada ${rodadaDaFase} não aconteceu (atual: ${estado.rodadaAtual})`);
+        const nomeFase = { primeira: "1ª FASE", oitavas: "OITAVAS", quartas: "QUARTAS", semis: "SEMIFINAL", final: "FINAL" }[fase] || fase.toUpperCase();
+        container.innerHTML = `
+          <div class="mm-vazio mm-fase-bloqueada">
+            <span class="material-symbols-outlined" style="font-size:48px;color:#6b7280;">lock</span>
+            <h3>Fase Bloqueada</h3>
+            <p>A fase <strong>${nomeFase}</strong> será disputada na <strong>Rodada ${rodadaDaFase}</strong> do Brasileirão.</p>
+            <p style="font-size:12px;color:rgba(255,255,255,0.3);margin-top:4px;">Os confrontos serão exibidos quando a rodada for iniciada.</p>
+          </div>
+        `;
+        atualizarInfoFase(fase);
+        return;
+      }
+    }
+  }
 
   atualizarInfoFase(fase);
 

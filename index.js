@@ -108,6 +108,8 @@ import timesRoutes from "./routes/times.js";
 import timesAdminRoutes from "./routes/times-admin.js";
 import analisarParticipantesRoutes from "./routes/analisar-participantes.js";
 import rodadasRoutes from "./routes/rodadas-routes.js";
+import rodadaXrayRoutes from "./routes/rodada-xray-routes.js";
+import rodadaContextoRoutes from "./routes/rodada-contexto-routes.js";
 import rodadasCacheRoutes from "./routes/rodadasCacheRoutes.js";
 import rodadasCorrecaoRoutes from "./routes/rodadasCorrecaoRoutes.js";
 import calendarioRodadasRoutes from "./routes/calendario-rodadas-routes.js";
@@ -174,6 +176,9 @@ import manutencaoParticipanteRoutes from "./routes/manutencao-participante-route
 import avisosAdminRoutes from "./routes/avisos-admin-routes.js";
 import avisosParticipanteRoutes from "./routes/avisos-participante-routes.js";
 
+// 🤖 Análises IA - Interface Admin
+import iaAnalysisRoutes from "./routes/iaAnalysisRoutes.js";
+
 // 📦 Versionamento do App
 import appVersionRoutes from "./routes/appVersionRoutes.js";
 
@@ -191,7 +196,6 @@ import adminMobileRoutes from "./routes/admin-mobile-routes.js";
 import * as analyticsController from "./controllers/analyticsController.js";
 import adminMigracaoRoutes from "./routes/admin/migracao.js";
 import adminMigracaoValidacaoRoutes from "./routes/admin/migracao-validacao.js";
-import githubAnalyticsRoutes from "./routes/github-analytics-routes.js";
 console.log("[DEBUG] adminAuthRoutes type:", typeof adminAuthRoutes);
 console.log(
   "[DEBUG] adminAuthRoutes.stack length:",
@@ -204,6 +208,10 @@ import {
   alternarStatusParticipante,
 } from "./controllers/participanteStatusController.js";
 import { iniciarSchedulerConsolidacao } from "./utils/consolidacaoScheduler.js";
+
+// 🎯 Round-Market Orchestrator
+import orchestratorRoutes from "./routes/orchestrator-routes.js";
+import orchestrator from "./services/orchestrator/roundMarketOrchestrator.js";
 
 // Middleware de proteção
 import { protegerRotas, injetarSessaoDevAdmin } from "./middleware/auth.js";
@@ -440,10 +448,6 @@ console.log("[SERVER] ✅ Rota de validação de migração registrada");
 app.use("/api/admin/mobile", adminMobileRoutes);
 console.log("[SERVER] 📱 Rotas de Admin Mobile registradas");
 
-// 🐙 GitHub Analytics - Integração com GitHub API (admin)
-app.use("/api/github", githubAnalyticsRoutes);
-console.log("[SERVER] 🐙 Rotas de GitHub Analytics registradas");
-
 // 🔧 Modo Manutenção do App
 app.use("/api/admin", manutencaoRoutes);
 console.log("[SERVER] 🔧 Rotas de modo manutenção registradas");
@@ -491,6 +495,8 @@ app.use("/api/cartola-pro", cartolaProRoutes);
 app.use("/api/times", timesRoutes);
 app.use("/api/time", timesRoutes);
 app.use("/api/rodadas", rodadasRoutes);
+app.use("/api/rodada-xray", rodadaXrayRoutes);
+app.use("/api/rodada-contexto", rodadaContextoRoutes);
 app.use("/api/rodadas-cache", rodadasCacheRoutes);
 app.use("/api/rodadas-correcao", rodadasCorrecaoRoutes);
 app.use("/api/calendario-rodadas", calendarioRodadasRoutes);
@@ -506,6 +512,7 @@ app.use("/api/extrato-cache", extratoFinanceiroCacheRoutes);
 app.use("/api/ranking-cache", rankingGeralCacheRoutes);
 app.use("/api/ranking-turno", rankingTurnoRoutes);
 app.use("/api/consolidacao", consolidacaoRoutes);
+app.use("/api/orchestrator", orchestratorRoutes);
 app.use("/api/pontos-corridos", pontosCorridosCacheRoutes);
 app.use("/api/pontos-corridos", pontosCorridosMigracaoRoutes);
 app.use("/api/top10", top10CacheRoutes);
@@ -550,6 +557,8 @@ app.get("/api/admin/analytics/branch/:nomeBranch", analyticsController.getAnatyt
 app.get("/api/admin/analytics/merges", analyticsController.getAnalyticsMerges);
 app.get("/api/admin/analytics/funcionalidades", analyticsController.getAnalyticsFuncionalidades);
 app.get("/api/admin/analytics/estatisticas", analyticsController.getAnalyticsEstatisticas);
+app.get("/api/admin/analytics/sync-status", analyticsController.getGitSyncStatus);
+app.post("/api/admin/analytics/sync-trigger", analyticsController.postGitSyncTrigger);
 console.log("[SERVER] 📊 Rotas de Analytics (session) registradas em /api/admin/analytics");
 
 // 📢 Avisos In-App (Notificador)
@@ -557,6 +566,10 @@ app.use("/api/admin/avisos", avisosAdminRoutes);
 console.log("[SERVER] 📢 Rotas de avisos admin registradas em /api/admin/avisos");
 app.use("/api/avisos", avisosParticipanteRoutes);
 console.log("[SERVER] 📢 Rotas de avisos participante registradas em /api/avisos");
+
+// 🤖 Análises IA (Claude LLM)
+app.use("/api/admin/ia-analysis", iaAnalysisRoutes);
+console.log("[SERVER] 🤖 Rotas de Análises IA registradas em /api/admin/ia-analysis");
 
 // 🎯 Dicas Premium
 app.use("/api/dicas-premium", dicasPremiumRoutes);
@@ -725,6 +738,17 @@ if (process.env.NODE_ENV !== "test") {
     consolidacaoIntervalId = iniciarSchedulerConsolidacao();
   }, 10000);
 
+  // 🎯 Inicializar Round-Market Orchestrator (15s após boot para garantir DB)
+  setTimeout(async () => {
+    try {
+      console.log('[SERVER] 🎯 Iniciando Round-Market Orchestrator v1.0.0...');
+      await orchestrator.iniciar();
+      console.log('[SERVER] 🎯 Orchestrator ativo e monitorando mercado');
+    } catch (err) {
+      console.error('[SERVER] ⚠️ Orchestrator falhou ao iniciar (não-crítico):', err.message);
+    }
+  }, 15000);
+
   // 🔔 CRON: Limpeza de push subscriptions expiradas
   // Toda segunda-feira às 3h da manhã
   cron.schedule("0 3 * * 1", async () => {
@@ -806,6 +830,15 @@ async function gracefulShutdown(signal) {
       logShutdown("[SHUTDOWN] ✅ Scheduler de consolidação parado");
     }
     
+    // 3.5. Parar Round-Market Orchestrator
+    try {
+      logShutdown("[SHUTDOWN] Parando Round-Market Orchestrator...");
+      await orchestrator.parar();
+      logShutdown("[SHUTDOWN] ✅ Orchestrator parado");
+    } catch (e) {
+      logShutdown("[SHUTDOWN] ⚠️ Erro ao parar orchestrator: " + e.message);
+    }
+
     // 4. Limpar timer de rate limiting
     if (rateLimitCleanupIntervalId) {
       logShutdown("[SHUTDOWN] Parando limpeza de rate limiting...");

@@ -23,6 +23,7 @@ let atletasSelecionados = [];
 let capitaoId = null;
 let esquemaSelecionado = 3; // 4-3-3 padrão
 let patrimonioDisponivel = 0;
+let modoSelecionadoPro = 'equilibrado'; // mitar | equilibrado | valorizar
 
 const ESQUEMAS = {
     1: '3-4-3', 2: '3-5-2', 3: '4-3-3', 4: '4-4-2',
@@ -591,29 +592,126 @@ async function carregarConteudoAba(aba) {
 }
 
 // =====================================================================
-// ABA: TIME SUGERIDO
+// ABA: TIME SUGERIDO (v2 - com modos de estrategia)
 // =====================================================================
 async function carregarTimeSugerido(container) {
-    const response = await fetch(`/api/cartola-pro/sugestao?esquema=${esquemaSelecionado}&patrimonio=${patrimonioDisponivel || 100}`, {
-        credentials: 'include'
-    });
-    const data = await response.json();
-
-    if (!data.success) {
-        throw new Error(data.error || 'Erro ao buscar sugestão');
-    }
-
-    dadosTimeSugerido = data;
-
-    const atletas = data.atletas || [];
-    const totalPreco = data.totalPreco || 0;
-
+    // Mostrar form de configuracao + resultado
     container.innerHTML = `
         <div class="p-4 space-y-4">
+            <!-- Patrimonio -->
+            <div>
+                <label class="text-xs text-white/50 block mb-1">Patrimonio (C$)</label>
+                <input type="number" id="pro-patrimonio" class="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-yellow-500/40"
+                       value="${patrimonioDisponivel || 100}" step="0.01" min="50">
+            </div>
+
+            <!-- Modos de Estrategia -->
+            <div>
+                <label class="text-xs text-white/50 block mb-2">Estrategia</label>
+                <div class="grid grid-cols-3 gap-2" id="pro-modos-estrategia">
+                    <button class="pro-modo-btn ${modoSelecionadoPro === 'mitar' ? 'active' : ''}" data-modo="mitar">
+                        <span class="material-icons" style="font-size:18px; color:#ef4444;">rocket_launch</span>
+                        <span class="text-[10px] font-bold text-white">Mitar</span>
+                    </button>
+                    <button class="pro-modo-btn ${modoSelecionadoPro === 'equilibrado' ? 'active' : ''}" data-modo="equilibrado">
+                        <span class="material-icons" style="font-size:18px; color:#f59e0b;">balance</span>
+                        <span class="text-[10px] font-bold text-white">Equilibrado</span>
+                    </button>
+                    <button class="pro-modo-btn ${modoSelecionadoPro === 'valorizar' ? 'active' : ''}" data-modo="valorizar">
+                        <span class="material-icons" style="font-size:18px; color:#22c55e;">trending_up</span>
+                        <span class="text-[10px] font-bold text-white">Valorizar</span>
+                    </button>
+                </div>
+                <div id="pro-modo-sugestao" class="mt-1"></div>
+            </div>
+
+            <!-- Botao Gerar -->
+            <button id="pro-gerar-btn" class="w-full py-3 rounded-xl font-bold text-sm text-black flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                    style="background: linear-gradient(135deg, var(--app-warning), var(--app-pos-gol));">
+                <span class="material-icons text-lg">auto_awesome</span>
+                Gerar Time Sugerido
+            </button>
+
+            <!-- Resultado -->
+            <div id="pro-sugestao-resultado"></div>
+        </div>
+    `;
+
+    // Event: selecionar modo
+    document.getElementById('pro-modos-estrategia')?.addEventListener('click', (e) => {
+        const btn = e.target.closest('.pro-modo-btn');
+        if (!btn) return;
+        modoSelecionadoPro = btn.dataset.modo;
+        document.querySelectorAll('.pro-modo-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    });
+
+    // Event: patrimonio muda -> sugestao inteligente
+    document.getElementById('pro-patrimonio')?.addEventListener('change', atualizarSugestaoModoPro);
+
+    // Event: gerar
+    document.getElementById('pro-gerar-btn')?.addEventListener('click', gerarTimeSugeridoPro);
+
+    // Sugestao inicial
+    atualizarSugestaoModoPro();
+}
+
+async function atualizarSugestaoModoPro() {
+    const patrimonio = parseFloat(document.getElementById('pro-patrimonio')?.value) || 100;
+    const chip = document.getElementById('pro-modo-sugestao');
+    if (!chip) return;
+
+    try {
+        const resp = await fetch(`/api/cartola-pro/modo-sugerido?patrimonio=${patrimonio}`, { credentials: 'include' });
+        const data = await resp.json();
+
+        if (data.success && data.modo) {
+            chip.innerHTML = `
+                <div class="flex items-center gap-1.5 text-[10px] text-white/50 cursor-pointer"
+                     onclick="document.querySelector('.pro-modo-btn[data-modo=\\'${data.modo}\\']')?.click()">
+                    <span class="material-icons" style="font-size:12px; color:#eab308;">lightbulb</span>
+                    Sugerido: <strong class="text-white/70">${data.config.nome}</strong>
+                </div>
+            `;
+        }
+    } catch { /* silencioso */ }
+}
+
+async function gerarTimeSugeridoPro() {
+    const patrimonio = parseFloat(document.getElementById('pro-patrimonio')?.value) || 100;
+    const resultado = document.getElementById('pro-sugestao-resultado');
+    const btn = document.getElementById('pro-gerar-btn');
+
+    if (patrimonio < 50) {
+        resultado.innerHTML = `<div class="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">Patrimonio minimo C$ 50.00</div>`;
+        return;
+    }
+
+    // Loading
+    btn.disabled = true;
+    btn.innerHTML = '<div class="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>';
+
+    try {
+        const response = await fetch(`/api/cartola-pro/sugestao?esquema=${esquemaSelecionado}&patrimonio=${patrimonio}&modo=${modoSelecionadoPro}`, {
+            credentials: 'include'
+        });
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.error || 'Erro ao buscar sugestao');
+        }
+
+        dadosTimeSugerido = data;
+        patrimonioDisponivel = patrimonio;
+
+        const atletas = data.atletas || [];
+        const totalPreco = data.totalPreco || 0;
+
+        resultado.innerHTML = `
             <!-- Info -->
-            <div class="flex items-center justify-between p-3 rounded-xl bg-white/5">
+            <div class="flex items-center justify-between p-3 rounded-xl bg-white/5 mb-3">
                 <div>
-                    <p class="text-xs text-white/50">Formação</p>
+                    <p class="text-xs text-white/50">Formacao</p>
                     <p class="text-sm font-bold text-white">${data.esquema || '4-3-3'}</p>
                 </div>
                 <div class="text-right">
@@ -622,24 +720,29 @@ async function carregarTimeSugerido(container) {
                 </div>
             </div>
 
-            <!-- Botão Colar -->
+            <!-- Colar -->
             <button onclick="window.CartolaProModule.colarTimeSugerido()"
-                    class="w-full py-3 rounded-xl border border-yellow-500/40 text-yellow-400 font-medium flex items-center justify-center gap-2 hover:bg-yellow-500/10 transition-all">
+                    class="w-full py-2.5 mb-3 rounded-xl border border-yellow-500/40 text-yellow-400 font-medium flex items-center justify-center gap-2 hover:bg-yellow-500/10 transition-all text-sm">
                 <span class="material-icons text-sm">content_paste</span>
                 Colar na Aba "Escalar"
             </button>
 
-            <!-- Lista de Atletas -->
+            <!-- Atletas -->
             <div class="space-y-2">
                 ${atletas.map(atleta => renderizarCardAtletaSugerido(atleta, atleta.atletaId === data.capitaoSugerido)).join('')}
             </div>
 
-            <!-- Algoritmo -->
-            <p class="text-[10px] text-white/30 text-center">
-                Algoritmo: ${data.algoritmo || 'custo-beneficio-v1'}
+            <p class="text-[10px] text-white/30 text-center mt-3">
+                Algoritmo: ${data.algoritmo || 'estrategia-v2'} | Modo: ${modoSelecionadoPro}
             </p>
-        </div>
-    `;
+        `;
+
+    } catch (error) {
+        resultado.innerHTML = `<div class="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">${error.message}</div>`;
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-icons text-lg">auto_awesome</span> Gerar Time Sugerido';
+    }
 }
 
 function renderizarCardAtletaSugerido(atleta, isCapitao) {
@@ -919,4 +1022,32 @@ window.CartolaProModule = {
 // Alias global para uso pelo botão na tela de início
 window.abrirCartolaPro = abrirModal;
 
-if (window.Log) Log.info("CARTOLA-PRO", "Modulo v2.2 carregado (OAuth auto-detect)");
+// =====================================================================
+// CSS INJECTION: Estilos dos botoes de modo de estrategia
+// =====================================================================
+(function injetarEstilosModo() {
+    if (document.getElementById('cartola-pro-modo-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'cartola-pro-modo-styles';
+    style.textContent = `
+        .pro-modo-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 10px 6px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.2s;
+        }
+        .pro-modo-btn:active { transform: scale(0.97); }
+        .pro-modo-btn.active {
+            background: rgba(234,179,8,0.1);
+            border-color: rgba(234,179,8,0.4);
+        }
+    `;
+    document.head.appendChild(style);
+})();
+
+if (window.Log) Log.info("CARTOLA-PRO", "Modulo v2.3 carregado (modos de estrategia)");

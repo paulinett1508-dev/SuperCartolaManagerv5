@@ -922,11 +922,16 @@ function calcularClassificacaoAcumulada(
         };
     });
 
-    // Carregar classificação da rodada anterior
-    const rodadaAnterior = dadosAnteriores.find(
-        (r) => r.rodada === rodadaAtual - 1,
-    );
+    // ✅ FIX: Carregar classificação da ÚLTIMA rodada disponível anterior
+    // (não necessariamente rodadaAtual - 1, pois pode não haver cache sequencial)
+    const rodadasAnteriores = dadosAnteriores
+        .filter((r) => r.rodada < rodadaAtual)
+        .sort((a, b) => b.rodada - a.rodada); // Ordenar decrescente
+
+    const rodadaAnterior = rodadasAnteriores[0]; // Pega a última disponível
+
     if (rodadaAnterior?.classificacao) {
+        console.log(`[CACHE-PC] 📊 Carregando classificação acumulada da rodada ${rodadaAnterior.rodada} para calcular rodada ${rodadaAtual}`);
         rodadaAnterior.classificacao.forEach((t) => {
             const tid = String(t.timeId || t.time_id || t.id);
             if (tid && classificacao[tid]) {
@@ -944,6 +949,8 @@ function calcularClassificacaoAcumulada(
                 });
             }
         });
+    } else {
+        console.log(`[CACHE-PC] ℹ️ Nenhuma rodada anterior encontrada para rodada ${rodadaAtual}, iniciando do zero`);
     }
 
     // Processar confrontos da rodada atual

@@ -1,15 +1,15 @@
 {
-  "ativo": false,
+  "ativo": true,
   "modo": "global",
   "template_id": "manutencao-tecnica",
   "customizacao": {
     "titulo": "Calma aê!",
     "mensagem": "Estamos aplicando melhorias no app. Voltamos em breve!",
     "emoji": "🛠️",
-    "imagem_url": null,
-    "cor_primaria": "#f97316",
-    "cor_secundaria": "#ea580c",
-    "gradiente": null,
+    "imagem_url": "/uploads/manutencao/logo-urubu-iron-play-new-sticker-eda4765545386d65.png",
+    "cor_primaria": "#f86e0d",
+    "cor_secundaria": "#180240",
+    "gradiente": "linear-gradient(135deg, #f86e0d 0%, #180240 100%)",
     "mostrar_ranking": true,
     "mostrar_noticias": true,
     "mostrar_ultima_rodada": true,
@@ -23,6 +23,6 @@
     "blacklist_timeIds": []
   },
   "modulos_bloqueados": [],
-  "ativadoEm": "2026-02-05T02:41:16.858Z",
+  "ativadoEm": "2026-02-14T15:51:00.232Z",
   "desativadoEm": "2026-02-06T19:39:39.345Z"
 }

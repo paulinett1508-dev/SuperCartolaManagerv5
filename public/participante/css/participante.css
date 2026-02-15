@@ -835,19 +835,26 @@ body {
 
 .manutencao-dev-bypass {
     position: absolute;
-    top: 10px;
+    top: 12px;
     right: 14px;
-    font-size: 0.65rem;
-    color: var(--app-text-dim);
-    text-decoration: none;
-    font-family: var(--app-font-mono);
-    padding: var(--app-space-1) var(--app-space-2);
-    border-radius: var(--app-radius-sm);
-    transition: color var(--app-transition-normal);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.7rem;
+    font-family: var(--app-font-base);
+    font-weight: 600;
+    color: var(--app-text-muted);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 6px 12px;
+    border-radius: var(--app-radius-md);
+    cursor: pointer;
+    transition: background var(--app-transition-normal), color var(--app-transition-normal);
 }
 
-.manutencao-dev-bypass:hover {
-    color: var(--app-text-muted);
+.manutencao-dev-bypass:active {
+    background: rgba(255, 255, 255, 0.18);
+    color: var(--app-text-primary);
 }
 
 .manutencao-card-principal {
@@ -864,6 +871,33 @@ body {
     animation: manutBounce 2s ease-in-out infinite;
     margin-bottom: var(--app-space-5);
     border-radius: var(--app-radius-xl);
+}
+
+/* Imagem Hero - Valoriza imagem completa quando customizada */
+.manutencao-imagem {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto var(--app-space-6);
+}
+
+.manutencao-imagem img {
+    width: 100%;
+    max-height: 350px;
+    object-fit: contain; /* Não corta a imagem, mostra completa */
+    border-radius: var(--app-radius-lg);
+}
+
+/* Responsividade: altura menor em mobile */
+@media (max-height: 700px) {
+    .manutencao-imagem img {
+        max-height: 250px;
+    }
+}
+
+@media (max-width: 480px) {
+    .manutencao-imagem img {
+        max-height: 280px;
+    }
 }
 
 .manutencao-card-mensagem {

@@ -416,8 +416,21 @@
     }
 
     .mm-phase-btn.disabled {
-        opacity: 0.4;
+        opacity: 0.35;
         cursor: not-allowed;
+        pointer-events: none;
+        border-color: rgba(107, 114, 128, 0.2);
+        color: #6b7280;
+    }
+
+    /* ✅ v8.2: Visual de fase bloqueada */
+    .mm-fase-bloqueada {
+        border-style: dashed !important;
+        border-color: rgba(107, 114, 128, 0.3) !important;
+    }
+
+    .mm-fase-bloqueada h3 {
+        color: #9ca3af !important;
     }
 
     /* ===== INFO DA FASE ===== */

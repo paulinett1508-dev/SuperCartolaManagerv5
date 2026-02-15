@@ -8,8 +8,13 @@ import { showLoading, showError } from '../app.js';
 export async function render(params = {}) {
   const container = document.getElementById('page-content');
 
-  // Esconde FAB
-  document.getElementById('fab').classList.add('hidden');
+  // Atualiza top bar
+  const titleEl = document.getElementById('page-title');
+  const subtitleEl = document.getElementById('page-subtitle');
+  const backBtn = document.getElementById('btn-back');
+  if (titleEl) titleEl.textContent = 'Saude do Sistema';
+  if (subtitleEl) subtitleEl.textContent = 'Monitoramento em tempo real';
+  if (backBtn) backBtn.classList.remove('hidden');
 
   await loadHealthPage(container);
 }
@@ -43,14 +48,14 @@ function renderHealthPage(container, data) {
       <!-- Header -->
       <div style="display: flex; align-items: center; gap: 12px; margin-bottom: var(--spacing-md);">
         <button onclick="window.router.navigate('/')" class="btn btn-ghost btn-sm" style="min-width: 44px; padding: 8px;">
-          ←
+          <span class="material-icons">arrow_back</span>
         </button>
         <div style="flex: 1;">
-          <h2 class="card-title" style="margin: 0; font-size: 20px;">🏥 Saúde do Sistema</h2>
+          <h2 class="card-title" style="margin: 0; font-size: 20px;"><span class="material-icons mi-inline">monitor_heart</span> Saude do Sistema</h2>
           <p class="text-muted" style="margin: 0; font-size: 14px;">Monitoramento em tempo real</p>
         </div>
         <button class="btn btn-ghost btn-sm" onclick="window.recarregarHealth()" style="min-width: 44px; padding: 8px;">
-          ↻
+          <span class="material-icons">refresh</span>
         </button>
       </div>
 
@@ -93,7 +98,7 @@ function renderComponentCard(comp) {
   return `
     <div class="card" style="padding: 12px;">
       <div style="display: flex; align-items: center; gap: 12px;">
-        <span style="font-size: 24px;">${comp.icone || '📊'}</span>
+        <span class="material-icons" style="font-size: 24px; color: var(--text-muted);">${comp.icone || 'analytics'}</span>
         <div style="flex: 1;">
           <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
             ${statusDot}

@@ -250,6 +250,29 @@ const CapitaoLuxo = {
             const response = await fetch(url);
             const data = await response.json();
 
+            // ✅ FIX: Limpar flags parciais stale quando mercado está aberto (rodada encerrada)
+            // Mesmo fix aplicado no app (participante-capitao.js:181-193)
+            const mercadoAberto = this.estado.mercadoAberto;
+            const temporadaAtiva = !this.estado.temporadaEncerrada;
+
+            if (mercadoAberto && temporadaAtiva && data.ranking) {
+                let flagsLimpas = 0;
+                data.ranking.forEach(p => {
+                    if (p.historico_rodadas) {
+                        p.historico_rodadas.forEach(h => {
+                            if (h.parcial === true) {
+                                h.parcial = false;
+                                h.jogou = null;
+                                flagsLimpas++;
+                            }
+                        });
+                    }
+                });
+                if (flagsLimpas > 0) {
+                    console.log(`🧹 [CAPITAO-LUXO] Limpou ${flagsLimpas} flags parciais stale`);
+                }
+            }
+
             // Verificar se dados precisam de (re)consolidação
             const rankingVazio = !data.success || !data.ranking || data.ranking.length === 0;
             const dadosZerados = !rankingVazio && data.ranking.every(r => (r.pontuacao_total || 0) === 0 && (r.rodadas_jogadas || 0) === 0);
@@ -371,49 +394,33 @@ const CapitaoLuxo = {
 
             const posicaoIcon = isPrimeiro ? "🥇" : isPodio2 ? "🥈" : isPodio3 ? "🥉" : `${posicao}º`;
 
-            // Histórico por rodada (chips) - últimas 5 + expandir
+            // ✅ NOVO LAYOUT: Botão "Ver Histórico" + Barra de progresso
             const historico = participante.historico_rodadas || [];
-            let historicoHtml = "";
+            const totalRodadas = 38;
+            const percentualProgresso = (rodadas / totalRodadas) * 100;
+
+            // Botão Ver Histórico (somente se tiver dados)
+            let btnHistoricoHtml = "";
             if (historico.length > 0) {
-                const MAX_VISIBLE = 5;
-                const _chipHtml = (r) => {
-                    const pts = (r.pontuacao || 0).toFixed(1);
-                    const isParcial = r.parcial === true;
-                    const corPts = r.pontuacao >= 10 ? "#22c55e" : r.pontuacao >= 5 ? "#fbbf24" : r.pontuacao < 0 ? "#ef4444" : "#9ca3af";
-
-                    let indicador = "";
-                    let chipExtra = "";
-                    if (isParcial) {
-                        if (r.jogou === false) {
-                            indicador = '<span class="chip-dot dot-pending"></span>';
-                            chipExtra = " chip-parcial-pending";
-                        } else if (r.pontuacao > 0) {
-                            indicador = '<span class="chip-dot dot-positive"></span>';
-                            chipExtra = " chip-parcial-done";
-                        } else if (r.pontuacao < 0) {
-                            indicador = '<span class="chip-dot dot-negative"></span>';
-                            chipExtra = " chip-parcial-done";
-                        } else {
-                            indicador = '<span class="chip-dot dot-neutral"></span>';
-                            chipExtra = " chip-parcial-done";
-                        }
-                    }
-                    return `<span class="capitao-rodada-chip${chipExtra}"><span class="chip-rodada">R${r.rodada}</span> ${r.atleta_nome || "?"} <span style="color:${corPts}; font-family:'JetBrains Mono',monospace; font-weight:600;">${pts}</span>${indicador}</span>`;
-                };
-
-                if (historico.length <= MAX_VISIBLE) {
-                    historicoHtml = `<div class="capitao-historico-rodadas">${historico.map(_chipHtml).join("")}</div>`;
-                } else {
-                    const ultimas = historico.slice(-MAX_VISIBLE);
-                    const anteriores = historico.slice(0, historico.length - MAX_VISIBLE);
-                    const hiddenId = `capAdmHist_${index}`;
-                    historicoHtml = `<div class="capitao-historico-rodadas capitao-hist-collapsible">` +
-                        `<div class="capitao-hist-hidden" id="${hiddenId}" style="display:none;">${anteriores.map(_chipHtml).join("")}</div>` +
-                        ultimas.map(_chipHtml).join("") +
-                        `<span class="capitao-rodada-chip capitao-chip-toggle" onclick="(function(el){var h=document.getElementById('${hiddenId}');var show=h.style.display==='none';h.style.display=show?'flex':'none';el.textContent=show?'▲ fechar':'▼ +${anteriores.length}'})(this)">▼ +${anteriores.length}</span>` +
-                        `</div>`;
-                }
+                // Escapar JSON para onclick (evitar aspas quebradas)
+                const participanteJson = JSON.stringify(participante).replace(/"/g, '&quot;');
+                btnHistoricoHtml = `
+                    <button class="btn-ver-historico"
+                            onclick='CapitaoLuxo._abrirHistorico(${participanteJson})'
+                            title="Ver histórico completo de capitães">
+                        <span class="material-icons" style="font-size: 14px;">history</span>
+                        Ver Histórico
+                    </button>
+                `;
             }
+
+            // Barra de progresso visual
+            const progressoHtml = `
+                <div class="capitao-progresso-container">
+                    <div class="capitao-progresso-bar" style="width: ${percentualProgresso}%"></div>
+                    <span class="capitao-progresso-label">${rodadas}/${totalRodadas} rodadas</span>
+                </div>
+            `;
 
             html += `
                 <tr class="${rowClass}">
@@ -426,7 +433,10 @@ const CapitaoLuxo = {
                     <td class="col-nome">
                         <span class="nome-cartola">${participante.nome_cartola || "---"}</span>
                         <span class="nome-time">${participante.nome_time || ""}</span>
-                        ${historicoHtml}
+                        <div class="capitao-linha-info">
+                            ${progressoHtml}
+                            ${btnHistoricoHtml}
+                        </div>
                     </td>
                     <td><span class="val-pts">${pontos}</span></td>
                     <td><span class="val-media">${media}</span></td>
@@ -439,6 +449,18 @@ const CapitaoLuxo = {
         });
 
         tbody.innerHTML = html;
+    },
+
+    // ==============================
+    // ABRIR MODAL DE HISTÓRICO
+    // ==============================
+    _abrirHistorico(participante) {
+        if (window.CapitaoHistoricoModal) {
+            window.CapitaoHistoricoModal.abrir(participante);
+        } else {
+            console.error('❌ [CAPITAO-LUXO] Modal de histórico não carregado');
+            alert('Erro ao carregar histórico. Atualize a página.');
+        }
     },
 
     // ==============================

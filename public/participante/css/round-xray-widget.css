@@ -1,0 +1,436 @@
+/* ====================================================================
+   ROUND X-RAY WIDGET v1.0
+   Widget flutuante pós-rodada com análise de disputas
+   ==================================================================== */
+
+:root {
+    --rxray-primary: #FF4500;
+    --rxray-primary-dark: #CC3700;
+    --rxray-surface: #1a1a1a;
+    --rxray-surface-elevated: #262626;
+    --rxray-surface-hover: #333;
+    --rxray-text-white: #fff;
+    --rxray-text-muted: #9ca3af;
+    --rxray-success: #22c55e;
+    --rxray-danger: #ef4444;
+    --rxray-warning: #eab308;
+    --rxray-border: #333;
+}
+
+/* ============================================
+   FAB - BOLA FLUTUANTE
+   ============================================ */
+.rxray-fab {
+    position: fixed;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #fff 0%, #e5e5e5 100%);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3),
+                0 0 0 2px rgba(255, 69, 0, 0.2);
+    display: none; /* Inicialmente escondido */
+    align-items: center;
+    justify-content: center;
+    cursor: move;
+    z-index: 999;
+    user-select: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.rxray-fab:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4),
+                0 0 0 2px rgba(255, 69, 0, 0.3);
+}
+
+.rxray-fab:active {
+    transform: scale(0.95);
+}
+
+/* Ícone bola */
+.rxray-fab-icon {
+    font-size: 32px;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+/* Badge numérico (rodada) */
+.rxray-fab-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: var(--rxray-primary);
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 2px 6px;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    min-width: 18px;
+    text-align: center;
+}
+
+/* ============================================
+   MODAL
+   ============================================ */
+.rxray-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: none; /* Inicialmente escondido */
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 16px;
+}
+
+.rxray-modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(4px);
+}
+
+.rxray-modal-content {
+    position: relative;
+    background: var(--rxray-surface);
+    border-radius: 16px;
+    max-width: 500px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    animation: modalSlideUp 0.3s ease-out;
+}
+
+@keyframes modalSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Header */
+.rxray-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    border-bottom: 1px solid var(--rxray-border);
+    position: sticky;
+    top: 0;
+    background: var(--rxray-surface);
+    z-index: 10;
+}
+
+.rxray-modal-header h3 {
+    font-family: 'Russo One', sans-serif;
+    font-size: 18px;
+    font-weight: 400;
+    color: var(--rxray-text-white);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rxray-modal-header h3 span {
+    color: var(--rxray-primary);
+}
+
+.rxray-close-btn {
+    background: none;
+    border: none;
+    color: var(--rxray-text-muted);
+    font-size: 24px;
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+    transition: color 0.2s;
+}
+
+.rxray-close-btn:hover {
+    color: var(--rxray-text-white);
+}
+
+/* Loading */
+.rxray-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: var(--rxray-text-muted);
+}
+
+.rxray-loading .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--rxray-border);
+    border-top-color: var(--rxray-primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 16px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.rxray-loading p {
+    font-size: 14px;
+}
+
+/* Conteúdo */
+.rxray-content {
+    padding: 20px;
+}
+
+/* Seções */
+.rxray-section {
+    margin-bottom: 24px;
+}
+
+.rxray-section h4 {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--rxray-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 12px 0;
+}
+
+/* Narrativa */
+.rxray-narrative-box {
+    background: rgba(255, 69, 0, 0.1);
+    border-left: 3px solid var(--rxray-primary);
+    border-radius: 8px;
+    padding: 16px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--rxray-text-white);
+}
+
+.rxray-narrative-box p {
+    margin: 0;
+}
+
+/* Disputas */
+.rxray-disputa-card {
+    background: var(--rxray-surface-elevated);
+    border: 1px solid var(--rxray-border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+}
+
+.rxray-disputa-card:last-child {
+    margin-bottom: 0;
+}
+
+.rxray-disputa-header {
+    font-family: 'Russo One', sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--rxray-primary);
+    margin-bottom: 12px;
+}
+
+.rxray-disputa-confronto {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.rxray-disputa-confronto .voce {
+    color: var(--rxray-text-white);
+    font-weight: bold;
+}
+
+.rxray-disputa-confronto .vs {
+    color: var(--rxray-text-muted);
+}
+
+.rxray-disputa-confronto .adv {
+    color: var(--rxray-text-muted);
+}
+
+.rxray-disputa-confronto .resultado {
+    margin-left: auto;
+    font-size: 18px;
+}
+
+.rxray-disputa-confronto .resultado.vitoria {
+    color: var(--rxray-success);
+}
+
+.rxray-disputa-confronto .resultado.derrota {
+    color: var(--rxray-danger);
+}
+
+.rxray-disputa-confronto .resultado.empate {
+    color: var(--rxray-warning);
+}
+
+.rxray-disputa-status {
+    font-size: 13px;
+    color: var(--rxray-text-muted);
+}
+
+/* Performance - Grid de stats */
+.rxray-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.stat-card {
+    background: var(--rxray-surface-elevated);
+    border: 1px solid var(--rxray-border);
+    border-radius: 12px;
+    padding: 12px;
+    text-align: center;
+}
+
+.stat-card .stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--rxray-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.stat-card .stat-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    color: var(--rxray-text-white);
+}
+
+.stat-card.positive .stat-value {
+    color: var(--rxray-success);
+}
+
+.stat-card.negative .stat-value {
+    color: var(--rxray-danger);
+}
+
+/* Subtítulo de seção */
+.rxray-section-sub {
+    font-size: 12px;
+    color: var(--rxray-text-muted);
+    margin: -8px 0 12px 0;
+    font-style: italic;
+}
+
+/* Movimentações */
+.mov-item {
+    padding: 8px 12px;
+    background: var(--rxray-surface-elevated);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: var(--rxray-text-white);
+}
+
+.mov-item-me {
+    border-left: 3px solid var(--rxray-primary);
+    font-weight: 600;
+}
+
+.mov-item:last-child {
+    margin-bottom: 0;
+}
+
+/* Empty state */
+.rxray-empty {
+    text-align: center;
+    color: var(--rxray-text-muted);
+    font-size: 13px;
+    padding: 20px;
+}
+
+/* Erro */
+.rxray-error {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--rxray-danger);
+}
+
+.rxray-error .material-icons {
+    font-size: 48px;
+    margin-bottom: 12px;
+}
+
+/* Botão primário */
+.rxray-btn-primary {
+    width: 100%;
+    background: linear-gradient(135deg, var(--rxray-primary) 0%, var(--rxray-primary-dark) 100%);
+    border: none;
+    border-radius: 12px;
+    padding: 14px;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    margin-top: 24px;
+}
+
+.rxray-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 69, 0, 0.3);
+}
+
+.rxray-btn-primary:active {
+    transform: translateY(0);
+}
+
+/* ============================================
+   RESPONSIVO
+   ============================================ */
+@media (max-width: 480px) {
+    .rxray-modal-content {
+        max-width: 100%;
+        margin: 0;
+        border-radius: 16px 16px 0 0;
+        max-height: 90vh;
+    }
+
+    .rxray-stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Scrollbar customizada */
+.rxray-modal-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.rxray-modal-content::-webkit-scrollbar-track {
+    background: var(--rxray-surface);
+}
+
+.rxray-modal-content::-webkit-scrollbar-thumb {
+    background: var(--rxray-border);
+    border-radius: 4px;
+}
+
+.rxray-modal-content::-webkit-scrollbar-thumb:hover {
+    background: var(--rxray-text-muted);
+}

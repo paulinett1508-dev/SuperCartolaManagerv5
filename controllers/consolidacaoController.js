@@ -242,9 +242,26 @@ export const consolidarRodada = async (req, res) => {
         const { ligaId, rodada } = req.params;
         const forcar = req.query.forcar === 'true'; // ✅ NOVO: Permite forçar reconsolidação
         const rodadaNum = parseInt(rodada);
-        
+
         console.log(`[CONSOLIDAÇÃO] 🔒 Iniciando snapshot R${rodadaNum} da liga ${ligaId} (forçar: ${forcar})`);
-        
+
+        // ✅ GUARD: Não consolidar rodada com mercado aberto
+        if (!isSeasonFinished()) {
+            try {
+                const statusMercado = await fetch('https://api.cartola.globo.com/mercado/status').then(r => r.json());
+                if (statusMercado?.status_mercado === 1 && rodadaNum >= statusMercado.rodada_atual) {
+                    console.log(`[CONSOLIDAÇÃO] ❌ Bloqueado: R${rodadaNum} com mercado aberto (rodada_atual: ${statusMercado.rodada_atual})`);
+                    return res.status(400).json({
+                        error: `Rodada ${rodadaNum} não pode ser consolidada com mercado aberto`,
+                        rodada_atual: statusMercado.rodada_atual,
+                        status_mercado: 'aberto'
+                    });
+                }
+            } catch (e) {
+                console.warn('[CONSOLIDAÇÃO] Falha ao verificar status do mercado, prosseguindo...', e.message);
+            }
+        }
+
         // ✅ VERIFICAR SE JÁ CONSOLIDADA (pular se forçar=true)
         if (!forcar) {
             const existente = await RodadaSnapshot.findOne({
@@ -441,7 +458,7 @@ export const consolidarRodada = async (req, res) => {
         // 9. Buscar status do mercado (SEASON GUARD: usar valores fixos se temporada encerrada)
         let statusMercado = { rodada_atual: 38, mes_atual: 12 };
         if (!isSeasonFinished()) {
-            statusMercado = await fetch('https://api.cartolafc.globo.com/mercado/status')
+            statusMercado = await fetch('https://api.cartola.globo.com/mercado/status')
                 .then(r => r.json())
                 .catch(() => ({ rodada_atual: 38, mes_atual: 12 }));
         }

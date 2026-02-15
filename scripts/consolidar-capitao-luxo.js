@@ -20,7 +20,7 @@
 import mongoose from 'mongoose';
 import Liga from '../models/Liga.js';
 import capitaoService from '../services/capitaoService.js';
-import '../config/database.js';
+import connectDB from '../config/database.js';
 
 const LOG_PREFIX = '[CONSOLIDAR-CAPITAO]';
 
@@ -121,7 +121,9 @@ async function main() {
   
   info(`Liga ID: ${ligaId}`);
   info(`Temporada: ${temporada}`);
-  
+
+  // ✅ FIX: Conectar ao MongoDB antes de usar mongoose
+  await connectDB();
   await waitForMongo();
   
   try {

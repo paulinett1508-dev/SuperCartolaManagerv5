@@ -1,0 +1,15 @@
+/**
+ * Admin Shell CSS Bundle
+ *
+ * Centraliza TODAS as dependências CSS necessárias para o admin panel.
+ * Cada página admin precisa apenas de:
+ *   <link rel="stylesheet" href="css/admin-shell.css" />
+ *
+ * Inclui: tokens, layout base, sidebar redesign, super-modal.
+ * NÃO inclui CSS page-specific (dashboard.css, gerenciar.css, etc.)
+ */
+
+@import '_admin-tokens.css';
+@import '../style.css';
+@import 'modules/dashboard-redesign.css';
+@import 'modules/super-modal.css';

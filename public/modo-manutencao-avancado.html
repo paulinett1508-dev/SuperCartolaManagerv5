@@ -8,6 +8,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Russo+One&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/_admin-tokens.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="/css/modules/super-modal.css">
     <style>
         body {
             font-family: 'Inter', -apple-system, sans-serif;
@@ -239,6 +242,11 @@
             </div>
 
             <!-- Ações -->
+            <div class="mb-4">
+                <button onclick="ManutencaoConfig.salvar()" class="w-full bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded font-medium transition-colors">
+                    💾 Salvar Configuração
+                </button>
+            </div>
             <div class="flex gap-4">
                 <button onclick="ManutencaoConfig.ativar()" class="flex-1 bg-green-600 hover:bg-green-700 px-6 py-3 rounded font-medium transition-colors">
                     ✅ Ativar Manutenção
@@ -261,6 +269,7 @@
         </div>
     </main>
 
+    <script src="/js/super-modal.js"></script>
     <script src="/js/manutencao-config.js"></script>
     <script>
         // Inicializar ao carregar a página

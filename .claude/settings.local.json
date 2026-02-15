@@ -121,7 +121,9 @@
       "Bash(git hash-object:*)",
       "Bash(git ls-tree:*)",
       "mcp__ide__executeCode",
-      "Bash(gh api:*)"
+      "Bash(gh api:*)",
+      "Bash(git -C /home/runner/workspace status)",
+      "Bash(git -C /home/runner/workspace log --oneline -5)"
     ]
   },
   "enableAllProjectMcpServers": true,

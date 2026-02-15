@@ -10,6 +10,8 @@ import Rodada from "../models/Rodada.js";
 import Time from "../models/Time.js";
 import Liga from "../models/Liga.js";
 import CartolaOficialDump from "../models/CartolaOficialDump.js";
+import RankingTurno from "../models/RankingTurno.js";
+import RankingGeralCache from "../models/RankingGeralCache.js";
 import mongoose from "mongoose";
 import { isSeasonFinished, logBlockedOperation, SEASON_CONFIG } from "../utils/seasonGuard.js";
 import { CURRENT_SEASON } from "../config/seasons.js";
@@ -171,19 +173,29 @@ export const popularRodadas = async (req, res) => {
       `[POPULAR-RODADAS] Liga tem ${liga.times.length} times cadastrados`,
     );
 
-    // Buscar dados completos dos times
+    // ✅ v3.1: Usar Liga.participantes como fonte primária de ativo (per-league)
+    // Time collection usada apenas para rodada_desistencia (campo não existe em participanteSchema)
+    const participantesMap = new Map();
+    if (liga.participantes && liga.participantes.length > 0) {
+      liga.participantes.forEach((p) => {
+        participantesMap.set(p.time_id, { ativo: p.ativo !== false });
+      });
+    }
+
     const timesCompletos = await Time.find({ id: { $in: liga.times } })
       .select("id ativo rodada_desistencia")
       .lean();
 
-    // ✅ v2.6: Mapear campo 'id' para 'timeId' para compatibilidade
-    const times = timesCompletos.map((t) => ({
-      timeId: t.id,
-      ativo: t.ativo,
-      rodada_desistencia: t.rodada_desistencia,
-    }));
+    const times = timesCompletos.map((t) => {
+      const statusLiga = participantesMap.get(t.id);
+      return {
+        timeId: t.id,
+        ativo: statusLiga ? statusLiga.ativo : (t.ativo !== false),
+        rodada_desistencia: t.rodada_desistencia,
+      };
+    });
 
-    console.log(`[POPULAR-RODADAS] ${times.length} times encontrados na liga`);
+    console.log(`[POPULAR-RODADAS] ${times.length} times encontrados (ativo via Liga.participantes: ${participantesMap.size})`);
 
     // ✅ v2.4: Buscar mapa de clube_id existentes
     const mapaClubeId = await obterMapaClubeId(ligaIdObj);
@@ -228,7 +240,25 @@ export const popularRodadas = async (req, res) => {
       }
     }
 
-    // 3. RESPOSTA
+    // 3. INVALIDAR CACHES DE RANKING (garante reconsolidação com dados frescos)
+    // ✅ v3.2: Após popular rodadas, os caches ficam stale e precisam ser recalculados
+    try {
+      const ligaIdForCache = new mongoose.Types.ObjectId(ligaId);
+      const deletedTurno = await RankingTurno.deleteMany({
+        ligaId: ligaIdForCache,
+        temporada: CURRENT_SEASON,
+        status: { $ne: "consolidado" },
+      });
+      const deletedGeral = await RankingGeralCache.deleteMany({
+        ligaId: ligaIdForCache,
+        temporada: CURRENT_SEASON,
+      });
+      console.log(`[POPULAR-RODADAS] 🗑️ Caches invalidados: ${deletedTurno.deletedCount} RankingTurno, ${deletedGeral.deletedCount} RankingGeralCache`);
+    } catch (cacheErr) {
+      console.warn(`[POPULAR-RODADAS] ⚠️ Erro ao invalidar caches (não-bloqueante):`, cacheErr.message);
+    }
+
+    // 4. RESPOSTA
     const mensagem =
       rodadaInicio === rodadaFim
         ? `Rodada ${rodadaInicio} populada com sucesso`
@@ -298,7 +328,7 @@ async function processarRodada(
 
     try {
       // Buscar da API do Cartola FC
-      const url = `https://api.cartolafc.globo.com/time/id/${time.timeId}/${rodada}`;
+      const url = `https://api.cartola.globo.com/time/id/${time.timeId}/${rodada}`;
       const response = await fetch(url);
 
       if (response.ok) {

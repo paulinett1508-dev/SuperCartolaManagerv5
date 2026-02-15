@@ -11,8 +11,13 @@ let ligas = [];
 export async function render(params = {}) {
   const container = document.getElementById('page-content');
 
-  // Esconde FAB
-  document.getElementById('fab').classList.add('hidden');
+  // Atualiza top bar
+  const titleEl = document.getElementById('page-title');
+  const subtitleEl = document.getElementById('page-subtitle');
+  const backBtn = document.getElementById('btn-back');
+  if (titleEl) titleEl.textContent = 'Acertos Financeiros';
+  if (subtitleEl) subtitleEl.textContent = 'Pagamentos e recebimentos';
+  if (backBtn) backBtn.classList.remove('hidden');
 
   if (params.ligaId) {
     ligaSelecionada = parseInt(params.ligaId);
@@ -45,10 +50,10 @@ function renderFinanceiroPage(container) {
       <!-- Header -->
       <div style="display: flex; align-items: center; gap: 12px; margin-bottom: var(--spacing-md);">
         <button onclick="window.router.navigate('/')" class="btn btn-ghost btn-sm" style="min-width: 44px; padding: 8px;">
-          ←
+          <span class="material-icons">arrow_back</span>
         </button>
         <div style="flex: 1;">
-          <h2 class="card-title" style="margin: 0; font-size: 20px;">💰 Acertos Financeiros</h2>
+          <h2 class="card-title" style="margin: 0; font-size: 20px;"><span class="material-icons mi-inline">payments</span> Acertos Financeiros</h2>
           <p class="text-muted" style="margin: 0; font-size: 14px;">Registrar pagamentos e recebimentos</p>
         </div>
       </div>
@@ -112,7 +117,7 @@ function renderFinanceiroPage(container) {
           </div>
 
           <button id="btn-registrar-acerto" class="btn btn-primary" style="width: 100%;" onclick="window.registrarNovoAcerto()" disabled>
-            💰 Registrar Acerto
+            <span class="material-icons mi-inline">savings</span> Registrar Acerto
           </button>
         </div>
       </div>
@@ -210,7 +215,7 @@ async function carregarAcertos(ligaId) {
     if (!data.acertos || data.acertos.length === 0) {
       listaContainer.innerHTML = `
         <div class="empty-state" style="margin-top: var(--spacing-lg);">
-          <div class="empty-state-icon">📋</div>
+          <div class="empty-state-icon"><span class="material-icons mi-xl">receipt_long</span></div>
           <h3 class="empty-state-title">Nenhum acerto registrado</h3>
           <p class="empty-state-text">Registre o primeiro acerto acima</p>
         </div>
@@ -249,7 +254,7 @@ function renderAcertoItem(acerto) {
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
         <div style="display: flex; align-items: center; gap: 8px;">
           <span class="badge ${isPagamento ? 'badge-success' : 'badge-warning'}" style="font-size: 11px;">
-            ${isPagamento ? '↗ Pagamento' : '↙ Recebimento'}
+            ${isPagamento ? '<span class="material-icons" style="font-size:12px;vertical-align:-2px;">north_east</span> Pagamento' : '<span class="material-icons" style="font-size:12px;vertical-align:-2px;">south_west</span> Recebimento'}
           </span>
           <span style="font-size: 13px; font-weight: 600;">${acerto.nomeTime}</span>
         </div>
@@ -303,7 +308,7 @@ async function registrarNovoAcerto() {
     showToast('Erro: ' + error.message, 'error');
   } finally {
     btn.disabled = false;
-    btn.textContent = '💰 Registrar Acerto';
+    btn.innerHTML = '<span class="material-icons mi-inline">savings</span> Registrar Acerto';
     validarFormAcerto();
   }
 }

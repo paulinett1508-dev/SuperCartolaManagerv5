@@ -365,24 +365,6 @@ class DetalheLigaOrquestrador {
                     }
                     break;
 
-                case "parciais":
-                    try {
-                        const parciaisModule = await import("./parciais.js");
-                        // ✅ v3.2: Double RAF em vez de setTimeout fixo
-                        await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-
-                        if (parciaisModule?.inicializarParciais) {
-                            await parciaisModule.inicializarParciais();
-                        } else if (
-                            typeof window.inicializarParciais === "function"
-                        ) {
-                            await window.inicializarParciais();
-                        }
-                    } catch (error) {
-                        console.error("[ORQUESTRADOR] Erro parciais:", error);
-                    }
-                    break;
-
                 case "regras":
                     console.log('[ORQUESTRADOR] Iniciando regras...');
                     // ✅ v3.3: Carregar Quill e executar scripts manualmente
@@ -490,7 +472,6 @@ class DetalheLigaOrquestrador {
             top10: `<div id="top10-content"><div class="loading-state">Carregando top 10...</div></div>`,
             "fluxo-financeiro": `<div id="fluxo-financeiro-content"><div class="loading-state">Carregando fluxo financeiro...</div></div>`,
             participantes: `<div id="participantes-content"><div class="loading-state">Carregando participantes...</div></div>`,
-            parciais: `<div id="parciais-content"><div class="loading-state">Carregando parciais...</div></div>`,
             "capitao-luxo": `<div id="capitao-luxo-content"><div class="capitao-luxo-loading"><div class="spinner"></div><p>Carregando Capitão de Luxo...</p></div></div>`,
             regras: `<div id="regras-admin-container"><div style="text-align:center;padding:40px;color:rgba(255,255,255,0.5);">Carregando regras...</div></div>`,
         };
@@ -620,7 +601,6 @@ class DetalheLigaOrquestrador {
         const names = {
             participantes: "Participantes",
             "ranking-geral": "Classificação",
-            parciais: "Parciais",
             top10: "Top 10",
             rodadas: "Rodadas",
             "melhor-mes": "Melhor Mês",
@@ -979,11 +959,7 @@ class DetalheLigaOrquestrador {
         }
     }
 
-    redirectToParciais() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const ligaId = urlParams.get("id");
-        if (ligaId) window.location.href = `parciais.html?id=${ligaId}`;
-    }
+    // REMOVIDO: redirectToParciais() - módulo substituído por Raio-X da Rodada
 
     // ✅ v2.0: Auto-navegar para módulo via URL (section/timeId)
     // ✅ v2.1 FIX: Mostrar secondary screen ANTES de carregar módulo para evitar flash dos cards
@@ -1160,12 +1136,7 @@ async function carregarModuloFluxoFinanceiro() {
     return window.orquestrador.modules.fluxoFinanceiro;
 }
 
-async function carregarModuloParciais() {
-    if (!window.orquestrador.modules.parciais) {
-        window.orquestrador.modules.parciais = await import("./parciais.js");
-    }
-    return window.orquestrador.modules.parciais;
-}
+// REMOVIDO: carregarModuloParciais() - módulo substituído por Raio-X da Rodada
 
 function setupLazyModuleLoading() {
     // Configuração para lazy loading - módulos carregam sob demanda

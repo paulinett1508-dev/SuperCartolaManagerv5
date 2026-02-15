@@ -1,0 +1,808 @@
+<!-- RAIO-X DA RODADA - Template v1.0 -->
+<!-- Análise detalhada de performance por rodada -->
+<style>
+/* ============================================
+   RAIO-X DA RODADA v1.0
+   Design System: Black & Orange (#FF4500)
+   ============================================ */
+
+:root {
+    --xray-font-brand: var(--app-font-brand, 'Russo One', sans-serif);
+    --xray-font-body: 'Inter', -apple-system, sans-serif;
+    --xray-font-mono: 'JetBrains Mono', monospace;
+    --xray-primary: var(--app-primary, #FF4500);
+    --xray-primary-dark: var(--app-primary-dark, #CC3700);
+    --xray-surface: var(--app-surface, #1a1a1a);
+    --xray-surface-elevated: var(--app-surface-elevated, #262626);
+    --xray-surface-hover: var(--app-surface-hover, #333);
+    --xray-success: var(--app-success, #22c55e);
+    --xray-danger: var(--app-danger, #ef4444);
+    --xray-warning: var(--app-warning, #eab308);
+    --xray-info: var(--app-info, #3b82f6);
+    --xray-text-muted: var(--app-text-muted, #9ca3af);
+    --xray-text-dim: var(--app-text-dim, #6b7280);
+    --xray-text-white: var(--app-text-white, #fff);
+    --xray-border: var(--app-border, #333);
+    --xray-gold: var(--app-gold, #ffd700);
+}
+
+.xray-container {
+    padding: 16px;
+    padding-bottom: 180px;
+    font-family: var(--xray-font-body);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* === HEADER === */
+.xray-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.xray-header-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.xray-header-title .material-icons {
+    font-size: 28px;
+    color: var(--xray-primary);
+}
+
+.xray-header-title h2 {
+    font-family: var(--xray-font-brand);
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--xray-text-white);
+    margin: 0;
+}
+
+.xray-header-sub {
+    font-size: 13px;
+    color: var(--xray-text-muted);
+    margin-top: 4px;
+}
+
+/* === BACK BUTTON === */
+.xray-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: none;
+    border: none;
+    color: var(--xray-primary);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 8px 0;
+    margin-bottom: 12px;
+}
+.xray-back-btn .material-icons { font-size: 18px; }
+
+/* === SCORE CARD === */
+.xray-score-card {
+    background: var(--xray-surface-elevated);
+    border: 1px solid var(--xray-border);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+}
+
+.xray-score-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--xray-primary), var(--xray-primary-dark));
+}
+
+.xray-score-pontos {
+    font-family: var(--xray-font-mono);
+    font-size: 40px;
+    font-weight: 700;
+    color: var(--xray-text-white);
+    line-height: 1;
+}
+
+.xray-score-label {
+    font-size: 11px;
+    color: var(--xray-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 4px;
+}
+
+.xray-score-meta {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 16px;
+}
+
+.xray-score-meta-item {
+    text-align: center;
+}
+
+.xray-score-meta-value {
+    font-family: var(--xray-font-mono);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--xray-text-white);
+}
+
+.xray-score-meta-label {
+    font-size: 10px;
+    color: var(--xray-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.xray-financeiro-positivo { color: var(--xray-success); }
+.xray-financeiro-negativo { color: var(--xray-danger); }
+.xray-financeiro-neutro { color: var(--xray-text-muted); }
+
+/* === COMPARISON BARS === */
+.xray-comparison {
+    background: var(--xray-surface-elevated);
+    border: 1px solid var(--xray-border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.xray-section-title {
+    font-family: var(--xray-font-brand);
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--xray-text-white);
+    margin: 0 0 12px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.xray-section-title .material-icons {
+    font-size: 18px;
+    color: var(--xray-primary);
+}
+
+.xray-comp-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.xray-comp-label {
+    font-size: 11px;
+    color: var(--xray-text-muted);
+    min-width: 60px;
+    text-align: right;
+}
+
+.xray-comp-bar-track {
+    flex: 1;
+    height: 20px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+}
+
+.xray-comp-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.6s ease;
+    min-width: 2px;
+}
+
+.xray-comp-bar-fill.meu { background: var(--xray-primary); }
+.xray-comp-bar-fill.media { background: var(--xray-info); opacity: 0.7; }
+.xray-comp-bar-fill.melhor { background: var(--xray-gold); opacity: 0.7; }
+
+.xray-comp-value {
+    font-family: var(--xray-font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--xray-text-white);
+    min-width: 50px;
+    text-align: right;
+}
+
+.xray-comp-diff {
+    font-family: var(--xray-font-mono);
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+.xray-comp-diff.positivo { background: rgba(34,197,94,0.15); color: var(--xray-success); }
+.xray-comp-diff.negativo { background: rgba(239,68,68,0.15); color: var(--xray-danger); }
+
+/* === CAPITÃO CARD === */
+.xray-capitao-card {
+    background: var(--xray-surface-elevated);
+    border: 1px solid var(--xray-border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.xray-capitao-badge {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--xray-gold), #b8860b);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.xray-capitao-badge .material-icons {
+    font-size: 24px;
+    color: #1a1a1a;
+}
+
+.xray-capitao-info { flex: 1; }
+
+.xray-capitao-nome {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--xray-text-white);
+}
+
+.xray-capitao-pos {
+    font-size: 11px;
+    color: var(--xray-text-muted);
+}
+
+.xray-capitao-stats {
+    text-align: right;
+}
+
+.xray-capitao-pontos {
+    font-family: var(--xray-font-mono);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--xray-gold);
+}
+
+.xray-capitao-bonus {
+    font-size: 10px;
+    color: var(--xray-success);
+}
+
+/* === POSIÇÃO ANALYSIS === */
+.xray-posicao-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.xray-posicao-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.xray-posicao-badge {
+    font-family: var(--xray-font-brand);
+    font-size: 11px;
+    font-weight: 400;
+    padding: 4px 8px;
+    border-radius: 6px;
+    min-width: 40px;
+    text-align: center;
+    color: #fff;
+}
+
+.xray-posicao-bar-track {
+    flex: 1;
+    height: 24px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.xray-posicao-bar-fill {
+    height: 100%;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    padding-left: 8px;
+    transition: width 0.6s ease;
+    min-width: 2px;
+}
+
+.xray-posicao-bar-label {
+    font-family: var(--xray-font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+}
+
+.xray-posicao-value {
+    font-family: var(--xray-font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--xray-text-white);
+    min-width: 50px;
+    text-align: right;
+}
+
+/* === ATLETAS TABLE === */
+.xray-atletas-section {
+    background: var(--xray-surface-elevated);
+    border: 1px solid var(--xray-border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.xray-atleta-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.xray-atleta-row:last-child { border-bottom: none; }
+
+.xray-atleta-pos-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 6px;
+    border-radius: 4px;
+    color: #fff;
+    min-width: 32px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.xray-atleta-info { flex: 1; min-width: 0; }
+
+.xray-atleta-nome {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--xray-text-white);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.xray-atleta-clube-icon {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.xray-atleta-sub {
+    font-size: 10px;
+    color: var(--xray-text-dim);
+}
+
+.xray-atleta-pontos {
+    font-family: var(--xray-font-mono);
+    font-size: 14px;
+    font-weight: 700;
+    min-width: 50px;
+    text-align: right;
+}
+
+.xray-atleta-pontos.positivo { color: var(--xray-success); }
+.xray-atleta-pontos.negativo { color: var(--xray-danger); }
+.xray-atleta-pontos.neutro { color: var(--xray-text-muted); }
+
+.xray-capitao-tag {
+    font-size: 9px;
+    background: var(--xray-gold);
+    color: #1a1a1a;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.xray-reserva-tag {
+    font-size: 9px;
+    background: rgba(107,114,128,0.3);
+    color: var(--xray-text-dim);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+/* === DISTRIBUIÇÃO (HISTOGRAMA) === */
+.xray-distrib-section {
+    background: var(--xray-surface-elevated);
+    border: 1px solid var(--xray-border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.xray-distrib-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 100px;
+    margin-top: 12px;
+}
+
+.xray-distrib-bar-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    height: 100%;
+    justify-content: flex-end;
+}
+
+.xray-distrib-bar {
+    width: 100%;
+    border-radius: 4px 4px 0 0;
+    transition: height 0.6s ease;
+    min-height: 4px;
+}
+
+.xray-distrib-bar.normal { background: rgba(255,255,255,0.15); }
+.xray-distrib-bar.destaque { background: var(--xray-primary); }
+
+.xray-distrib-count {
+    font-family: var(--xray-font-mono);
+    font-size: 10px;
+    color: var(--xray-text-muted);
+}
+
+.xray-distrib-label {
+    font-size: 9px;
+    color: var(--xray-text-dim);
+    text-align: center;
+    word-break: break-all;
+}
+
+/* === PERFORMANCE GERAL === */
+.xray-perf-section {
+    background: var(--xray-surface-elevated);
+    border: 1px solid var(--xray-border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.xray-perf-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.xray-perf-card {
+    background: var(--xray-surface);
+    border: 1px solid var(--xray-border);
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+    overflow: hidden;
+}
+
+.xray-perf-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+}
+
+.xray-perf-card.mod-capitao::before { background: var(--module-capitao-primary, #8b5cf6); }
+.xray-perf-card.mod-artilheiro::before { background: var(--module-artilheiro-primary, #22c55e); }
+.xray-perf-card.mod-luva::before { background: var(--module-luva-primary, #ffd700); }
+.xray-perf-card.mod-top10::before { background: var(--xray-primary); }
+
+.xray-perf-icon {
+    font-size: 22px;
+    flex-shrink: 0;
+    width: 32px;
+    text-align: center;
+}
+
+.xray-perf-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.xray-perf-title {
+    font-family: var(--xray-font-brand);
+    font-size: 10px;
+    font-weight: 400;
+    color: var(--xray-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.xray-perf-value {
+    font-family: var(--xray-font-mono);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--xray-text-white);
+    line-height: 1.2;
+}
+
+.xray-perf-sub {
+    font-size: 10px;
+    color: var(--xray-text-dim);
+    margin-top: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.xray-perf-card.mod-capitao .xray-perf-value { color: var(--module-capitao-primary, #8b5cf6); }
+.xray-perf-card.mod-artilheiro .xray-perf-value { color: var(--module-artilheiro-primary, #22c55e); }
+.xray-perf-card.mod-luva .xray-perf-value { color: var(--module-luva-primary, #ffd700); }
+.xray-perf-card.mod-top10 .xray-perf-value { color: var(--xray-primary); }
+
+/* === "EM BREVE" CARDS === */
+.xray-upcoming-card.em-breve {
+    opacity: 0.45;
+    pointer-events: none;
+    position: relative;
+}
+
+.xray-upcoming-card.em-breve .xray-upcoming-badge.breve {
+    background: rgba(255,255,255,0.08);
+    color: var(--xray-text-dim);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* === O QUE VEM POR AÍ === */
+.xray-upcoming-section {
+    background: var(--xray-surface-elevated);
+    border: 1px solid var(--xray-border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.xray-upcoming-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.xray-upcoming-card {
+    background: var(--xray-surface);
+    border: 1px solid var(--xray-border);
+    border-radius: 10px;
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.xray-upcoming-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+    width: 40px;
+    text-align: center;
+}
+
+.xray-upcoming-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.xray-upcoming-title {
+    font-family: var(--xray-font-brand);
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--xray-primary);
+    margin-bottom: 4px;
+}
+
+.xray-upcoming-desc {
+    font-size: 13px;
+    color: var(--xray-text-white);
+    line-height: 1.4;
+}
+
+.xray-upcoming-meta {
+    font-size: 11px;
+    color: var(--xray-text-muted);
+    margin-top: 2px;
+}
+
+.xray-upcoming-badge {
+    font-family: var(--xray-font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.xray-upcoming-badge.classificado {
+    background: rgba(34,197,94,0.15);
+    color: var(--xray-success);
+}
+
+.xray-upcoming-badge.eliminado {
+    background: rgba(239,68,68,0.15);
+    color: var(--xray-danger);
+}
+
+.xray-upcoming-badge.posicao {
+    background: rgba(255,69,0,0.15);
+    color: var(--xray-primary);
+}
+
+/* === LOADING & EMPTY STATE === */
+.xray-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    gap: 16px;
+}
+
+.xray-loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(255,255,255,0.1);
+    border-top-color: var(--xray-primary);
+    border-radius: 50%;
+    animation: xray-spin 0.8s linear infinite;
+}
+
+@keyframes xray-spin {
+    to { transform: rotate(360deg); }
+}
+
+.xray-loading-text {
+    font-size: 13px;
+    color: var(--xray-text-muted);
+}
+
+.xray-empty {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.xray-empty .material-icons {
+    font-size: 48px;
+    color: var(--xray-text-dim);
+    margin-bottom: 12px;
+}
+
+.xray-empty p {
+    color: var(--xray-text-muted);
+    font-size: 14px;
+}
+</style>
+
+<div class="xray-container" id="xrayContainer">
+    <!-- Loading state -->
+    <div class="xray-loading" id="xrayLoading">
+        <div class="xray-loading-spinner"></div>
+        <span class="xray-loading-text">Analisando rodada...</span>
+    </div>
+
+    <!-- Content (hidden until loaded) -->
+    <div id="xrayContent" style="display:none;">
+
+        <!-- Back button -->
+        <button class="xray-back-btn" id="xrayBackBtn">
+            <span class="material-icons">arrow_back</span>
+            Voltar para Rodadas
+        </button>
+
+        <!-- Header -->
+        <div class="xray-header">
+            <div class="xray-header-title">
+                <span class="material-icons">biotech</span>
+                <h2>Raio-X da Rodada</h2>
+            </div>
+            <div class="xray-header-sub" id="xraySubtitulo">Rodada --</div>
+        </div>
+
+        <!-- Score Card -->
+        <div class="xray-score-card" id="xrayScoreCard">
+            <div class="xray-score-pontos" id="xrayPontos">0.00</div>
+            <div class="xray-score-label">Pontos na Rodada</div>
+            <div class="xray-score-meta">
+                <div class="xray-score-meta-item">
+                    <div class="xray-score-meta-value" id="xrayPosicao">--</div>
+                    <div class="xray-score-meta-label">Posição</div>
+                </div>
+                <div class="xray-score-meta-item">
+                    <div class="xray-score-meta-value" id="xrayFinanceiro">R$ 0</div>
+                    <div class="xray-score-meta-label">Financeiro</div>
+                </div>
+                <div class="xray-score-meta-item">
+                    <div class="xray-score-meta-value" id="xrayParticipantes">--</div>
+                    <div class="xray-score-meta-label">Participantes</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comparação com Liga -->
+        <div class="xray-comparison" id="xrayComparison">
+            <h3 class="xray-section-title">
+                <span class="material-icons">compare_arrows</span>
+                Comparação com a Liga
+            </h3>
+            <div id="xrayCompBars"></div>
+        </div>
+
+        <!-- Capitão -->
+        <div id="xrayCapitaoSection"></div>
+
+        <!-- Análise por Posição -->
+        <div class="xray-comparison">
+            <h3 class="xray-section-title">
+                <span class="material-icons">pie_chart</span>
+                Pontos por Posição
+            </h3>
+            <div class="xray-posicao-grid" id="xrayPosicaoGrid"></div>
+        </div>
+
+        <!-- Distribuição na Liga -->
+        <div class="xray-distrib-section">
+            <h3 class="xray-section-title">
+                <span class="material-icons">bar_chart</span>
+                Distribuição na Liga
+            </h3>
+            <div class="xray-distrib-bars" id="xrayDistribBars"></div>
+        </div>
+
+        <!-- Performance Geral (Módulos individuais) -->
+        <div class="xray-perf-section" id="xrayPerfSection" style="display:none;">
+            <h3 class="xray-section-title">
+                <span class="material-icons">emoji_events</span>
+                Performance Geral
+            </h3>
+            <div class="xray-perf-grid" id="xrayPerfGrid"></div>
+        </div>
+
+        <!-- O que vem por aí (Competições/Ligas) -->
+        <div class="xray-upcoming-section" id="xrayUpcomingSection">
+            <h3 class="xray-section-title">
+                <span class="material-icons">rocket_launch</span>
+                O que vem por aí...
+            </h3>
+            <div id="xrayUpcomingLista" class="xray-upcoming-lista"></div>
+        </div>
+
+    </div>
+</div>

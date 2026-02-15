@@ -243,12 +243,27 @@ function renderizarRanking(ranking) {
             ? '<span class="capitao-badge-captain">CAMPEÃO</span>'
             : '<span class="capitao-badge-captain">[C]</span>';
 
-        // Histórico por rodada (chips) - últimas 5 + expandir
+        // ✅ NOVO LAYOUT: Botão "Ver Histórico" compacto
         const historico = participante.historico_rodadas || [];
-        const historicoHtml = _renderHistoricoChips(historico, index);
+        const rodadasJogadas = historico.length;
+        const totalRodadas = 38;
+
+        // Botão Ver Histórico (somente se tiver dados)
+        let btnHistoricoHtml = '';
+        if (historico.length > 0) {
+            const participanteJson = JSON.stringify(participante).replace(/"/g, '&quot;');
+            btnHistoricoHtml = `
+                <button class="btn-ver-historico-app"
+                        onclick='window._abrirHistoricoCapitao(${participanteJson})'
+                        aria-label="Ver histórico completo">
+                    <span class="material-icons" style="font-size: 14px;">history</span>
+                    ${rodadasJogadas}/${totalRodadas} rodadas
+                </button>
+            `;
+        }
 
         html += `
-            <div class="${cardClasses}">
+            <div class="${cardClasses}" onclick='${historico.length > 0 ? `window._abrirHistoricoCapitao(${JSON.stringify(participante).replace(/"/g, '&quot;')})` : ''}'>
                 <div class="capitao-posicao">${posicaoIcon}</div>
                 <img src="${escudoSrc}" class="capitao-escudo" alt=""
                      onerror="this.style.display='none'; this.nextElementSibling.style.display='inline'">
@@ -256,7 +271,7 @@ function renderizarRanking(ranking) {
                 <div class="capitao-info">
                     <div class="capitao-nome">${participante.nome_cartola || '---'}</div>
                     <div class="capitao-time-nome">${participante.nome_time || ''}</div>
-                    ${historicoHtml}
+                    ${btnHistoricoHtml}
                 </div>
                 <div class="capitao-stats">
                     <div class="capitao-stat">
@@ -476,6 +491,18 @@ function subscribeMatchdayEvents() {
         carregarRanking();
     });
 }
+
+// =============================================
+// ABRIR MODAL DE HISTÓRICO
+// =============================================
+window._abrirHistoricoCapitao = function(participante) {
+    if (window.CapitaoHistoricoModal) {
+        window.CapitaoHistoricoModal.abrir(participante);
+    } else {
+        console.error('❌ [PARTICIPANTE-CAPITAO] Modal de histórico não carregado');
+        alert('Erro ao carregar histórico. Atualize a página.');
+    }
+};
 
 // =============================================
 // EXPORT GLOBAL

@@ -150,10 +150,11 @@ export async function calcularMPV(req, res) {
 /**
  * POST /api/dicas-premium/sugestao
  * Gera sugestao de escalacao otimizada
+ * Aceita 'modo' (mitar|equilibrado|valorizar) OU 'pesoValorizacao' (0-100) por retrocompat
  */
 export async function gerarSugestao(req, res) {
     try {
-        const { patrimonio, pesoValorizacao = 50 } = req.body;
+        const { patrimonio, modo, pesoValorizacao } = req.body;
 
         if (!patrimonio || patrimonio <= 0) {
             return res.status(400).json({
@@ -169,11 +170,14 @@ export async function gerarSugestao(req, res) {
             });
         }
 
-        console.log('[DICAS-PREMIUM] Gerando sugestao:', { patrimonio, pesoValorizacao });
+        // Prioridade: modo nomeado > pesoValorizacao numerico > default equilibrado
+        const modoOuPeso = modo || pesoValorizacao || 'equilibrado';
+
+        console.log('[DICAS-PREMIUM] Gerando sugestao:', { patrimonio, modoOuPeso });
 
         const sugestao = await dicasPremiumService.gerarSugestaoEscalacao(
             parseFloat(patrimonio),
-            parseInt(pesoValorizacao)
+            modoOuPeso
         );
 
         res.json({

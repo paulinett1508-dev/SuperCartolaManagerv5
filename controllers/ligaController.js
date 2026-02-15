@@ -890,6 +890,7 @@ const mapearModuloId = (moduloFrontend) => {
     luvaOuro: "luva_ouro",
     capitaoLuxo: "capitao_luxo",
     campinho: "campinho",
+    raioX: "raio_x",
     dicas: "dicas",
     participantes: "participantes",
     premiacoes: "premiacoes",
@@ -1186,7 +1187,8 @@ const buscarConfiguracoes = async (req, res) => {
       liga_id: ligaIdParam,
       liga_nome: liga.nome,
       temporada: liga.temporada || CURRENT_SEASON,
-      total_participantes: liga.times?.length || 0,
+      // ✅ v2.1: Priorizar total_participantes do wizard (config real) sobre liga.times.length (inclui inativos)
+      total_participantes: config.ranking_rodada?.total_participantes || liga.times?.length || 0,
       atualizado_em: liga.atualizadaEm,
 
       // Configurações completas
