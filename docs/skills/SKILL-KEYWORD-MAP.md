@@ -105,6 +105,17 @@ Sistema de ativação inteligente de skills baseado em palavras-chave contextuai
 | **NÃO confundir** | Gerar PRD (pesquisa) ≠ explicar sistema (system-scribe) |
 | **Localização** | `docs/skills/02-specialists/system-scribe.md` |
 
+#### anti-frankenstein
+| Tipo | Keywords |
+|------|----------|
+| **Primárias** | `anti-frankenstein`, `blindar frontend`, `governança CSS`, `validar CSS`, `prevenir duplicação`, `checar antes de criar`, `css registry` |
+| **Frases PT-BR** | "antes de criar CSS", "já existe esse componente?", "posso criar arquivo CSS?", "validar criação frontend", "checar se já tem", "blindar o sistema", "não deixar duplicar", "revisar antes de criar tela", "governança de código visual", "anti-frankstein" |
+| **Contexto** | Checkpoint PREVENTIVO obrigatório antes de criar/modificar CSS, HTML, inline styles ou componentes visuais |
+| **Ativação automática** | Deve rodar ANTES de qualquer criação de CSS/HTML. Complementa `frontend-crafter` (que cria) e `code-inspector` (que audita pós-facto) |
+| **NÃO confundir** | Criar tela nova → `frontend-crafter` (mas anti-frankenstein roda ANTES); Auditar código → `code-inspector`; Auditar UX → `ux-auditor-app` |
+| **Localização** | `docs/skills/02-specialists/anti-frankenstein.md` |
+| **Referências** | `config/css-registry.json`, `docs/rules/audit-frontend.md` |
+
 ---
 
 ### 03 - Utilities (Ferramentas Auxiliares)
@@ -273,6 +284,8 @@ Consulta rápida: "o usuário disse X → qual skill usar?"
 | "especifique as mudanças" | `spec` | Planejamento técnico |
 | "implemente isso" | `code` | Execução de mudanças |
 | "crie uma tela de ranking" | `frontend-crafter` | Criação de UI |
+| "antes de criar CSS, valide" | `anti-frankenstein` | Governança preventiva |
+| "já existe esse componente?" | `anti-frankenstein` | Check de duplicação |
 | "como funciona o mata-mata?" | `system-scribe` | Explicação do sistema |
 | "qual a regra de desempate?" | `league-architect` | Regra de negócio |
 | "limpe os dados antigos" | `db-guardian` | Operação no banco |
@@ -308,6 +321,7 @@ Consulta rápida: "o usuário disse X → qual skill usar?"
 | Cenário | Sequência de Skills |
 |---------|---------------------|
 | Feature nova completa | `workflow` → `pesquisa` → `spec` → `ai-problems-detection` → `code` → `git-commit-push` |
+| Feature com frontend | `workflow` → `pesquisa` → `spec` → `anti-frankenstein` → `frontend-crafter` → `code` → `git-commit-push` |
 | Bug report | `fact-checker` → `code-inspector` → `code` → `git-commit-push` |
 | Refatoração | `Refactor-Monolith` → `code-inspector` → `git-commit-push` |
 | Deploy completo | `git-commit-push` → `replit-pull` → `restart-server` |

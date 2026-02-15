@@ -1,0 +1,359 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "lastUpdated": "2026-02-15",
+    "description": "Manifesto centralizado de todos os CSS do projeto. Fonte da verdade para a skill anti-frankenstein. Atualizar ao criar/remover/renomear CSS.",
+    "maintainedBy": "anti-frankenstein skill"
+  },
+
+  "tokenFiles": {
+    "admin": {
+      "path": "public/css/_admin-tokens.css",
+      "description": "Design tokens do painel admin (desktop). SEMPRE carregado primeiro.",
+      "sections": ["cores-primarias", "superficies", "status", "ranking", "texto", "tipografia", "espacamento", "radius", "sombras", "bordas", "transicoes", "z-index", "componentes", "modulos", "breakpoints"],
+      "keyframes": ["admin-spin", "admin-fade-in", "admin-fade-in-up", "admin-pulse", "spin", "pulse", "fadeIn", "slideUp", "pulse-live"]
+    },
+    "app": {
+      "path": "public/participante/css/_app-tokens.css",
+      "description": "Design tokens do app participante (mobile PWA). SEMPRE carregado primeiro.",
+      "sections": ["cores-primarias", "superficies", "status", "posicoes", "texto", "tipografia", "espacamento"],
+      "keyframes": ["app-spin", "app-fade-in", "app-fade-in-up"]
+    }
+  },
+
+  "bundles": {
+    "admin-shell": {
+      "path": "public/css/admin-shell.css",
+      "description": "Bundle admin que centraliza imports via @import",
+      "imports": ["_admin-tokens.css", "style.css", "modules/dashboard-redesign.css", "modules/super-modal.css"],
+      "loadedBy": ["painel.html", "admin-orchestrator.html"]
+    }
+  },
+
+  "admin": {
+    "base": [
+      {
+        "path": "public/css/_admin-tokens.css",
+        "loadedBy": ["admin-shell.css (@import)", "gerenciar.html", "admin-gestao.html", "admin-consolidacao.html", "admin-analises-ia.html", "analisar-participantes.html", "notificador.html", "github-analytics-unified.html"],
+        "description": "Tokens centrais do admin"
+      },
+      {
+        "path": "public/style.css",
+        "loadedBy": ["admin-shell.css (@import)", "detalhe-liga.html", "gerenciar.html"],
+        "description": "Estilos globais com paleta dark profissional"
+      },
+      {
+        "path": "public/css/base.css",
+        "loadedBy": ["detalhe-liga.html"],
+        "description": "Componentes reutilizaveis (loading, utilities)"
+      },
+      {
+        "path": "public/css/performance.css",
+        "loadedBy": ["detalhe-liga.html"],
+        "description": "Otimizacoes de performance (GPU, font-smoothing)"
+      }
+    ],
+
+    "modules": [
+      {
+        "path": "public/css/modules/dashboard.css",
+        "loadedBy": ["painel.html"],
+        "description": "Layout minimalista do dashboard admin"
+      },
+      {
+        "path": "public/css/modules/dashboard-redesign.css",
+        "loadedBy": ["admin-shell.css (@import)"],
+        "description": "Redesign moderno do dashboard com sidebar e tipografia Russo One"
+      },
+      {
+        "path": "public/css/modules/dashboard-unified.css",
+        "loadedBy": ["painel.html"],
+        "description": "Layout horizontal otimizado com secoes colapsaveis"
+      },
+      {
+        "path": "public/css/modules/super-modal.css",
+        "loadedBy": ["admin-shell.css (@import)", "detalhe-liga.html", "gerenciar.html"],
+        "description": "Sistema unificado de modais e toast notifications"
+      },
+      {
+        "path": "public/css/modules/detalhe-liga-redesign.css",
+        "loadedBy": ["detalhe-liga.html"],
+        "description": "Redesign profissional da pagina de detalhe da liga"
+      },
+      {
+        "path": "public/css/modules/layout-horizontal.css",
+        "loadedBy": ["detalhe-liga.html", "analisar-participantes.html"],
+        "description": "Utilitarios de layout responsivo wide"
+      },
+      {
+        "path": "public/css/modules/extrato-v2.css",
+        "loadedBy": ["detalhe-liga.html"],
+        "description": "Modulo de extrato financeiro v2 (estilo banco digital)"
+      },
+      {
+        "path": "public/css/modules/rodadas.css",
+        "loadedBy": ["detalhe-liga.html (dynamic)"],
+        "description": "Modulo de rodadas com ranking compacto"
+      },
+      {
+        "path": "public/css/modules/ranking-geral.css",
+        "loadedBy": ["detalhe-liga.html (dynamic)"],
+        "description": "Modulo de ranking geral otimizado"
+      },
+      {
+        "path": "public/css/modules/top10.css",
+        "loadedBy": ["detalhe-liga.html (dynamic)"],
+        "description": "Modulo Top 10 com cards"
+      },
+      {
+        "path": "public/css/modules/melhor-mes.css",
+        "loadedBy": ["detalhe-liga.html (dynamic)"],
+        "description": "Modulo Melhor Mes com mini-cards"
+      },
+      {
+        "path": "public/css/modules/pontos-corridos.css",
+        "loadedBy": ["detalhe-liga.html (dynamic)"],
+        "description": "Modulo Pontos Corridos com tabela de classificacao"
+      },
+      {
+        "path": "public/css/modules/mata-mata.css",
+        "loadedBy": ["detalhe-liga.html (dynamic)"],
+        "description": "Modulo Mata-Mata com chaveamento"
+      },
+      {
+        "path": "public/css/modules/artilheiro-campeao.css",
+        "loadedBy": ["detalhe-liga.html (dynamic)"],
+        "description": "Modulo Artilheiro com tema verde",
+        "moduleColor": "--module-artilheiro-*"
+      },
+      {
+        "path": "public/css/modules/capitao-luxo.css",
+        "loadedBy": ["detalhe-liga.html"],
+        "description": "Modulo Capitao de Luxo com tema roxo",
+        "moduleColor": "--module-capitao-*"
+      },
+      {
+        "path": "public/css/modules/luva-de-ouro.css",
+        "loadedBy": ["detalhe-liga.html (dynamic)"],
+        "description": "Modulo Luva de Ouro com tema dourado",
+        "moduleColor": "--module-luva-*"
+      },
+      {
+        "path": "public/css/modules/fluxo-financeiro.css",
+        "loadedBy": ["detalhe-liga.html"],
+        "description": "Modulo de fluxo financeiro com tabelas de transacoes"
+      },
+      {
+        "path": "public/css/modules/participantes.css",
+        "loadedBy": ["detalhe-liga.html (dynamic)"],
+        "description": "Dashboard de participantes v2 com layout compacto"
+      },
+      {
+        "path": "public/css/modules/ferramentas.css",
+        "loadedBy": ["detalhe-liga.html (dynamic)"],
+        "description": "Modulo de ferramentas com cards de navegacao"
+      },
+      {
+        "path": "public/css/modules/ferramentas-page.css",
+        "loadedBy": ["ferramentas.html", "ferramentas-rodadas.html"],
+        "description": "Pagina de ferramentas v2 standalone"
+      },
+      {
+        "path": "public/css/modules/regras.css",
+        "loadedBy": ["fronts/regras.html (inline)"],
+        "description": "Modulo de regras da liga (minimalista)"
+      },
+      {
+        "path": "public/css/modules/gerenciar.css",
+        "loadedBy": ["gerenciar.html"],
+        "description": "Gerenciamento de ligas e modulos com admin-tools-bar"
+      },
+      {
+        "path": "public/css/modules/admin-tesouraria.css",
+        "loadedBy": ["painel.html"],
+        "description": "Tesouraria admin v3 com search, sort, detail panel e CSV"
+      },
+      {
+        "path": "public/css/modules/admin-consolidacao.css",
+        "loadedBy": ["admin-consolidacao.html"],
+        "description": "Consolidacao de rodadas v2 (SaaS) multi-liga"
+      },
+      {
+        "path": "public/css/modules/admin-gestao.css",
+        "loadedBy": ["admin-gestao.html"],
+        "description": "Gestao de administradores com tema roxo (capitao)"
+      },
+      {
+        "path": "public/css/modules/admin-analises-ia.css",
+        "loadedBy": ["admin-analises-ia.html"],
+        "description": "Analises IA com Claude e formulario de requests"
+      },
+      {
+        "path": "public/css/modules/analisar-participantes.css",
+        "loadedBy": ["analisar-participantes.html"],
+        "description": "Diagnosticos e analise de participantes"
+      },
+      {
+        "path": "public/css/modules/notificador.css",
+        "loadedBy": ["notificador.html"],
+        "description": "Modulo notificador para mensagens in-app"
+      },
+      {
+        "path": "public/css/modules/orchestrator.css",
+        "loadedBy": ["admin-orchestrator.html"],
+        "description": "Dashboard do orchestrator rodada-mercado em tempo real"
+      },
+      {
+        "path": "public/css/modules/github-analytics-unified.css",
+        "loadedBy": ["github-analytics-unified.html"],
+        "description": "Analytics de repositorio e gestao de branches"
+      }
+    ]
+  },
+
+  "app": {
+    "base": [
+      {
+        "path": "public/participante/css/_app-tokens.css",
+        "loadedBy": ["participante/index.html"],
+        "description": "Tokens centrais do app mobile (OLED-safe)"
+      },
+      {
+        "path": "public/participante/css/tailwind.css",
+        "loadedBy": ["participante/index.html"],
+        "description": "Tailwind CSS v4 compilado (output do build)"
+      },
+      {
+        "path": "public/participante/css/participante.css",
+        "loadedBy": ["participante/index.html"],
+        "description": "CSS base do app com utilities mobile-first"
+      }
+    ],
+
+    "features": [
+      {
+        "path": "public/participante/css/error-toast.css",
+        "loadedBy": ["participante/index.html"],
+        "description": "Toast de erro para feedback ao usuario"
+      },
+      {
+        "path": "public/participante/css/splash-screen.css",
+        "loadedBy": ["participante/index.html"],
+        "description": "Splash screen com failsafe animation"
+      },
+      {
+        "path": "public/participante/css/quick-access-bar.css",
+        "loadedBy": ["participante/index.html"],
+        "description": "Barra de acesso rapido GPU-accelerated"
+      },
+      {
+        "path": "public/participante/css/tabelas-esportes.css",
+        "loadedBy": ["participante/index.html"],
+        "description": "Tabelas de jogos ao vivo e resultados"
+      },
+      {
+        "path": "public/participante/css/noticias-time.css",
+        "loadedBy": ["participante/index.html"],
+        "description": "Componente de noticias do time"
+      },
+      {
+        "path": "public/participante/css/campinho.css",
+        "loadedBy": ["participante/index.html"],
+        "description": "Campo virtual de escalacao premium v2"
+      },
+      {
+        "path": "public/participante/css/copa-sc.css",
+        "loadedBy": ["participante/index.html"],
+        "description": "Tema Copa Super Cartola (dourado/trofeu)"
+      },
+      {
+        "path": "public/participante/css/extrato-bank.css",
+        "loadedBy": ["participante/index.html"],
+        "description": "Extrato estilo banco digital (Nubank/Inter)"
+      },
+      {
+        "path": "public/participante/css/pull-refresh.css",
+        "loadedBy": ["participante/index.html"],
+        "description": "Pull-to-refresh com glass-morphism"
+      },
+      {
+        "path": "public/participante/css/whats-happening.css",
+        "loadedBy": ["participante/index.html"],
+        "description": "Widget 'O que ta rolando' com disputas em tempo real"
+      },
+      {
+        "path": "public/participante/css/round-xray-widget.css",
+        "loadedBy": ["participante/index.html"],
+        "description": "Widget pos-rodada com analise detalhada"
+      },
+      {
+        "path": "public/participante/css/boas-vindas.css",
+        "loadedBy": ["participante/index.html (module)"],
+        "description": "Tela de boas-vindas/onboarding"
+      },
+      {
+        "path": "public/participante/css/avisos.css",
+        "loadedBy": ["participante/index.html (module)"],
+        "description": "Cards de avisos com scroll horizontal"
+      },
+      {
+        "path": "public/participante/css/top10-destaque.css",
+        "loadedBy": ["participante/index.html (module)"],
+        "description": "Top 10 destacado com gradientes premium"
+      },
+      {
+        "path": "public/participante/css/matchday.css",
+        "loadedBy": ["participante/index.html (module)"],
+        "description": "Modo matchday com pulsing headers e live"
+      }
+    ]
+  },
+
+  "adminMobile": [
+    {
+      "path": "public/admin-mobile/css/dark-mode.css",
+      "loadedBy": ["admin-mobile/index.html"],
+      "description": "Tokens dark mode do admin mobile (slate palette)"
+    },
+    {
+      "path": "public/admin-mobile/css/admin-mobile.css",
+      "loadedBy": ["admin-mobile/index.html"],
+      "description": "Estilos base admin mobile (reset, layout)"
+    },
+    {
+      "path": "public/admin-mobile/css/components.css",
+      "loadedBy": ["admin-mobile/index.html"],
+      "description": "Biblioteca de componentes admin mobile"
+    }
+  ],
+
+  "shared": [
+    {
+      "path": "public/css/app/app-version.css",
+      "loadedBy": ["participante/index.html"],
+      "description": "Badge de versao discreto no header"
+    }
+  ],
+
+  "conventions": {
+    "naming": {
+      "modules": "public/css/modules/{module-name}.css",
+      "appFeatures": "public/participante/css/{feature-name}.css",
+      "tokens": "public/css/_admin-tokens.css | public/participante/css/_app-tokens.css",
+      "prefixo": "Nomes em kebab-case, sem prefixo generico (ex: nao usar 'styles-' ou 'custom-')"
+    },
+    "loadOrder": [
+      "1. Tokens (_admin-tokens.css ou _app-tokens.css) - SEMPRE primeiro",
+      "2. Base (style.css, base.css) ou Bundle (admin-shell.css)",
+      "3. Fontes externas (Google Fonts CDN)",
+      "4. Modules page-specific (modules/*.css)"
+    ],
+    "prohibited": [
+      "Inline styles (style=) em HTML - usar classes CSS",
+      "Cores hardcoded (#hex, rgb()) - usar var(--token)",
+      "@keyframes locais se o tokens ja define (spin, pulse, fadeIn, slideUp, pulse-live)",
+      "CSS em <style> tags dentro de HTML admin",
+      "!important (exceto overrides de terceiros como Bootstrap)"
+    ]
+  }
+}

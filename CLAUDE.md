@@ -174,6 +174,7 @@ Documentação das skills: [`docs/skills/`](docs/skills/) (agnóstico, Markdown 
 | "regra de negócio", "cálculo", "config liga" | **league-architect** | Specialist |
 | "script DB", "backup", "migration", "limpeza" | **db-guardian** | Specialist |
 | "auditar código", "security review", "OWASP" | **code-inspector** | Specialist |
+| "blindar frontend", "antes de criar CSS", "já existe?" | **anti-frankenstein** | Specialist |
 | "git push", "commit", "suba mudanças" | **git-commit-push** | Utility |
 | "reiniciar servidor", "restart" | **restart-server** | Utility |
 | "pull no replit", "deploy", "sincronizar" | **replit-pull** | Utility |
@@ -195,8 +196,23 @@ Documentação das skills: [`docs/skills/`](docs/skills/) (agnóstico, Markdown 
 ```
 workflow → FASE 1: pesquisa → PRD.md
          → FASE 2: spec → SPEC.md
-         → FASE 3: code → Implementado
+         → FASE 3: [anti-frankenstein se frontend] → code → Implementado
 ```
+
+### Anti-Frankenstein Protocol (Governança Frontend)
+```
+Qualquer criação/modificação CSS/HTML
+    ↓
+CHECK 1: Já existe? (consultar css-registry.json)
+CHECK 2: Onde vive? (diretório correto)
+CHECK 3: Usa tokens? (zero hardcoded)
+CHECK 4: Segue convenções? (naming, escopo, header)
+CHECK 5: É necessário? (editar existente vs criar novo)
+    ↓
+Todos passaram? → Prosseguir
+Algum falhou? → PARAR e corrigir
+```
+**Arquivos:** `config/css-registry.json`, `docs/rules/audit-frontend.md`
 
 **Diretório:** `.claude/docs/PRD-[nome].md` e `SPEC-[nome].md`
 
