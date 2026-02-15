@@ -12,7 +12,7 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
     font-family: var(--font-family-base, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    background: var(--gradient-dark);
     min-height: 100vh;
     color: var(--text-primary, #fff);
 }
@@ -63,11 +63,11 @@ h1 .material-icons { font-size: 1.2em; color: var(--color-success, #10b981); }
    Liga Card
    ======================================== */
 .liga-card {
-    background: rgba(255,255,255,0.1);
+    background: var(--surface-white-10);
     backdrop-filter: blur(10px);
     border-radius: var(--radius-xl, 16px);
     padding: var(--space-6, 24px);
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 1px solid var(--surface-white-10);
 }
 .liga-header {
     display: flex;
@@ -75,7 +75,7 @@ h1 .material-icons { font-size: 1.2em; color: var(--color-success, #10b981); }
     align-items: center;
     margin-bottom: var(--space-5, 20px);
     padding-bottom: 15px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid var(--surface-white-10);
 }
 .liga-title {
     font-size: 1.3em;
@@ -104,7 +104,7 @@ h1 .material-icons { font-size: 1.2em; color: var(--color-success, #10b981); }
     .status-grid { grid-template-columns: repeat(4, 1fr); }
 }
 .status-item {
-    background: rgba(0,0,0,0.2);
+    background: var(--surface-overlay-subtle);
     padding: var(--space-3, 12px);
     border-radius: var(--radius-md, 8px);
     text-align: center;
@@ -124,7 +124,7 @@ h1 .material-icons { font-size: 1.2em; color: var(--color-success, #10b981); }
    Versão Info Warning
    ======================================== */
 .versao-info {
-    background: var(--color-warning-muted, rgba(255,152,0,0.2));
+    background: var(--color-warning-muted, rgba(234, 179, 8, 0.15));
     border: 1px solid var(--color-warning, #FF9800);
     border-radius: var(--radius-md, 8px);
     padding: var(--space-3, 12px);
@@ -161,9 +161,9 @@ h1 .material-icons { font-size: 1.2em; color: var(--color-success, #10b981); }
 .form-group input {
     width: 100%;
     padding: 10px;
-    border: 1px solid rgba(255,255,255,0.2);
+    border: 1px solid var(--surface-white-20);
     border-radius: var(--radius-md, 8px);
-    background: rgba(0,0,0,0.2);
+    background: var(--surface-overlay-subtle);
     color: var(--text-primary, #fff);
     font-size: 1em;
 }
@@ -172,7 +172,7 @@ h1 .material-icons { font-size: 1.2em; color: var(--color-success, #10b981); }
     align-items: center;
     gap: var(--space-2, 8px);
     padding: 10px;
-    background: var(--color-warning-muted, rgba(255,152,0,0.1));
+    background: var(--color-warning-muted, rgba(234, 179, 8, 0.15));
     border-radius: var(--radius-md, 8px);
     cursor: pointer;
 }
@@ -222,7 +222,7 @@ h1 .material-icons { font-size: 1.2em; color: var(--color-success, #10b981); }
 .progress-container.show { display: block; }
 .progress-bar {
     height: 8px;
-    background: rgba(0,0,0,0.3);
+    background: var(--surface-overlay-light);
     border-radius: var(--radius-sm, 4px);
     overflow: hidden;
 }
@@ -245,7 +245,7 @@ h1 .material-icons { font-size: 1.2em; color: var(--color-success, #10b981); }
 .result-box {
     margin-top: 15px;
     padding: 15px;
-    background: rgba(0,0,0,0.3);
+    background: var(--surface-overlay-light);
     border-radius: var(--radius-md, 8px);
     max-height: 300px;
     overflow-y: auto;
@@ -271,7 +271,7 @@ h1 .material-icons { font-size: 1.2em; color: var(--color-success, #10b981); }
 .rodadas-table th, .rodadas-table td {
     padding: var(--space-2, 8px);
     text-align: center;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid var(--surface-white-10);
 }
 .rodadas-table th { color: var(--text-secondary, #aaa); font-weight: 500; }
 .rodadas-table .consolidacao-status-icon {
@@ -305,14 +305,14 @@ h1 .material-icons { font-size: 1.2em; color: var(--color-success, #10b981); }
 }
 .alert .material-icons { font-size: 20px; }
 .alert-info {
-    background: var(--color-info-muted, rgba(33,150,243,0.2));
+    background: var(--color-info-muted, rgba(59, 130, 246, 0.15));
     border: 1px solid var(--color-info, #3b82f6);
 }
 .alert-info .consolidacao-info-small {
     color: var(--text-muted, #888);
 }
 .alert-warning {
-    background: var(--color-warning-muted, rgba(255,152,0,0.2));
+    background: var(--color-warning-muted, rgba(234, 179, 8, 0.15));
     border: 1px solid var(--color-warning, #FF9800);
 }
 

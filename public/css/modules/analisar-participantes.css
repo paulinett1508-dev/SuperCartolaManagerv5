@@ -570,9 +570,7 @@ table.participantes-table {
     margin: 0 auto 12px;
 }
 
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
+/* @keyframes spin → centralizado em _admin-tokens.css */
 
 /* Empty state */
 .empty-state {

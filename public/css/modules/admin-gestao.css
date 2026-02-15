@@ -9,10 +9,10 @@
    Variáveis locais (Tema Roxo)
    ======================================== */
 :root {
-    --gestao-accent: #8b5cf6;
-    --gestao-accent-dark: #7c3aed;
-    --gestao-accent-light: #a78bfa;
-    --gestao-accent-muted: rgba(139, 92, 246, 0.15);
+    --gestao-accent: var(--module-capitao-primary);
+    --gestao-accent-dark: var(--module-capitao-dark);
+    --gestao-accent-light: var(--module-capitao-light);
+    --gestao-accent-muted: var(--module-capitao-muted);
 }
 
 /* ========================================
@@ -155,7 +155,7 @@
 }
 .admin-item:last-child { margin-bottom: 0; }
 .admin-item.super-admin {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    background: var(--gradient-dark);
     border: 1px solid var(--gestao-accent);
 }
 
@@ -280,7 +280,7 @@
     display: none;
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: var(--surface-overlay, rgba(0,0,0,0.8));
+    background: var(--surface-overlay, rgba(0, 0, 0, 0.5));
     z-index: var(--z-modal, 9999);
     align-items: center;
     justify-content: center;

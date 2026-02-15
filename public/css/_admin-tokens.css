@@ -17,6 +17,7 @@
     --color-primary-dark: #e8472b;      /* Hover/Active states */
     --color-primary-light: #ff6b35;     /* Destaques suaves */
     --color-primary-muted: rgba(255, 85, 0, 0.1);  /* Backgrounds sutis */
+    --color-primary-hover-bg: rgba(255, 85, 0, 0.03); /* Hover sutil em linhas */
     --color-primary-border: rgba(255, 85, 0, 0.3); /* Bordas com transparência */
 
     /* Gradientes primários */
@@ -32,8 +33,19 @@
     --surface-card-hover: #333333;      /* Hover em cards */
     --surface-overlay: rgba(0, 0, 0, 0.5); /* Overlays de modais */
 
+    /* Overlays com granularidade */
+    --surface-overlay-subtle: rgba(0, 0, 0, 0.2);
+    --surface-overlay-light: rgba(0, 0, 0, 0.3);
+    --surface-overlay-medium: rgba(0, 0, 0, 0.6);
+
+    /* White overlays (para uso sobre backgrounds escuros) */
+    --surface-white-10: rgba(255, 255, 255, 0.1);
+    --surface-white-20: rgba(255, 255, 255, 0.2);
+    --surface-white-80: rgba(255, 255, 255, 0.8);
+
     /* Gradientes de superfície */
     --gradient-card: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%);
+    --gradient-dark: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
 
     /* ========================================
        3. CORES DE STATUS
@@ -48,6 +60,8 @@
     --color-danger: #ef4444;
     --color-danger-dark: #dc2626;
     --color-danger-muted: rgba(239, 68, 68, 0.15);
+    --color-danger-hover-bg: rgba(239, 68, 68, 0.03);
+    --color-danger-hover-bg-strong: rgba(239, 68, 68, 0.07);
     --color-danger-text: #fca5a5;
 
     /* Alerta (Amarelo) */
@@ -57,7 +71,9 @@
 
     /* Info (Azul) */
     --color-info: #3b82f6;
+    --color-info-dark: #1e3a8a;
     --color-info-muted: rgba(59, 130, 246, 0.15);
+    --color-info-border: rgba(59, 130, 246, 0.3);
 
     /* ========================================
        4. CORES DE RANKING (Posições)
@@ -70,6 +86,10 @@
 
     --color-bronze: #cd7f32;
     --color-bronze-muted: rgba(205, 127, 50, 0.15);
+
+    /* Neutro/Gray (para badges, quitados, estados neutros) */
+    --color-neutral-bg: rgba(107, 114, 128, 0.15);
+    --color-neutral-bg-strong: rgba(107, 114, 128, 0.2);
 
     /* Mitos e Micos */
     --color-mito: var(--color-gold);
@@ -304,6 +324,37 @@
 
 /* Pulse */
 @keyframes admin-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+/* ========================================
+   KEYFRAMES GENÉRICOS (aliases não-prefixados)
+   Usados por módulos que referenciam nomes genéricos.
+   Definidos aqui para evitar duplicação entre arquivos.
+   ======================================== */
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-live {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.6; }
 }

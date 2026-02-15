@@ -1,8 +1,8 @@
 :root {
-    --ia-accent: #10b981;
-    --ia-accent-dark: #059669;
-    --ia-accent-light: #34d399;
-    --ia-accent-muted: rgba(16, 185, 129, 0.15);
+    --ia-accent: var(--module-saude-primary);
+    --ia-accent-dark: var(--module-saude-dark);
+    --ia-accent-light: var(--module-saude-light);
+    --ia-accent-muted: var(--module-saude-muted);
 }
 
 .admin-page { background: var(--surface-bg); min-height: 100vh; flex: 1; }
@@ -72,7 +72,7 @@
 .form-group textarea {
     min-height: 150px;
     resize: vertical;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-family-mono);
 }
 
 .btn {
@@ -88,7 +88,7 @@
 }
 .btn-primary {
     background: var(--ia-accent);
-    color: white;
+    color: var(--text-primary);
 }
 .btn-primary:hover {
     background: var(--ia-accent-dark);
@@ -183,10 +183,7 @@
     animation: spin 1s linear infinite;
     margin: 0 auto;
 }
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
+/* @keyframes spin → centralizado em _admin-tokens.css */
 
 .empty-state {
     text-align: center;

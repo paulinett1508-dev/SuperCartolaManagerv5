@@ -2101,11 +2101,6 @@ body.sidebar-collapsed .main-content {
     animation: pulse-live 2s ease-in-out infinite;
 }
 
-@keyframes pulse-live {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(1.2); }
-}
-
 /* Lista de usuários online */
 .usuarios-online-lista {
     flex: 1;
