@@ -194,6 +194,24 @@ node scripts/auditoria-financeira-completa.js --dry-run --temporada=2025
 ---
 
 **PROXIMA SESSAO:**
+
+### 🔴 PRIORIDADE 1 - Invalidar cache MATA_MATA (Tesouraria ainda mostra dados errados)
+
+**Status:** Codigo corrigido e deployado (commit `5cbf001`), mas cache antigo persiste no MongoDB.
+**Problema:** Paullinett (e possivelmente outros) ainda aparece com -R$10 de Mata-Mata na Tesouraria admin, mesmo nao sendo classificado para a 1a Edicao.
+**Causa raiz (3 bugs corrigidos em mata-mata-backend.js):**
+1. Backend ignorava `wizard_respostas.total_times` - usava tamanho dinamico que podia ser maior que o configurado
+2. 1a fase usava pareamento sequencial (1v2, 3v4) em vez de cruzado (1v32, 2v31)
+3. Fases hardcoded em 5 em vez de dinamicas por tamanho do torneio
+
+**Acao necessaria:** Rodar no Replit Shell:
+```bash
+node scripts/invalidar-cache-mata-mata.js --dry-run    # Verificar impacto
+node scripts/invalidar-cache-mata-mata.js --force       # Executar invalidacao
+```
+Apos invalidacao, o proximo acesso ao extrato de cada participante recalculara automaticamente com a logica corrigida.
+
+### Outras pendencias
 1. ~~Investigar e corrigir bug cache stale financeiro~~ ✅ RESOLVIDO
 2. ~~Rodar script reconciliacao~~ ✅ EXECUTADO (15/15 corrigidos)
 3. ~~Decidir sobre trabalho nao commitado~~ ✅ Resolvido
