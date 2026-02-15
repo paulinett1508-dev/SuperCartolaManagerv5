@@ -38,6 +38,8 @@ async function getMataMataConfig(ligaId) {
         if (moduleConfig) {
             // Mescla configurações, dando prioridade ao que está no DB
             const mergedConfig = _.merge(defaultConfig, moduleConfig.configuracao_override || {});
+            // ✅ FIX: Incluir wizard_respostas para que calcularResultadosEdicao respeite total_times configurado
+            mergedConfig.wizard_respostas = moduleConfig.wizard_respostas || {};
             return mergedConfig;
         }
 
@@ -119,6 +121,19 @@ function criarMapaPontos(ranking) {
         mapa[t.timeId] = t.pontos;
     });
     return mapa;
+}
+
+/**
+ * Retorna as fases aplicáveis para o tamanho do torneio (espelho do frontend)
+ * 32 times → 5 fases: primeira, oitavas, quartas, semis, final
+ * 16 times → 4 fases: oitavas, quartas, semis, final
+ * 8 times  → 3 fases: quartas, semis, final
+ */
+function getFasesParaTamanho(tamanho) {
+    if (tamanho >= 32) return ["primeira", "oitavas", "quartas", "semis", "final"];
+    if (tamanho >= 16) return ["oitavas", "quartas", "semis", "final"];
+    if (tamanho >= 8)  return ["quartas", "semis", "final"];
+    return [];
 }
 
 // ============================================================================
@@ -255,14 +270,20 @@ function determinarVencedor(confronto) {
  */
 async function calcularResultadosEdicao(ligaId, edicao, rodadaAtual, config) {
     const resultadosFinanceiros = [];
-    const fases = ["primeira", "oitavas", "quartas", "semis", "final"];
 
     try {
         // 1. Contar participantes ativos na liga (filtrado por temporada)
         const totalParticipantes = await Time.countDocuments({ liga_id: ligaId, ativo: true, temporada: CURRENT_SEASON });
 
         // 2. Calcular tamanho ideal do torneio
-        const tamanhoTorneio = calcularTamanhoIdealMataMata(totalParticipantes);
+        let tamanhoTorneio = calcularTamanhoIdealMataMata(totalParticipantes);
+
+        // ✅ FIX #1: Respeitar total_times configurado no wizard como teto
+        // Se o admin configurou 16 times no wizard, não usar 32 mesmo que haja 35 participantes
+        const totalTimesConfig = Number(config.wizard_respostas?.total_times);
+        if (totalTimesConfig && [8, 16, 32].includes(totalTimesConfig)) {
+            tamanhoTorneio = Math.min(tamanhoTorneio, totalTimesConfig);
+        }
 
         if (tamanhoTorneio === 0) {
             console.warn(`[MATA-BACKEND] Número de participantes (${totalParticipantes}) insuficiente para o mata-mata.`);
@@ -282,26 +303,29 @@ async function calcularResultadosEdicao(ligaId, edicao, rodadaAtual, config) {
             );
             return [];
         }
-        
+
         const rankingClassificados = rankingBase.slice(0, tamanhoTorneio);
 
+        // ✅ FIX #3: Usar fases dinâmicas baseadas no tamanho do torneio
+        // 32 times → 5 fases, 16 times → 4 fases, 8 times → 3 fases
+        const fases = getFasesParaTamanho(tamanhoTorneio);
+
         console.log(
-            `[MATA-BACKEND] ${edicao.nome}: Torneio com ${tamanhoTorneio} times. Ranking base com ${rankingClassificados.length} times.`,
+            `[MATA-BACKEND] ${edicao.nome}: Torneio com ${tamanhoTorneio} times (config: ${totalTimesConfig || 'dinâmico'}). ${fases.length} fases: [${fases.join(', ')}].`,
         );
 
-        // Mapear rodadas de cada fase
-        const rodadasFases = {
-            primeira: edicao.rodadaInicial,
-            oitavas: edicao.rodadaInicial + 1,
-            quartas: edicao.rodadaInicial + 2,
-            semis: edicao.rodadaInicial + 3,
-            final: edicao.rodadaInicial + 4,
-        };
+        // Mapear rodadas de cada fase (dinâmico)
+        const rodadasFases = {};
+        fases.forEach((fase, idx) => {
+            rodadasFases[fase] = edicao.rodadaInicial + idx;
+        });
 
         let vencedoresAnteriores = rankingClassificados.map((r, idx) => ({
             ...r,
             rankR2: idx + 1,
         }));
+
+        const primeiraFase = fases[0];
 
         for (const fase of fases) {
             const rodadaPontosNum = rodadasFases[fase];
@@ -323,13 +347,11 @@ async function calcularResultadosEdicao(ligaId, edicao, rodadaAtual, config) {
             );
             const pontosRodada = criarMapaPontos(rankingRodada);
 
-            // Montar confrontos
-            const confrontos = montarConfrontosFase(
-                vencedoresAnteriores,
-                pontosRodada,
-                numJogos,
-                tamanhoTorneio
-            );
+            // ✅ FIX #2: Usar montarConfrontosPrimeiraFase para a 1ª fase (pareamento cruzado: 1v32, 2v31)
+            // Fases subsequentes mantêm montarConfrontosFase (pareamento por chaveamento)
+            const confrontos = fase === primeiraFase
+                ? montarConfrontosPrimeiraFase(rankingClassificados, pontosRodada, tamanhoTorneio)
+                : montarConfrontosFase(vencedoresAnteriores, pontosRodada, numJogos, tamanhoTorneio);
 
             // Processar confrontos e determinar vencedores
             const proximosVencedores = [];
