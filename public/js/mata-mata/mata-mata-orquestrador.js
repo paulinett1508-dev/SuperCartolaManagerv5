@@ -35,6 +35,7 @@ import {
   renderTabelaMataMata,
   renderRodadaPendente,
   renderBannerCampeao,
+  renderFaseBloqueada,
 } from "./mata-mata-ui.js";
 import { cacheManager } from "../core/cache-manager.js";
 
@@ -67,6 +68,7 @@ const CACHE_CONFIG = {
 // Estado atual
 let edicaoAtual = null;
 let tamanhoTorneio = TAMANHO_TORNEIO_DEFAULT;
+let rodadaAtualGlobal = 0; // ✅ Rodada atual do Brasileirão (para bloqueio de fases futuras)
 
 // ✅ Cache de status do mercado (evita fetches duplicados)
 let mercadoStatusCache = null;
@@ -411,11 +413,15 @@ export async function carregarMataMata() {
         rodadaAtual = RODADA_FINAL_CAMPEONATO;
       }
 
+      // ✅ Guardar rodada atual global para bloqueio de fases futuras
+      rodadaAtualGlobal = rodadaAtual;
+
       edicoes.forEach((edicao) => {
         edicao.ativo = rodadaAtual >= edicao.rodadaDefinicao;
       });
     } else {
       // Fallback: ativar todas as edições para temporada anterior
+      rodadaAtualGlobal = 38;
       edicoes.forEach((edicao) => {
         edicao.ativo = true;
       });
@@ -425,6 +431,7 @@ export async function carregarMataMata() {
       "[MATA-ORQUESTRADOR] Erro ao verificar status do mercado:",
       error.message,
     );
+    rodadaAtualGlobal = 38;
     edicoes.forEach((edicao) => {
       edicao.ativo = true;
     });
@@ -733,12 +740,28 @@ async function handleEdicaoChange(novaEdicao, fase, ligaId) {
 }
 
 // ✅ v1.5: Atualizar botões de navegação de fases dinamicamente
+// ✅ v1.7: Desabilitar botões de fases cuja rodada não chegou (bloqueio visual)
 function atualizarNavegacaoFases(fasesAtivas) {
   const faseNav = document.querySelector('.fase-nav');
   if (!faseNav) return;
 
+  // Calcular rodada de cada fase para bloqueio
+  const edicaoSelect = document.getElementById('edicao-select');
+  const edicaoId = edicaoSelect ? parseInt(edicaoSelect.value) : null;
+  const edicaoSelecionada = edicaoId ? edicoes.find(e => e.id === edicaoId) : null;
+
   const botoesHtml = fasesAtivas
-    .map((fase, idx) => `<button class="fase-btn${idx === 0 ? " active" : ""}" data-fase="${fase}">${FASE_LABELS[fase] || fase.toUpperCase()}</button>`)
+    .map((fase, idx) => {
+      // ✅ Verificar se a rodada desta fase já chegou
+      let isDisabled = false;
+      if (edicaoSelecionada && rodadaAtualGlobal > 0) {
+        const rodadaDaFase = edicaoSelecionada.rodadaInicial + idx;
+        isDisabled = rodadaAtualGlobal < rodadaDaFase;
+      }
+      const disabledClass = isDisabled ? " disabled" : "";
+      const lockIcon = isDisabled ? ' 🔒' : '';
+      return `<button class="fase-btn${idx === 0 && !isDisabled ? " active" : ""}${disabledClass}" data-fase="${fase}" ${isDisabled ? 'title="Aguardando rodada"' : ''}>${FASE_LABELS[fase] || fase.toUpperCase()}${lockIcon}</button>`;
+    })
     .join("\n");
 
   faseNav.innerHTML = botoesHtml;
@@ -746,6 +769,12 @@ function atualizarNavegacaoFases(fasesAtivas) {
   // Re-bind event listeners
   faseNav.querySelectorAll('.fase-btn').forEach(btn => {
     btn.addEventListener('click', function() {
+      // ✅ Bloquear clique em fases desabilitadas
+      if (this.classList.contains('disabled')) {
+        console.warn(`[MATA-ORQUESTRADOR] Fase bloqueada: ${this.getAttribute('data-fase')}`);
+        return;
+      }
+
       const edicaoSelect = document.getElementById('edicao-select');
       const edicao = edicaoSelect ? parseInt(edicaoSelect.value) : null;
 
@@ -768,7 +797,7 @@ function atualizarNavegacaoFases(fasesAtivas) {
     container.dataset.primeiraFase = fasesAtivas[0];
   }
 
-  console.log(`[MATA-ORQUESTRADOR] Navegação atualizada: ${fasesAtivas.join(', ')}`);
+  console.log(`[MATA-ORQUESTRADOR] Navegação atualizada: ${fasesAtivas.join(', ')} (rodadaAtual=${rodadaAtualGlobal})`);
 }
 
 // Handler para clique em fase
@@ -863,6 +892,11 @@ async function carregarFase(fase, ligaId) {
       isTemporadaAnterior = false;
     }
 
+    // ✅ v1.7: Sincronizar rodada global para bloqueio de fases
+    if (rodada_atual > 0) {
+      rodadaAtualGlobal = rodada_atual;
+    }
+
     const edicaoSelecionada = edicoes.find((e) => e.id === edicaoAtual);
     if (!edicaoSelecionada) {
       throw new Error(`Edição ${edicaoAtual} não encontrada.`);
@@ -931,6 +965,14 @@ async function carregarFase(fase, ligaId) {
       `[MATA-ORQUESTRADOR] Rodada ${rodadaPontosNum} - Status: ${isPending ? "Pendente" : "Concluída"}`,
     );
 
+    // ✅ v1.7: BLOQUEAR fases cuja rodada ainda não chegou
+    // Não exibir pré-classificação - apenas mostrar mensagem de bloqueio
+    if (isPending) {
+      console.log(`[MATA-ORQUESTRADOR] 🔒 Fase ${fase} bloqueada - Rodada ${rodadaPontosNum} ainda não aconteceu (atual: ${rodada_atual})`);
+      renderFaseBloqueada("mataMataContent", faseLabel, rodadaPontosNum);
+      return;
+    }
+
     // ✅ TENTAR CACHE PRIMEIRO (apenas para rodadas consolidadas)
     if (!isPending) {
       const cachedConfrontos = await getCachedConfrontos(
@@ -991,31 +1033,9 @@ async function carregarFase(fase, ligaId) {
       timesParaConfronto = vencedoresAnteriores;
     }
 
-    // ✅ v8.0: Se pendente E mercado fechado (jogos em andamento), buscar parciais ao vivo
-    let pontosRodadaAtual = {};
-    let parciaisAoVivo = false;
-
-    if (isPending) {
-      try {
-        const resParciais = await fetch(`/api/matchday/parciais/${ligaId}`);
-        if (resParciais.ok) {
-          const dataParciais = await resParciais.json();
-          if (dataParciais && dataParciais.disponivel && dataParciais.ranking) {
-            // Converter ranking para mapa de pontos (usar pontos_rodada_atual, não acumulado)
-            dataParciais.ranking.forEach(t => {
-              const tid = String(t.timeId);
-              pontosRodadaAtual[tid] = t.pontos_rodada_atual ?? t.pontos ?? 0;
-            });
-            parciaisAoVivo = true;
-            console.log(`[MATA-ORQUESTRADOR] 🔴 Parciais AO VIVO: ${dataParciais.ranking.length} times (R${dataParciais.rodada})`);
-          }
-        }
-      } catch (err) {
-        console.warn("[MATA-ORQUESTRADOR] ⚠️ Parciais não disponíveis:", err.message);
-      }
-    } else {
-      pontosRodadaAtual = await getPontosDaRodadaCached(ligaId, rodadaPontosNum);
-    }
+    // ✅ v1.7: isPending=true já retornou acima com bloqueio
+    // Aqui a rodada já aconteceu - buscar pontos normalmente
+    const pontosRodadaAtual = await getPontosDaRodadaCached(ligaId, rodadaPontosNum);
 
     const fasesDoTorneioCalc = getFasesParaTamanho(tamanhoTorneio);
     const primeiraFaseCalc = fasesDoTorneioCalc[0];
@@ -1024,39 +1044,27 @@ async function carregarFase(fase, ligaId) {
         ? montarConfrontosPrimeiraFase(rankingBase, pontosRodadaAtual, tamanhoTorneio)
         : montarConfrontosFase(timesParaConfronto, pontosRodadaAtual, numJogos);
 
-    // ✅ SALVAR NO CACHE LOCAL (apenas se rodada consolidada)
-    if (!isPending) {
-      await setCachedConfrontos(
-        ligaId,
-        edicaoAtual,
-        fase,
-        rodadaPontosNum,
-        confrontos,
-      );
+    // ✅ v1.7: Aqui isPending é sempre false (bloqueio retorna antes)
+    // Salvar no cache local
+    await setCachedConfrontos(
+      ligaId,
+      edicaoAtual,
+      fase,
+      rodadaPontosNum,
+      confrontos,
+    );
 
-      // ✅ NOVO: SALVAR NO MONGODB TAMBÉM
-      await salvarFaseNoMongoDB(
-        ligaId,
-        edicaoAtual,
-        fase,
-        confrontos,
-        rodada_atual,
-      );
-    }
+    // Salvar no MongoDB
+    await salvarFaseNoMongoDB(
+      ligaId,
+      edicaoAtual,
+      fase,
+      confrontos,
+      rodada_atual,
+    );
 
     // Calcular valores dos confrontos
-    calcularValoresConfronto(confrontos, isPending, fase);
-
-    // ✅ v8.0: Inserir header de parciais AO VIVO antes da tabela
-    if (parciaisAoVivo) {
-      contentElement.innerHTML = `
-        <div class="parciais-header">
-          <span class="parciais-live-badge">AO VIVO</span>
-          <h4>${faseLabel} — ${edicaoSelecionada.nome || "Edição " + edicaoAtual}</h4>
-          <p>Pontuações parciais da Rodada ${rodadaPontosNum}. Sujeito a alteração.</p>
-        </div>
-      `;
-    }
+    calcularValoresConfronto(confrontos, false, fase);
 
     // Renderizar tabela
     renderTabelaMataMata(
@@ -1064,18 +1072,13 @@ async function carregarFase(fase, ligaId) {
       contentId,
       faseLabel,
       edicaoAtual,
-      isPending && !parciaisAoVivo, // ✅ v8.0: Se tem parciais, não mostrar como "pendente"
+      false,
     );
 
-    // Renderizar mensagem de rodada pendente se necessário (só se NÃO tem parciais)
-    if (isPending && !parciaisAoVivo) {
-      renderRodadaPendente(contentId, rodadaPontosNum);
-    }
-
-    // Renderizar banner do campeão na FINAL (apenas se não estiver pendente)
-    if (fase === "final" && !isPending && confrontos.length > 0) {
+    // Renderizar banner do campeão na FINAL
+    if (fase === "final" && confrontos.length > 0) {
       const edicaoNome = edicaoSelecionada.nome;
-      renderBannerCampeao(contentId, confrontos[0], edicaoNome, isPending);
+      renderBannerCampeao(contentId, confrontos[0], edicaoNome, false);
       console.log(
         `[MATA-ORQUESTRADOR] Banner do campeão renderizado para ${edicaoNome}`,
       );
@@ -1119,4 +1122,4 @@ function setupCleanup() {
 // Inicialização do módulo
 setupCleanup();
 
-console.log("[MATA-ORQUESTRADOR] Módulo v1.6 carregado - Parciais AO VIVO nas fases ativas");
+console.log("[MATA-ORQUESTRADOR] Módulo v1.7 carregado - Bloqueio de fases futuras (rodada não rolou)");

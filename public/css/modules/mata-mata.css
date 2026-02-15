@@ -78,6 +78,56 @@
   box-shadow: 0 4px 15px rgba(255, 69, 0, 0.4);
 }
 
+/* ✅ Fase bloqueada (rodada futura) */
+.fase-btn.disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+  border-color: rgba(107, 114, 128, 0.3);
+  color: #6b7280;
+  background: rgba(42, 42, 42, 0.3);
+}
+
+.fase-btn.disabled:hover {
+  transform: none;
+  background: rgba(42, 42, 42, 0.3);
+  border-color: rgba(107, 114, 128, 0.3);
+}
+
+/* Bloco visual de fase bloqueada */
+.mata-mata-fase-bloqueada {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 50px 20px;
+  text-align: center;
+  background: rgba(42, 42, 42, 0.2);
+  border-radius: 12px;
+  border: 1px dashed rgba(107, 114, 128, 0.3);
+  min-height: 200px;
+}
+
+.mata-mata-fase-bloqueada h4 {
+  font-family: 'Russo One', sans-serif;
+  color: #9ca3af;
+  font-size: 18px;
+  margin: 12px 0 8px;
+}
+
+.mata-mata-fase-bloqueada p {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 14px;
+  max-width: 380px;
+  line-height: 1.5;
+}
+
+.mata-mata-fase-bloqueada .fase-bloqueada-sub {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.3);
+  margin-top: 4px;
+}
+
 /* Container de tabela com scroll horizontal (FIX-7) */
 .mata-mata-table-container {
   overflow-x: auto;
