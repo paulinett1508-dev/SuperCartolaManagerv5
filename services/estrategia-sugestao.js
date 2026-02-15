@@ -1,6 +1,8 @@
 /**
- * ESTRATEGIA SUGESTAO SERVICE v1.0
+ * ESTRATEGIA SUGESTAO SERVICE v2.0
  * Modulo centralizado de modos de estrategia para sugestao de escalacao.
+ *
+ * v2.0: Scoring enriquecido com dados GatoMestre (mandante/visitante, minutos)
  *
  * Modos:
  *   MITAR       - Maximizar pontuacao (jogadores de media alta)
@@ -159,11 +161,85 @@ export function listarModos() {
     }));
 }
 
+// =====================================================================
+// SCORING ENRIQUECIDO COM GATO MESTRE
+// =====================================================================
+
+/**
+ * Calcula score enriquecido usando dados do GatoMestre (media mandante/visitante, minutos jogados).
+ * Se gato_mestre nao estiver disponivel, faz fallback para calcularScoreAtleta basico.
+ *
+ * @param {object} atleta - Dados do atleta (media, preco, mpv, variacao, jogos, gato_mestre)
+ * @param {number} pesoValorizacao - 0 (mitar) a 100 (valorizar)
+ * @param {object} confronto - { mandante: boolean, adversarioId: number, cedidoMediaAdv: number }
+ * @returns {{ score: number, fontes: string[], detalhes: object }}
+ */
+export function calcularScoreAtletaEnriquecido(atleta, pesoValorizacao = 50, confronto = {}) {
+    const baseScore = calcularScoreAtleta(atleta, pesoValorizacao);
+    const fontes = ['cartola-api'];
+    const detalhes = { baseScore, mediaUsada: atleta.media || 0 };
+
+    const gm = atleta.gato_mestre;
+    if (!gm) {
+        return { score: baseScore, fontes, detalhes };
+    }
+
+    fontes.push('gato-mestre');
+    const media = atleta.media || 0;
+
+    // 1. Media contextual (mandante vs visitante)
+    let mediaContextual = media;
+    if (confronto.mandante !== undefined) {
+        const mediaMandante = gm.media_pontos_mandante || media;
+        const mediaVisitante = gm.media_pontos_visitante || media;
+        mediaContextual = confronto.mandante ? mediaMandante : mediaVisitante;
+        detalhes.mediaContextual = mediaContextual;
+        detalhes.mandante = confronto.mandante;
+    }
+
+    // 2. Fator minutagem (titular confiavel vs reserva/rotacao)
+    const mediaMinutos = gm.media_minutos_jogados || 0;
+    let fatorMinutos = 1.0;
+    if (mediaMinutos >= 70) {
+        fatorMinutos = 1.1;  // Titular confiavel
+    } else if (mediaMinutos >= 45) {
+        fatorMinutos = 1.0;  // Regular
+    } else if (mediaMinutos > 0) {
+        fatorMinutos = 0.85; // Reserva / rodizio
+    }
+    detalhes.mediaMinutos = mediaMinutos;
+    detalhes.fatorMinutos = fatorMinutos;
+
+    // 3. Fator confronto (adversario cede muitos pontos)
+    let fatorConfronto = 1.0;
+    if (confronto.cedidoMediaAdv && confronto.cedidoMediaAdv > 0) {
+        // Media cedida acima de 5 e favoravel, abaixo e desfavoravel
+        fatorConfronto = 0.9 + (confronto.cedidoMediaAdv / 50);
+        fatorConfronto = Math.max(0.8, Math.min(1.3, fatorConfronto));
+        fontes.push('confronto');
+        detalhes.cedidoMediaAdv = confronto.cedidoMediaAdv;
+        detalhes.fatorConfronto = fatorConfronto;
+    }
+
+    // 4. Score final: base ajustado pela media contextual, minutagem e confronto
+    const fatorMedia = media > 0 ? (mediaContextual / media) : 1;
+    const scoreEnriquecido = baseScore * fatorMedia * fatorMinutos * fatorConfronto;
+
+    detalhes.fatorMedia = fatorMedia;
+
+    return {
+        score: Number(scoreEnriquecido.toFixed(3)),
+        fontes,
+        detalhes
+    };
+}
+
 export default {
     MODOS,
     MODOS_CONFIG,
     sugerirModo,
     calcularScoreAtleta,
+    calcularScoreAtletaEnriquecido,
     resolverPesoValorizacao,
     listarModos,
 };

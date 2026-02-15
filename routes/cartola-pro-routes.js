@@ -367,4 +367,55 @@ router.post("/auth", verificarSessaoParticipante, verificarPremium, async (req, 
     }
 });
 
+// =====================================================================
+// SYSTEM TOKEN: Admin doa seu token para uso do backend
+// =====================================================================
+import systemTokenService from "../services/systemTokenService.js";
+
+// POST /api/cartola-pro/system-token/doar - Admin doa seu token OAuth atual
+router.post("/system-token/doar", verificarSessaoParticipante, verificarPremium, async (req, res) => {
+    try {
+        const auth = req.session?.cartolaProAuth;
+        if (!auth) {
+            return res.status(400).json({
+                success: false,
+                error: "Voce precisa estar conectado na Globo primeiro",
+            });
+        }
+
+        const salvo = await systemTokenService.salvarTokenSistema(auth);
+        if (!salvo) {
+            return res.status(500).json({ success: false, error: "Erro ao salvar token" });
+        }
+
+        res.json({
+            success: true,
+            message: `Token doado com sucesso (${auth.email || 'admin'})`,
+        });
+    } catch (error) {
+        console.error('[CARTOLA-PRO] Erro ao doar token:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// GET /api/cartola-pro/system-token/status - Status do token de sistema
+router.get("/system-token/status", verificarSessaoParticipante, verificarPremium, async (req, res) => {
+    try {
+        const status = await systemTokenService.statusToken();
+        res.json({ success: true, ...status });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// DELETE /api/cartola-pro/system-token/revogar - Revogar token de sistema
+router.delete("/system-token/revogar", verificarSessaoParticipante, verificarPremium, async (req, res) => {
+    try {
+        await systemTokenService.revogarTokenSistema();
+        res.json({ success: true, message: "Token de sistema revogado" });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 export default router;
