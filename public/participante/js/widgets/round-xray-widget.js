@@ -485,15 +485,11 @@ function renderizarDisputas(disputas) {
     // Capitão de Luxo
     if (disputas.capitao_luxo) {
         const cap = disputas.capitao_luxo;
-        const diff = cap.classificacao_acumulada && cap.classificacao_acumulada.length > 0
-            ? cap.classificacao_acumulada.find(c => c.posicao === cap.sua_posicao)?.diferenca || 0
-            : 0;
-
         disputasHTML.push(`
             <div class="rxray-disputa-card">
                 <div class="rxray-disputa-header">👑 CAPITÃO DE LUXO</div>
                 <div class="rxray-disputa-status">
-                    ${cap.sua_posicao}º lugar • ${diff >= 0 ? `+${diff.toFixed(1)}` : diff.toFixed(1)} pts
+                    ${cap.sua_posicao}º lugar • ${(cap.seus_pontos || 0).toFixed(1)} pts
                 </div>
             </div>
         `);
