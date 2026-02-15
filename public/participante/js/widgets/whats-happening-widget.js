@@ -1700,13 +1700,12 @@ function renderMataMataSection() {
  * v3.0 - Redesign: tabela inline sem boxes aninhados + badge separado
  */
 function renderModuleRankingSection(opts) {
-    const { data, title, icon, sectionClass, navigateTo, getValue, getLabel } = opts;
+    const { data, title, icon, sectionClass, navigateTo, getValue, getLabel, getSubLabel, unitLabel } = opts;
     if (!data?.ranking || !Array.isArray(data.ranking) || data.ranking.length === 0) return null;
 
     const top3 = data.ranking.slice(0, 3);
     const meuId = String(WHState.timeId);
 
-    // Verificar se eu estou no top 3
     const matchId = (r) => String(r.timeId || r.time_id || r.participanteId || '') === meuId;
     const meuIndex = data.ranking.findIndex(matchId);
     const meInTop3 = meuIndex >= 0 && meuIndex < 3;
@@ -1716,6 +1715,9 @@ function renderModuleRankingSection(opts) {
         const isMe = matchId(r);
         const valor = getValue(r);
         const nome = getLabel(r);
+        const sub = getSubLabel ? getSubLabel(r) : '';
+        const isFirst = i === 0;
+
         return `
             <tr class="${isMe ? 'me' : ''}">
                 <td class="wh-podium-pos">${i + 1}</td>
@@ -1826,9 +1828,10 @@ function renderMeuConfrontoPontosCorridos() {
         <div class="wh-section wh-section--meu-confronto wh-section--pontos-corridos ${statusClass}" data-navigate="pontos-corridos">
             <div class="wh-section-header">
                 <div class="wh-section-icon">
-                    <span class="material-icons">stadium</span>
+                    <span class="material-icons">swap_horiz</span>
                 </div>
-                <div class="wh-section-title">Seu Confronto - Rodada ${rodada}</div>
+                <div class="wh-section-title">Seu Confronto</div>
+                <span class="wh-module-badge wh-module-badge--pc">PC · R${rodada}</span>
                 ${isLive ? '<span class="wh-live-badge">🔴 AO VIVO</span>' : ''}
             </div>
             <div class="wh-section-body">
@@ -1908,7 +1911,8 @@ function renderMeuConfrontoMataMata() {
                 <div class="wh-section-icon">
                     <span class="material-icons">emoji_events</span>
                 </div>
-                <div class="wh-section-title">Mata-Mata - ${faseLabel}</div>
+                <div class="wh-section-title">Seu Confronto</div>
+                <span class="wh-module-badge wh-module-badge--mm">MM · ${faseLabel}</span>
                 ${isLive ? '<span class="wh-live-badge">🔴 AO VIVO</span>' : ''}
             </div>
             <div class="wh-section-body">

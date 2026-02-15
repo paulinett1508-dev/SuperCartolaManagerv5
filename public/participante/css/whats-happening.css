@@ -547,7 +547,7 @@
     padding: 12px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 14px;
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
     /* Scrollbar customizada */
@@ -639,18 +639,18 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 8px 10px; /* v1.2: Reduzido de 12px 14px */
+    padding: 10px 12px;
     border-bottom: 1px solid var(--app-border);
 }
 
 .wh-section-icon {
-    width: 26px; /* v1.2: Reduzido de 32px */
-    height: 26px;
-    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px; /* v1.2: Reduzido de 18px */
+    font-size: 16px;
 }
 
 .wh-section-title {
