@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Validação de Migração - Super Cartola Manager</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/_admin-tokens.css" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
     <style>
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -16,10 +18,12 @@
     </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
+    <div id="sidebar-placeholder"></div>
+    <main class="app-main">
     <div class="container mx-auto px-4 py-8 max-w-7xl">
         <!-- Header -->
         <div class="mb-8">
-            <h1 class="text-3xl font-bold mb-2">🔧 Validação de Migração PC/MM/Top10</h1>
+            <h1 class="text-3xl font-bold mb-2">Validação de Migração PC/MM/Top10</h1>
             <p class="text-gray-400">Revise e valide correções de extratos financeiros</p>
         </div>
 
@@ -425,5 +429,8 @@
             }
         }
     </script>
+    </div>
+    </main>
+    <script src="js/admin-shell.js"></script>
 </body>
 </html>

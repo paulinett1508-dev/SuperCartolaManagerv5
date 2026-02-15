@@ -497,6 +497,15 @@
             } else {
                 init();
             }
+
+            // ✅ SPA: Reinicializar ao navegar via sidebar
+            window.addEventListener('spa:navigated', (e) => {
+                const { pageName } = e.detail || {};
+                if (pageName === 'modo-manutencao.html') {
+                    console.log('[MODO-MANUTENCAO] Reinicializando após navegação SPA...');
+                    carregarStatus();
+                }
+            });
         </script>
     </body>
 </html>

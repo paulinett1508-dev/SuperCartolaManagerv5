@@ -24,12 +24,13 @@
     </style>
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen">
+    <div id="sidebar-placeholder"></div>
     <!-- Header -->
     <header class="bg-gray-800 border-b border-gray-700 sticky top-0 z-50">
         <div class="container mx-auto px-4 py-4">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-4">
-                    <a href="/gerenciar.html" class="text-gray-400 hover:text-white transition-colors">
+                    <a href="painel.html" class="text-gray-400 hover:text-white transition-colors">
                         ← Voltar
                     </a>
                     <h1 class="text-2xl">🛠️ Modo Manutenção Avançado</h1>
@@ -42,7 +43,7 @@
         </div>
     </header>
 
-    <main class="container mx-auto px-4 py-8 max-w-6xl">
+    <main class="app-main container mx-auto px-4 py-8 max-w-6xl">
         <!-- Status Atual -->
         <section id="statusAtual" class="bg-gray-800 rounded-lg p-6 mb-8 border border-gray-700">
             <h2 class="text-xl mb-4 flex items-center gap-2">
@@ -269,12 +270,24 @@
         </div>
     </main>
 
+    <script src="js/admin-shell.js"></script>
     <script src="/js/super-modal.js"></script>
     <script src="/js/manutencao-config.js"></script>
     <script>
         // Inicializar ao carregar a página
-        document.addEventListener('DOMContentLoaded', () => {
+        function initManutencaoAvancado() {
             ManutencaoConfig.inicializar();
+        }
+
+        document.addEventListener('DOMContentLoaded', initManutencaoAvancado);
+
+        // ✅ SPA: Reinicializar ao navegar via sidebar
+        window.addEventListener('spa:navigated', (e) => {
+            const { pageName } = e.detail || {};
+            if (pageName === 'modo-manutencao-avancado.html') {
+                console.log('[MANUTENCAO-AVANCADO] Reinicializando após navegação SPA...');
+                initManutencaoAvancado();
+            }
         });
 
         // Controlar visibilidade de seções baseado no modo

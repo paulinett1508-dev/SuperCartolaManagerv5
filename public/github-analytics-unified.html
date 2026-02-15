@@ -1102,6 +1102,17 @@
 
             init();
         }
+
+        // ✅ SPA: Reinicializar ao navegar via sidebar
+        window.addEventListener('spa:navigated', (e) => {
+            const { pageName } = e.detail || {};
+            if (pageName === 'github-analytics-unified.html') {
+                console.log('[REPO] Reinicializando após navegação SPA...');
+                window.repoAnalyticsLoaded = false;
+                init();
+                window.repoAnalyticsLoaded = true;
+            }
+        });
     </script>
 </body>
 </html>

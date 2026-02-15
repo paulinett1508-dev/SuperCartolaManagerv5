@@ -24,10 +24,14 @@
                     sans-serif;
                 background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                 min-height: 100vh;
+            }
+            .migrar-main {
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 padding: 20px;
+                flex: 1;
+                min-height: 100vh;
             }
 
             .container {
@@ -218,9 +222,11 @@
         </style>
     </head>
     <body>
+        <div id="sidebar-placeholder"></div>
+        <main class="app-main migrar-main">
         <div class="container">
             <div class="header">
-                <h1>🔄 Migração de Dados</h1>
+                <h1>Migração de Dados</h1>
                 <p>LocalStorage → MongoDB</p>
             </div>
 
@@ -672,5 +678,7 @@
 
             } // guard
         </script>
+        </main>
+        <script src="js/admin-shell.js"></script>
     </body>
 </html>

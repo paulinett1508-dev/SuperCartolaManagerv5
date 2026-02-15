@@ -20,7 +20,7 @@
             --ia-accent-muted: rgba(16, 185, 129, 0.15);
         }
 
-        .admin-page { background: var(--surface-bg); min-height: 100vh; }
+        .admin-page { background: var(--surface-bg); min-height: 100vh; flex: 1; }
         .admin-content { padding: 20px 16px; max-width: 1200px; margin: 0 auto; }
 
         .admin-header {
@@ -215,7 +215,9 @@
         }
     </style>
 </head>
-<body class="admin-page">
+<body>
+    <div id="sidebar-placeholder"></div>
+    <main class="app-main admin-page">
     <div class="admin-content">
         <!-- Header -->
         <div class="admin-header">
@@ -286,7 +288,9 @@
             </div>
         </div>
     </div>
+    </main>
 
+    <script src="js/admin-shell.js"></script>
     <script src="js/admin/modules/admin-analises-ia.js" type="module"></script>
 </body>
 </html>
