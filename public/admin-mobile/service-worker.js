@@ -3,7 +3,7 @@
  * Cache Strategy: Network-first para API, Cache-first para assets
  */
 
-const CACHE_NAME = 'scm-admin-v1.0.0';
+const CACHE_NAME = 'scm-admin-v1.1.0';
 const RUNTIME_CACHE = 'scm-admin-runtime';
 
 // Arquivos para cache no install
@@ -22,7 +22,8 @@ const STATIC_ASSETS = [
   '/admin-mobile/icons/icon-512x512.png',
   // Fontes e CDNs
   'https://cdn.tailwindcss.com',
-  'https://fonts.googleapis.com/css2?family=Russo+One&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap'
+  'https://fonts.googleapis.com/css2?family=Russo+One&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap',
+  'https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Outlined'
 ];
 
 // ========== INSTALL ========== //
@@ -109,7 +110,8 @@ async function cacheFirst(request) {
     const response = await fetch(request);
 
     // Cacheia resposta se for bem-sucedida
-    if (response && response.status === 200) {
+    // Respostas cross-origin (opaque) têm status 0 - também devem ser cacheadas
+    if (response && (response.status === 200 || response.type === 'opaque')) {
       cache.put(request, response.clone());
     }
 
