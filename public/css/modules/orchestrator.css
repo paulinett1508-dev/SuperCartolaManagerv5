@@ -1,0 +1,398 @@
+/**
+ * ORCHESTRATOR - CSS Module
+ * Round-Market Orchestrator Dashboard
+ * Escopado sob .orch-page para não vazar no SPA
+ *
+ * Dependência: _admin-tokens.css (via admin-shell.css)
+ */
+
+/* ========================================
+   Layout Principal
+   ======================================== */
+.orch-page {
+    font-family: var(--font-family-base, 'Inter', -apple-system, sans-serif);
+    padding: var(--space-3, 12px);
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* ========================================
+   Header
+   ======================================== */
+.orch-page .orch-header {
+    text-align: center;
+    margin-bottom: var(--space-4, 16px);
+}
+.orch-page .orch-header h1 {
+    font-family: var(--font-family-brand, 'Russo One', sans-serif);
+    font-size: 1.4em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3, 12px);
+    color: var(--text-primary, #fff);
+}
+.orch-page .orch-header h1 .material-icons { font-size: 1.2em; color: var(--color-primary, #FF5500); }
+.orch-page .orch-version-badge {
+    display: inline-block;
+    background: var(--color-primary, #FF5500);
+    padding: var(--space-1, 4px) var(--space-3, 12px);
+    border-radius: var(--radius-2xl, 20px);
+    font-size: 0.4em;
+    font-family: var(--font-family-mono, 'JetBrains Mono', monospace);
+    vertical-align: middle;
+    color: var(--text-primary, #fff);
+}
+.orch-page .orch-subtitle {
+    color: var(--text-secondary, #aaa);
+    margin-top: var(--space-2, 8px);
+    font-size: 0.9em;
+}
+
+/* ========================================
+   Semáforo do Mercado
+   ======================================== */
+.orch-page .orch-semaforo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-4, 16px);
+    padding: 14px;
+    background: var(--surface-card, #1a1a1a);
+    border-radius: var(--radius-xl, 16px);
+    margin-bottom: 14px;
+    border: 1px solid var(--border-default, #333);
+}
+.orch-page .orch-semaforo-light {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-slow, 0.5s ease);
+}
+.orch-page .orch-semaforo-light .material-icons { font-size: 22px; color: var(--text-primary, #fff); }
+.orch-page .orch-semaforo-light.aberto {
+    background: var(--color-success, #10b981);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+}
+.orch-page .orch-semaforo-light.fechado {
+    background: var(--color-danger, #ef4444);
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+    animation: orch-pulse-red 2s infinite;
+}
+.orch-page .orch-semaforo-light.encerrado {
+    background: var(--color-warning, #eab308);
+    box-shadow: 0 0 20px rgba(234, 179, 8, 0.5);
+}
+.orch-page .orch-semaforo-light.desconhecido {
+    background: var(--text-disabled, #555);
+}
+
+@keyframes orch-pulse-red {
+    0%, 100% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.5); }
+    50% { box-shadow: 0 0 40px rgba(239, 68, 68, 0.8); }
+}
+
+.orch-page .orch-semaforo-info {
+    text-align: left;
+}
+.orch-page .orch-semaforo-info .orch-label {
+    font-family: var(--font-family-brand, 'Russo One', sans-serif);
+    font-size: 1.2em;
+    color: var(--text-primary, #fff);
+}
+.orch-page .orch-semaforo-info .orch-detail {
+    color: var(--text-secondary, #aaa);
+    font-size: 0.9em;
+    margin-top: var(--space-1, 4px);
+}
+.orch-page .orch-semaforo-info .orch-detail span {
+    font-family: var(--font-family-mono, 'JetBrains Mono', monospace);
+    color: var(--color-primary, #FF5500);
+}
+
+/* ========================================
+   Stats Row
+   ======================================== */
+.orch-page .orch-stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+}
+.orch-page .orch-stat-card {
+    background: var(--surface-card, #1a1a1a);
+    border-radius: var(--radius-lg, 12px);
+    padding: 10px;
+    text-align: center;
+    border: 1px solid var(--border-default, #333);
+}
+.orch-page .orch-stat-card .orch-stat-value {
+    font-family: var(--font-family-mono, 'JetBrains Mono', monospace);
+    font-size: 1.4em;
+    font-weight: 700;
+    color: var(--color-primary, #FF5500);
+}
+.orch-page .orch-stat-card .orch-stat-label {
+    color: var(--text-secondary, #aaa);
+    font-size: 0.8em;
+    margin-top: var(--space-1, 4px);
+}
+
+/* ========================================
+   Section Titles
+   ======================================== */
+.orch-page .orch-section-title {
+    font-family: var(--font-family-brand, 'Russo One', sans-serif);
+    font-size: 1em;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2, 8px);
+    color: var(--text-primary, #fff);
+}
+.orch-page .orch-section-title .material-icons { color: var(--color-primary, #FF5500); }
+
+/* ========================================
+   Managers Grid
+   ======================================== */
+.orch-page .orch-managers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--space-2, 8px);
+    margin-bottom: 14px;
+}
+.orch-page .orch-manager-card {
+    background: var(--surface-card, #1a1a1a);
+    border-radius: var(--radius-lg, 12px);
+    padding: 10px;
+    border: 1px solid var(--border-default, #333);
+    transition: border-color var(--transition-normal, 0.3s ease);
+}
+.orch-page .orch-manager-card:hover {
+    border-color: var(--color-primary-border, rgba(255, 85, 0, 0.3));
+}
+.orch-page .orch-manager-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-2, 8px);
+}
+.orch-page .orch-manager-name {
+    font-weight: 600;
+    font-size: 0.95em;
+}
+.orch-page .orch-manager-badge {
+    padding: 2px var(--space-2, 8px);
+    border-radius: 10px;
+    font-size: 0.7em;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-family: var(--font-family-mono, 'JetBrains Mono', monospace);
+}
+.orch-page .orch-manager-badge.idle { background: var(--surface-card-hover, #333); color: var(--text-muted, #888); }
+.orch-page .orch-manager-badge.coletando { background: var(--color-info-muted); color: #60a5fa; }
+.orch-page .orch-manager-badge.processando { background: var(--color-warning-muted); color: #fbbf24; }
+.orch-page .orch-manager-badge.consolidando { background: rgba(139, 92, 246, 0.15); color: #a78bfa; }
+.orch-page .orch-manager-badge.concluido { background: var(--color-success-muted); color: #4ade80; }
+.orch-page .orch-manager-badge.erro { background: var(--color-danger-muted); color: #f87171; }
+
+.orch-page .orch-manager-meta {
+    display: flex;
+    gap: var(--space-2, 8px);
+    flex-wrap: wrap;
+}
+.orch-page .orch-manager-tag {
+    font-size: 0.7em;
+    padding: 2px 6px;
+    border-radius: var(--radius-sm, 4px);
+    background: var(--surface-card-elevated, #2a2a2a);
+    color: var(--text-secondary, #aaa);
+}
+.orch-page .orch-manager-tag.base { background: var(--color-success-muted); color: #4ade80; }
+.orch-page .orch-manager-tag.coleta { background: var(--color-info-muted); color: #60a5fa; }
+.orch-page .orch-manager-tag.financeiro { background: var(--color-gold-muted, rgba(255, 215, 0, 0.15)); color: var(--color-gold, #ffd700); }
+
+/* ========================================
+   Timeline de Eventos
+   ======================================== */
+.orch-page .orch-timeline {
+    background: var(--surface-card, #1a1a1a);
+    border-radius: var(--radius-lg, 12px);
+    padding: var(--space-3, 12px);
+    border: 1px solid var(--border-default, #333);
+    margin-bottom: 14px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+.orch-page .orch-timeline-item {
+    display: flex;
+    gap: var(--space-3, 12px);
+    padding: var(--space-2, 8px) 0;
+    border-bottom: 1px solid var(--surface-card-elevated, #2a2a2a);
+}
+.orch-page .orch-timeline-item:last-child { border-bottom: none; }
+.orch-page .orch-timeline-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-top: 5px;
+    flex-shrink: 0;
+}
+.orch-page .orch-timeline-dot.transicao { background: var(--color-primary, #FF5500); }
+.orch-page .orch-timeline-dot.consolidacao { background: var(--color-success, #10b981); }
+.orch-page .orch-timeline-dot.erro { background: var(--color-danger, #ef4444); }
+.orch-page .orch-timeline-dot.outro { background: var(--text-disabled, #555); }
+.orch-page .orch-timeline-time {
+    font-family: var(--font-family-mono, 'JetBrains Mono', monospace);
+    font-size: 0.75em;
+    color: var(--text-secondary, #aaa);
+    min-width: 80px;
+}
+.orch-page .orch-timeline-text {
+    font-size: 0.85em;
+}
+
+/* ========================================
+   Ações
+   ======================================== */
+.orch-page .orch-actions-row {
+    display: flex;
+    gap: var(--space-3, 12px);
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+.orch-page .orch-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: var(--radius-md, 8px);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all var(--transition-fast, 0.2s ease);
+}
+.orch-page .orch-btn:hover { transform: translateY(-1px); }
+.orch-page .orch-btn:active { transform: translateY(0); }
+.orch-page .orch-btn-primary {
+    background: var(--gradient-primary, linear-gradient(135deg, #FF5500, #e8472b));
+    color: var(--text-primary, #fff);
+}
+.orch-page .orch-btn-secondary {
+    background: var(--surface-card-elevated, #2a2a2a);
+    color: var(--text-primary, #fff);
+    border: 1px solid var(--border-default, #333);
+}
+.orch-page .orch-btn .material-icons { font-size: 1.1em; }
+
+/* ========================================
+   Fase da Rodada
+   ======================================== */
+.orch-page .orch-fase-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1, 4px);
+    margin-bottom: 14px;
+    padding: 10px;
+    background: var(--surface-card, #1a1a1a);
+    border-radius: var(--radius-lg, 12px);
+    border: 1px solid var(--border-default, #333);
+    overflow-x: auto;
+}
+.orch-page .orch-fase-step {
+    flex: 1;
+    min-width: 80px;
+    text-align: center;
+    padding: 6px;
+    border-radius: var(--radius-md, 8px);
+    font-size: 0.75em;
+    font-weight: 600;
+    background: var(--surface-card-elevated, #2a2a2a);
+    color: var(--text-disabled, #666);
+    transition: all var(--transition-normal, 0.3s ease);
+}
+.orch-page .orch-fase-step.ativa {
+    background: var(--color-primary-muted, rgba(255, 85, 0, 0.1));
+    color: var(--color-primary, #FF5500);
+    border: 1px solid var(--color-primary-border, rgba(255, 85, 0, 0.3));
+}
+.orch-page .orch-fase-step.completa {
+    background: var(--color-success-muted);
+    color: #4ade80;
+}
+.orch-page .orch-fase-arrow {
+    color: var(--surface-card-hover, #444);
+    flex-shrink: 0;
+}
+
+/* ========================================
+   Loading
+   ======================================== */
+.orch-page .orch-loading {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-secondary, #aaa);
+}
+.orch-page .orch-loading .material-icons {
+    font-size: 48px;
+    animation: admin-spin 1s linear infinite;
+    color: var(--color-primary, #FF5500);
+}
+.orch-page .orch-loading-text {
+    margin-top: var(--space-3, 12px);
+}
+
+/* ========================================
+   Connection Status
+   ======================================== */
+.orch-connection-status {
+    position: fixed;
+    bottom: var(--space-4, 16px);
+    right: var(--space-4, 16px);
+    padding: var(--space-2, 8px) var(--space-4, 16px);
+    border-radius: var(--radius-2xl, 20px);
+    font-size: 0.75em;
+    font-family: var(--font-family-mono, 'JetBrains Mono', monospace);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    z-index: var(--z-dropdown, 100);
+}
+.orch-connection-status.connected {
+    background: var(--color-success-muted);
+    color: #4ade80;
+}
+.orch-connection-status.disconnected {
+    background: var(--color-danger-muted);
+    color: #f87171;
+}
+.orch-connection-status .orch-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+.orch-connection-status .orch-dot.on { background: #4ade80; }
+.orch-connection-status .orch-dot.off { background: #f87171; }
+
+/* ========================================
+   Utility classes para JS-rendered content
+   ======================================== */
+.orch-page .orch-error-icon {
+    animation: none;
+    color: var(--color-danger, #ef4444);
+}
+.orch-page .orch-retry-btn {
+    margin: var(--space-4, 16px) auto;
+}
+.orch-page .orch-empty-state {
+    text-align: center;
+    color: var(--text-disabled, #666);
+    padding: var(--space-5, 20px);
+}
+.orch-page .orch-error-text {
+    color: var(--color-danger-text, #f87171);
+}

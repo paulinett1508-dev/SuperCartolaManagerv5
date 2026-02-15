@@ -1,11 +1,22 @@
+/**
+ * ADMIN CONSOLIDAÇÃO - CSS Module
+ * Consolidação de Rodadas v2 (SaaS)
+ *
+ * Dependência: _admin-tokens.css
+ * Migrado de cores Material Design para Design Tokens
+ */
+
+/* ========================================
+   Base Layout
+   ======================================== */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: var(--font-family-base, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
     min-height: 100vh;
-    color: #fff;
+    color: var(--text-primary, #fff);
 }
-.consolidacao-main { padding: 20px; flex: 1; }
+.consolidacao-main { padding: var(--space-5, 20px); flex: 1; }
 .container { max-width: 1200px; margin: 0 auto; }
 h1 {
     text-align: center;
@@ -15,22 +26,26 @@ h1 {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: var(--space-3, 12px);
 }
-h1 .material-icons { font-size: 1.2em; color: #4CAF50; }
+h1 .material-icons { font-size: 1.2em; color: var(--color-success, #10b981); }
 .version-badge {
     display: inline-block;
-    background: #4CAF50;
-    padding: 4px 12px;
-    border-radius: 20px;
+    background: var(--color-success, #10b981);
+    padding: var(--space-1, 4px) var(--space-3, 12px);
+    border-radius: var(--radius-2xl, 20px);
     font-size: 0.5em;
     vertical-align: middle;
     margin-left: 10px;
 }
+
+/* ========================================
+   Liga Grid
+   ======================================== */
 .ligas-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 20px;
+    gap: var(--space-5, 20px);
     margin-bottom: 30px;
 }
 @media (min-width: 481px) {
@@ -43,18 +58,22 @@ h1 .material-icons { font-size: 1.2em; color: #4CAF50; }
         grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
     }
 }
+
+/* ========================================
+   Liga Card
+   ======================================== */
 .liga-card {
     background: rgba(255,255,255,0.1);
     backdrop-filter: blur(10px);
-    border-radius: 16px;
-    padding: 24px;
+    border-radius: var(--radius-xl, 16px);
+    padding: var(--space-6, 24px);
     border: 1px solid rgba(255,255,255,0.1);
 }
 .liga-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: var(--space-5, 20px);
     padding-bottom: 15px;
     border-bottom: 1px solid rgba(255,255,255,0.1);
 }
@@ -63,26 +82,31 @@ h1 .material-icons { font-size: 1.2em; color: #4CAF50; }
     font-weight: 600;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-2, 8px);
 }
-.liga-title .material-icons { color: #FF9800; }
-.liga-id { font-size: 0.75em; color: #888; font-family: monospace; }
+.liga-title .material-icons { color: var(--color-warning, #FF9800); }
+.liga-id {
+    font-size: 0.75em;
+    color: var(--text-muted, #888);
+    font-family: var(--font-family-mono, monospace);
+}
 
+/* ========================================
+   Status Grid
+   ======================================== */
 .status-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
-    margin-bottom: 20px;
+    margin-bottom: var(--space-5, 20px);
 }
 @media (min-width: 769px) {
-    .status-grid {
-        grid-template-columns: repeat(4, 1fr);
-    }
+    .status-grid { grid-template-columns: repeat(4, 1fr); }
 }
 .status-item {
     background: rgba(0,0,0,0.2);
-    padding: 12px;
-    border-radius: 8px;
+    padding: var(--space-3, 12px);
+    border-radius: var(--radius-md, 8px);
     text-align: center;
 }
 .status-value {
@@ -90,23 +114,37 @@ h1 .material-icons { font-size: 1.2em; color: #4CAF50; }
     font-weight: bold;
     display: block;
 }
-.status-label { font-size: 0.75em; color: #aaa; }
-.status-value.green { color: #4CAF50; }
-.status-value.orange { color: #FF9800; }
-.status-value.red { color: #f44336; }
-.status-value.blue { color: #2196F3; }
+.status-label { font-size: 0.75em; color: var(--text-secondary, #aaa); }
+.status-value.green { color: var(--color-success, #10b981); }
+.status-value.orange { color: var(--color-warning, #FF9800); }
+.status-value.red { color: var(--color-danger, #ef4444); }
+.status-value.blue { color: var(--color-info, #3b82f6); }
 
+/* ========================================
+   Versão Info Warning
+   ======================================== */
 .versao-info {
-    background: rgba(255,152,0,0.2);
-    border: 1px solid #FF9800;
-    border-radius: 8px;
-    padding: 12px;
+    background: var(--color-warning-muted, rgba(255,152,0,0.2));
+    border: 1px solid var(--color-warning, #FF9800);
+    border-radius: var(--radius-md, 8px);
+    padding: var(--space-3, 12px);
     margin-bottom: 15px;
     display: none;
 }
 .versao-info.show { display: block; }
-.versao-info strong { color: #FF9800; }
+.versao-info strong { color: var(--color-warning, #FF9800); }
+.versao-info-icon {
+    font-size: 16px;
+    vertical-align: middle;
+}
+.versao-info-text {
+    margin-top: var(--space-2, 8px);
+    font-size: 0.9em;
+}
 
+/* ========================================
+   Formulário
+   ======================================== */
 .form-row {
     display: flex;
     gap: 10px;
@@ -118,24 +156,24 @@ h1 .material-icons { font-size: 1.2em; color: #4CAF50; }
     display: block;
     margin-bottom: 5px;
     font-size: 0.85em;
-    color: #aaa;
+    color: var(--text-secondary, #aaa);
 }
 .form-group input {
     width: 100%;
     padding: 10px;
     border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 8px;
+    border-radius: var(--radius-md, 8px);
     background: rgba(0,0,0,0.2);
-    color: #fff;
+    color: var(--text-primary, #fff);
     font-size: 1em;
 }
 .checkbox-group {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-2, 8px);
     padding: 10px;
-    background: rgba(255,152,0,0.1);
-    border-radius: 8px;
+    background: var(--color-warning-muted, rgba(255,152,0,0.1));
+    border-radius: var(--radius-md, 8px);
     cursor: pointer;
 }
 .checkbox-group input[type="checkbox"] {
@@ -148,29 +186,35 @@ h1 .material-icons { font-size: 1.2em; color: #4CAF50; }
     font-size: 0.9em;
 }
 
+/* ========================================
+   Botões
+   ======================================== */
 .btn-group { display: flex; gap: 10px; margin-top: 15px; }
 .btn {
     flex: 1;
-    padding: 12px 20px;
+    padding: var(--space-3, 12px) var(--space-5, 20px);
     border: none;
-    border-radius: 8px;
+    border-radius: var(--radius-md, 8px);
     font-size: 0.95em;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all var(--transition-fast, 0.2s ease);
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: var(--space-2, 8px);
 }
 .btn:hover { transform: translateY(-2px); }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-.btn-primary { background: #4CAF50; color: #fff; }
-.btn-secondary { background: #2196F3; color: #fff; }
-.btn-warning { background: #FF9800; color: #fff; }
-.btn-danger { background: #f44336; color: #fff; }
+.btn-primary { background: var(--color-success, #10b981); color: var(--text-primary, #fff); }
+.btn-secondary { background: var(--color-info, #3b82f6); color: var(--text-primary, #fff); }
+.btn-warning { background: var(--color-warning, #FF9800); color: var(--text-primary, #fff); }
+.btn-danger { background: var(--color-danger, #ef4444); color: var(--text-primary, #fff); }
 .btn .material-icons { font-size: 18px; }
 
+/* ========================================
+   Progress
+   ======================================== */
 .progress-container {
     margin-top: 15px;
     display: none;
@@ -179,39 +223,45 @@ h1 .material-icons { font-size: 1.2em; color: #4CAF50; }
 .progress-bar {
     height: 8px;
     background: rgba(0,0,0,0.3);
-    border-radius: 4px;
+    border-radius: var(--radius-sm, 4px);
     overflow: hidden;
 }
 .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #4CAF50, #8BC34A);
-    transition: width 0.3s;
+    background: linear-gradient(90deg, var(--color-success, #10b981), var(--color-success-light, #22c55e));
+    transition: width var(--transition-normal, 0.3s ease);
     width: 0%;
 }
 .progress-text {
     text-align: center;
-    margin-top: 8px;
+    margin-top: var(--space-2, 8px);
     font-size: 0.85em;
-    color: #aaa;
+    color: var(--text-secondary, #aaa);
 }
 
+/* ========================================
+   Result Box
+   ======================================== */
 .result-box {
     margin-top: 15px;
     padding: 15px;
     background: rgba(0,0,0,0.3);
-    border-radius: 8px;
+    border-radius: var(--radius-md, 8px);
     max-height: 300px;
     overflow-y: auto;
     display: none;
 }
 .result-box.show { display: block; }
 .result-box pre {
-    font-family: 'Fira Code', monospace;
+    font-family: var(--font-family-mono, 'Fira Code', monospace);
     font-size: 0.8em;
     white-space: pre-wrap;
     word-break: break-all;
 }
 
+/* ========================================
+   Tabela de Rodadas
+   ======================================== */
 .rodadas-table {
     width: 100%;
     margin-top: 15px;
@@ -219,50 +269,66 @@ h1 .material-icons { font-size: 1.2em; color: #4CAF50; }
     font-size: 0.85em;
 }
 .rodadas-table th, .rodadas-table td {
-    padding: 8px;
+    padding: var(--space-2, 8px);
     text-align: center;
     border-bottom: 1px solid rgba(255,255,255,0.1);
 }
-.rodadas-table th { color: #aaa; font-weight: 500; }
+.rodadas-table th { color: var(--text-secondary, #aaa); font-weight: 500; }
+.rodadas-table .consolidacao-status-icon {
+    font-size: 16px;
+    vertical-align: middle;
+}
+.rodadas-table .consolidacao-status-icon.success { color: var(--color-success, #10b981); }
+.rodadas-table .consolidacao-status-icon.pending { color: var(--color-warning, #FF9800); }
+.rodadas-table .consolidacao-data-text { font-size: 0.8em; }
 .badge {
     display: inline-block;
-    padding: 2px 8px;
-    border-radius: 12px;
+    padding: 2px var(--space-2, 8px);
+    border-radius: var(--radius-lg, 12px);
     font-size: 0.8em;
     font-weight: 600;
 }
-.badge-v1 { background: #FF9800; color: #000; }
-.badge-v2 { background: #4CAF50; color: #fff; }
-.badge-aberta { background: #666; color: #fff; }
+.badge-v1 { background: var(--color-warning, #FF9800); color: var(--text-inverse, #000); }
+.badge-v2 { background: var(--color-success, #10b981); color: var(--text-primary, #fff); }
+.badge-aberta { background: var(--text-disabled, #666); color: var(--text-primary, #fff); }
 
+/* ========================================
+   Alert
+   ======================================== */
 .alert {
-    padding: 12px 16px;
-    border-radius: 8px;
-    margin-bottom: 20px;
+    padding: var(--space-3, 12px) var(--space-4, 16px);
+    border-radius: var(--radius-md, 8px);
+    margin-bottom: var(--space-5, 20px);
     display: flex;
     align-items: center;
     gap: 10px;
 }
 .alert .material-icons { font-size: 20px; }
 .alert-info {
-    background: rgba(33,150,243,0.2);
-    border: 1px solid #2196F3;
+    background: var(--color-info-muted, rgba(33,150,243,0.2));
+    border: 1px solid var(--color-info, #3b82f6);
+}
+.alert-info .consolidacao-info-small {
+    color: var(--text-muted, #888);
 }
 .alert-warning {
-    background: rgba(255,152,0,0.2);
-    border: 1px solid #FF9800;
+    background: var(--color-warning-muted, rgba(255,152,0,0.2));
+    border: 1px solid var(--color-warning, #FF9800);
 }
 
+/* ========================================
+   Toggle Details
+   ======================================== */
 .toggle-details {
     background: none;
     border: none;
-    color: #2196F3;
+    color: var(--color-info, #3b82f6);
     cursor: pointer;
     font-size: 0.85em;
     padding: 5px;
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: var(--space-1, 4px);
 }
 .details-panel {
     display: none;
@@ -270,6 +336,9 @@ h1 .material-icons { font-size: 1.2em; color: #4CAF50; }
 }
 .details-panel.show { display: block; }
 
+/* ========================================
+   Loading & Empty States
+   ======================================== */
 .loading-container {
     text-align: center;
     padding: 60px 20px;
@@ -277,26 +346,35 @@ h1 .material-icons { font-size: 1.2em; color: #4CAF50; }
 .loading-container .material-icons {
     font-size: 48px;
     animation: admin-spin 1s linear infinite;
-    color: #4CAF50;
+    color: var(--color-success, #10b981);
 }
 .loading-text {
-    margin-top: 16px;
-    color: #aaa;
+    margin-top: var(--space-4, 16px);
+    color: var(--text-secondary, #aaa);
 }
 
 .empty-state {
     text-align: center;
     padding: 60px 20px;
-    color: #aaa;
+    color: var(--text-secondary, #aaa);
 }
 .empty-state .material-icons {
     font-size: 48px;
-    margin-bottom: 16px;
-    color: #666;
+    margin-bottom: var(--space-4, 16px);
+    color: var(--text-disabled, #666);
+}
+.empty-state .consolidacao-error-icon {
+    color: var(--color-danger, #ef4444);
+}
+.empty-state .consolidacao-retry-btn {
+    margin-top: var(--space-4, 16px);
 }
 
+/* ========================================
+   Consolidar Todas
+   ======================================== */
 .consolidar-todas {
-    margin-bottom: 20px;
+    margin-bottom: var(--space-5, 20px);
     text-align: center;
 }
 .consolidar-todas .btn {

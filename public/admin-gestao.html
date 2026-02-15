@@ -11,255 +11,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Russo+One&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
     <link rel="stylesheet" href="css/modules/super-modal.css" />
+    <link rel="stylesheet" href="css/modules/admin-gestao.css" />
     <script src="js/super-modal.js"></script>
-    <style>
-        /* Cores específicas da página (Tema Roxo para Admin Gestão) */
-        :root {
-            --gestao-accent: #8b5cf6;
-            --gestao-accent-dark: #7c3aed;
-            --gestao-accent-light: #a78bfa;
-            --gestao-accent-muted: rgba(139, 92, 246, 0.15);
-        }
-
-        .admin-page { background: var(--surface-bg); min-height: 100vh; }
-        .admin-content { padding: 20px 16px; max-width: 900px; margin: 0 auto; }
-
-        .admin-header {
-            background: linear-gradient(135deg, var(--surface-card) 0%, var(--surface-card-elevated) 100%);
-            border-radius: var(--radius-lg);
-            padding: 18px 20px;
-            margin-bottom: 24px;
-            border: 1px solid var(--gestao-accent);
-            position: relative;
-        }
-        .admin-header::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--gestao-accent), var(--gestao-accent-light), var(--gestao-accent));
-        }
-        .admin-header h1 {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin: 0 0 8px 0;
-        }
-        .admin-header h1 .material-icons { font-size: 28px; color: var(--gestao-accent); }
-        .admin-header p { color: var(--text-muted); font-size: 0.9rem; margin: 0; }
-
-        .add-admin-form {
-            background: var(--surface-card);
-            border-radius: var(--radius-md);
-            padding: 16px;
-            margin-bottom: 24px;
-            border: 1px solid var(--surface-card-hover);
-        }
-        .add-admin-form h3 {
-            color: var(--text-primary);
-            margin: 0 0 16px 0;
-            font-size: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .add-admin-form h3 .material-icons { color: var(--gestao-accent); }
-
-        .form-row {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        .form-group {
-            flex: 1;
-            min-width: 0; /* Permite shrink sem forçar overflow */
-        }
-        /* Mobile: forms em coluna vertical */
-        @media (max-width: 480px) {
-            .form-row {
-                flex-direction: column;
-            }
-            .form-group {
-                width: 100%;
-            }
-        }
-        .form-group label {
-            display: block;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            margin-bottom: 6px;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 10px 12px;
-            background: var(--surface-card-elevated);
-            border: 1px solid var(--surface-card-hover);
-            border-radius: var(--radius-md);
-            color: var(--text-primary);
-            font-size: 0.95rem;
-        }
-        .form-group input:focus {
-            border-color: var(--gestao-accent);
-            outline: none;
-        }
-
-        .btn-add {
-            background: linear-gradient(135deg, var(--gestao-accent), var(--gestao-accent-dark));
-            color: var(--text-primary);
-            border: none;
-            padding: 10px 20px;
-            border-radius: var(--radius-md);
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 16px;
-        }
-        .btn-add:hover { background: linear-gradient(135deg, var(--gestao-accent-light), var(--gestao-accent)); }
-        .btn-add:disabled { opacity: 0.6; cursor: not-allowed; }
-
-        .admins-list {
-            background: var(--surface-card);
-            border-radius: var(--radius-md);
-            padding: 16px;
-            border: 1px solid var(--surface-card-hover);
-        }
-        .admins-list h3 {
-            color: var(--text-primary);
-            margin: 0 0 16px 0;
-            font-size: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .admins-list h3 .material-icons { color: var(--gestao-accent); }
-
-        .admin-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px;
-            background: var(--surface-card-elevated);
-            border-radius: var(--radius-md);
-            margin-bottom: 8px;
-        }
-        .admin-item:last-child { margin-bottom: 0; }
-        .admin-item.super-admin {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            border: 1px solid var(--gestao-accent);
-        }
-
-        .admin-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: var(--radius-full);
-            background: linear-gradient(135deg, var(--gestao-accent), var(--gestao-accent-dark));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-primary);
-            font-weight: 600;
-        }
-        .admin-avatar.inactive { background: var(--surface-card-hover); }
-        .admin-avatar.dev { background: linear-gradient(135deg, var(--color-gold), var(--color-warning-dark)); }
-
-        .admin-info { flex: 1; }
-        .admin-name {
-            color: var(--text-primary);
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .admin-name .badge {
-            font-size: 0.7rem;
-            padding: 2px 6px;
-            border-radius: var(--radius-sm);
-            font-weight: 500;
-        }
-        .badge-super { background: linear-gradient(135deg, var(--color-gold), var(--color-warning-dark)); color: var(--text-inverse); }
-        .badge-inactive { background: var(--text-disabled); color: var(--text-secondary); }
-        .badge-env { background: var(--color-success); color: var(--text-primary); font-size: 0.65rem; }
-
-        .admin-email { color: var(--text-muted); font-size: 0.85rem; }
-        .admin-date { color: var(--text-disabled); font-size: 0.75rem; margin-top: 2px; }
-
-        .admin-actions { display: flex; gap: 8px; }
-        .btn-action {
-            background: transparent;
-            border: 1px solid var(--surface-card-hover);
-            color: var(--text-muted);
-            padding: 6px 10px;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 0.8rem;
-        }
-        .btn-action:hover { border-color: var(--text-disabled); color: var(--text-primary); }
-        .btn-action.danger { border-color: var(--color-danger); color: var(--color-danger); }
-        .btn-action.danger:hover { background: var(--color-danger-muted); }
-        .btn-action .material-icons { font-size: 16px; }
-
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: var(--text-disabled);
-        }
-        .empty-state .material-icons { font-size: 48px; margin-bottom: 12px; }
-
-        .loading {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            padding: 40px;
-            color: var(--text-muted);
-        }
-        .loading .material-icons { animation: admin-spin 1s linear infinite; }
-
-        .alert {
-            padding: 12px 16px;
-            border-radius: var(--radius-md);
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .alert-info {
-            background: var(--color-info-muted);
-            border: 1px solid var(--color-info);
-            color: var(--color-info);
-        }
-        .alert-error {
-            background: var(--color-danger-muted);
-            border: 1px solid var(--color-danger);
-            color: var(--color-danger);
-        }
-
-        .access-denied {
-            text-align: center;
-            padding: 60px 20px;
-        }
-        .access-denied .material-icons {
-            font-size: 64px;
-            color: var(--color-danger);
-            margin-bottom: 16px;
-        }
-        .access-denied h2 {
-            color: var(--text-primary);
-            margin: 0 0 8px 0;
-        }
-        .access-denied p {
-            color: var(--text-muted);
-            margin: 0;
-        }
-    </style>
 </head>
 <body>
     <!-- Botão Toggle Mobile -->
@@ -360,7 +113,7 @@
                         <span class="material-icons">person_add</span>
                         Registrar Novo Cliente (Admin)
                     </h3>
-                    <p style="color: #9ca3af; font-size: 0.85rem; margin: 0 0 16px 0;">
+                    <p class="gestao-form-hint">
                         O cliente recebera uma senha provisoria para acessar o sistema.
                     </p>
                     <div class="form-row">
@@ -379,24 +132,24 @@
                     </button>
                 </div>
 
-                <div id="senhaModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center;">
-                    <div style="background: #1a1a1a; border-radius: 12px; padding: 24px; max-width: 500px; width: 90%; border: 2px solid #10b981;">
-                        <h3 style="color: #10b981; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px;">
+                <div id="senhaModal" class="gestao-modal-overlay">
+                    <div class="gestao-modal-content">
+                        <h3 class="gestao-modal-title">
                             <span class="material-icons">check_circle</span>
                             Cliente Registrado!
                         </h3>
-                        <p style="color: #9ca3af; margin: 0 0 16px 0;">Envie a senha provisoria abaixo para o cliente:</p>
-                        <div style="background: #252525; padding: 16px; border-radius: 8px; text-align: center; margin-bottom: 16px;">
-                            <span style="color: #fff; font-size: 1.5rem; font-family: monospace; letter-spacing: 2px;" id="senhaProvisoria">--------</span>
-                            <button onclick="copiarSenha()" style="margin-left: 12px; background: #333; border: none; color: #fff; padding: 8px 12px; border-radius: 4px; cursor: pointer;">
-                                <span class="material-icons" style="font-size: 16px; vertical-align: middle;">content_copy</span>
+                        <p class="gestao-modal-desc">Envie a senha provisoria abaixo para o cliente:</p>
+                        <div class="gestao-modal-senha-box">
+                            <span class="gestao-modal-senha-text" id="senhaProvisoria">--------</span>
+                            <button onclick="copiarSenha()" class="gestao-modal-copy-btn">
+                                <span class="material-icons">content_copy</span>
                             </button>
                         </div>
-                        <p style="color: #f59e0b; font-size: 0.85rem; margin: 0 0 16px 0;">
-                            <span class="material-icons" style="font-size: 16px; vertical-align: middle;">warning</span>
+                        <p class="gestao-modal-warning">
+                            <span class="material-icons">warning</span>
                             Esta senha so aparece uma vez. Anote-a antes de fechar!
                         </p>
-                        <button onclick="fecharModalSenha()" style="width: 100%; background: #10b981; border: none; color: #fff; padding: 12px; border-radius: 6px; font-weight: 600; cursor: pointer;">
+                        <button onclick="fecharModalSenha()" class="gestao-modal-confirm-btn">
                             Entendido, ja anotei
                         </button>
                     </div>
@@ -475,7 +228,7 @@
                                     <span class="material-icons">delete</span>
                                 </button>
                             </div>
-                        ` : '<div class="admin-actions" style="color: #10b981; font-size: 0.8rem;">Protegido</div>'}
+                        ` : '<div class="admin-actions admin-actions-protected">Protegido</div>'}
                     </div>
                 `).join('');
 
@@ -520,7 +273,7 @@
 
                 // Mostrar modal com senha provisoria
                 document.getElementById('senhaProvisoria').textContent = data.senhaProvisoria;
-                document.getElementById('senhaModal').style.display = 'flex';
+                document.getElementById('senhaModal').classList.add('show');
 
                 document.getElementById('inputEmail').value = '';
                 document.getElementById('inputNome').value = '';
@@ -553,7 +306,7 @@
 
         // Fechar modal de senha
         function fecharModalSenha() {
-            document.getElementById('senhaModal').style.display = 'none';
+            document.getElementById('senhaModal').classList.remove('show');
         }
 
         // Toggle ativo/inativo

@@ -25,11 +25,11 @@
             <span class="material-icons">info</span>
             <div>
                 <strong>Novidades v2:</strong> Agora inclui ranking_rodada, extratos_financeiros, artilheiro_campeao, luva_de_ouro e top10 separado (mitos/micos).
-                <br><small style="color:#888;">Carrega dinamicamente todas as ligas cadastradas.</small>
+                <br><small class="consolidacao-info-small">Carrega dinamicamente todas as ligas cadastradas.</small>
             </div>
         </div>
 
-        <div class="consolidar-todas" id="consolidarTodasContainer" style="display:none;">
+        <div class="consolidar-todas" id="consolidarTodasContainer" hidden>
             <button class="btn btn-warning" onclick="consolidarTodasLigas()">
                 <span class="material-icons">flash_on</span>
                 Consolidar TODAS as Ligas
@@ -86,7 +86,7 @@
 
                 // Mostrar botao de consolidar todas
                 if (ligas.length > 1) {
-                    document.getElementById('consolidarTodasContainer').style.display = 'block';
+                    document.getElementById('consolidarTodasContainer').removeAttribute('hidden');
                 }
 
                 // Verificar status de todas as ligas
@@ -100,9 +100,9 @@
                 console.error('Erro ao carregar ligas:', error);
                 grid.innerHTML = `
                     <div class="empty-state">
-                        <span class="material-icons" style="color:#f44336;">error</span>
+                        <span class="material-icons consolidacao-error-icon">error</span>
                         <p>Erro ao carregar ligas</p>
-                        <button class="btn btn-secondary" onclick="carregarLigas()" style="margin-top:16px;">
+                        <button class="btn btn-secondary consolidacao-retry-btn" onclick="carregarLigas()">
                             <span class="material-icons">refresh</span>
                             Tentar novamente
                         </button>
@@ -151,8 +151,8 @@
                     </div>
 
                     <div class="versao-info" id="${prefix}-versao-info">
-                        <strong><span class="material-icons" style="font-size:16px;vertical-align:middle;">warning</span> Snapshots na versao antiga detectados!</strong>
-                        <p style="margin-top:8px;font-size:0.9em;">Marque "Forcar Reconsolidacao" para atualizar para v2 com todos os modulos.</p>
+                        <strong><span class="material-icons versao-info-icon">warning</span> Snapshots na versao antiga detectados!</strong>
+                        <p class="versao-info-text">Marque "Forcar Reconsolidacao" para atualizar para v2 com todos os modulos.</p>
                     </div>
 
                     <div class="form-row">
@@ -266,9 +266,9 @@
                             : '-';
                         tr.innerHTML = `
                             <td>R${r.rodada}</td>
-                            <td>${r.status === 'consolidada' ? '<span class="material-icons" style="color:#4CAF50;font-size:16px;">check_circle</span>' : '<span class="material-icons" style="color:#FF9800;font-size:16px;">schedule</span>'}</td>
+                            <td>${r.status === 'consolidada' ? '<span class="material-icons consolidacao-status-icon success">check_circle</span>' : '<span class="material-icons consolidacao-status-icon pending">schedule</span>'}</td>
                             <td>${versaoBadge}</td>
-                            <td style="font-size:0.8em">${dataStr}</td>
+                            <td class="consolidacao-data-text">${dataStr}</td>
                         `;
                         tbody.appendChild(tr);
                     });
@@ -306,7 +306,7 @@
             const progressText = document.getElementById(`${prefix}-progress-text`);
             progressContainer.classList.add('show');
             progressFill.style.width = '0%';
-            progressFill.style.background = 'linear-gradient(90deg, #4CAF50, #8BC34A)';
+            progressFill.style.background = '';
             progressText.textContent = 'Iniciando consolidacao...';
 
             try {
@@ -321,7 +321,7 @@
                 progressFill.style.width = '100%';
 
                 if (data.error) {
-                    progressFill.style.background = '#f44336';
+                    progressFill.style.background = 'var(--color-danger, #ef4444)';
                     progressText.textContent = `Erro: ${data.error}`;
                 } else {
                     progressText.textContent = `Concluido! ${data.sucessos || 0} processadas, ${data.pulados || 0} puladas, ${data.falhas || 0} erros`;
@@ -336,7 +336,7 @@
 
             } catch (error) {
                 progressFill.style.width = '100%';
-                progressFill.style.background = '#f44336';
+                progressFill.style.background = 'var(--color-danger, #ef4444)';
                 progressText.textContent = `Erro: ${error.message}`;
                 showResult(prefix, { error: error.message });
                 return { error: error.message };

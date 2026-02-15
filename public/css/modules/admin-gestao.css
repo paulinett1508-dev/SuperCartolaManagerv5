@@ -1,0 +1,357 @@
+/**
+ * ADMIN GESTÃO - CSS Module
+ * Gestão de Administradores (Tema Roxo)
+ *
+ * Dependência: _admin-tokens.css
+ */
+
+/* ========================================
+   Variáveis locais (Tema Roxo)
+   ======================================== */
+:root {
+    --gestao-accent: #8b5cf6;
+    --gestao-accent-dark: #7c3aed;
+    --gestao-accent-light: #a78bfa;
+    --gestao-accent-muted: rgba(139, 92, 246, 0.15);
+}
+
+/* ========================================
+   Layout Principal
+   ======================================== */
+.admin-page { background: var(--surface-bg); min-height: 100vh; }
+.admin-content { padding: var(--space-5, 20px) var(--space-4, 16px); max-width: 900px; margin: 0 auto; }
+
+/* ========================================
+   Header
+   ======================================== */
+.admin-header {
+    background: linear-gradient(135deg, var(--surface-card) 0%, var(--surface-card-elevated) 100%);
+    border-radius: var(--radius-lg);
+    padding: 18px 20px;
+    margin-bottom: var(--space-6, 24px);
+    border: 1px solid var(--gestao-accent);
+    position: relative;
+}
+.admin-header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gestao-accent), var(--gestao-accent-light), var(--gestao-accent));
+}
+.admin-header h1 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3, 12px);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-2, 8px) 0;
+}
+.admin-header h1 .material-icons { font-size: 28px; color: var(--gestao-accent); }
+.admin-header p { color: var(--text-muted); font-size: 0.9rem; margin: 0; }
+
+/* ========================================
+   Formulário de Adição
+   ======================================== */
+.add-admin-form {
+    background: var(--surface-card);
+    border-radius: var(--radius-md);
+    padding: var(--space-4, 16px);
+    margin-bottom: var(--space-6, 24px);
+    border: 1px solid var(--surface-card-hover);
+}
+.add-admin-form h3 {
+    color: var(--text-primary);
+    margin: 0 0 var(--space-4, 16px) 0;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2, 8px);
+}
+.add-admin-form h3 .material-icons { color: var(--gestao-accent); }
+.add-admin-form .gestao-form-hint {
+    color: var(--text-muted, #9ca3af);
+    font-size: 0.85rem;
+    margin: 0 0 var(--space-4, 16px) 0;
+}
+
+.form-row {
+    display: flex;
+    gap: var(--space-3, 12px);
+    flex-wrap: wrap;
+}
+.form-group {
+    flex: 1;
+    min-width: 0;
+}
+@media (max-width: 480px) {
+    .form-row { flex-direction: column; }
+    .form-group { width: 100%; }
+}
+.form-group label {
+    display: block;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+}
+.form-group input {
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--surface-card-elevated);
+    border: 1px solid var(--surface-card-hover);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+.form-group input:focus {
+    border-color: var(--gestao-accent);
+    outline: none;
+}
+
+.btn-add {
+    background: linear-gradient(135deg, var(--gestao-accent), var(--gestao-accent-dark));
+    color: var(--text-primary);
+    border: none;
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2, 8px);
+    margin-top: var(--space-4, 16px);
+}
+.btn-add:hover { background: linear-gradient(135deg, var(--gestao-accent-light), var(--gestao-accent)); }
+.btn-add:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ========================================
+   Lista de Admins
+   ======================================== */
+.admins-list {
+    background: var(--surface-card);
+    border-radius: var(--radius-md);
+    padding: var(--space-4, 16px);
+    border: 1px solid var(--surface-card-hover);
+}
+.admins-list h3 {
+    color: var(--text-primary);
+    margin: 0 0 var(--space-4, 16px) 0;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2, 8px);
+}
+.admins-list h3 .material-icons { color: var(--gestao-accent); }
+
+.admin-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3, 12px);
+    padding: var(--space-3, 12px);
+    background: var(--surface-card-elevated);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-2, 8px);
+}
+.admin-item:last-child { margin-bottom: 0; }
+.admin-item.super-admin {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border: 1px solid var(--gestao-accent);
+}
+
+.admin-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-full);
+    background: linear-gradient(135deg, var(--gestao-accent), var(--gestao-accent-dark));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+.admin-avatar.inactive { background: var(--surface-card-hover); }
+.admin-avatar.dev { background: linear-gradient(135deg, var(--color-gold), var(--color-warning-dark)); }
+
+.admin-info { flex: 1; }
+.admin-name {
+    color: var(--text-primary);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2, 8px);
+}
+.admin-name .badge {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+}
+.badge-super { background: linear-gradient(135deg, var(--color-gold), var(--color-warning-dark)); color: var(--text-inverse); }
+.badge-inactive { background: var(--text-disabled); color: var(--text-secondary); }
+.badge-env { background: var(--color-success); color: var(--text-primary); font-size: 0.65rem; }
+
+.admin-email { color: var(--text-muted); font-size: 0.85rem; }
+.admin-date { color: var(--text-disabled); font-size: 0.75rem; margin-top: 2px; }
+
+.admin-actions { display: flex; gap: var(--space-2, 8px); }
+.admin-actions-protected {
+    color: var(--color-success, #10b981);
+    font-size: 0.8rem;
+}
+.btn-action {
+    background: transparent;
+    border: 1px solid var(--surface-card-hover);
+    color: var(--text-muted);
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: var(--space-1, 4px);
+    font-size: 0.8rem;
+}
+.btn-action:hover { border-color: var(--text-disabled); color: var(--text-primary); }
+.btn-action.danger { border-color: var(--color-danger); color: var(--color-danger); }
+.btn-action.danger:hover { background: var(--color-danger-muted); }
+.btn-action .material-icons { font-size: 16px; }
+
+/* ========================================
+   States (Empty, Loading, Access Denied)
+   ======================================== */
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-disabled);
+}
+.empty-state .material-icons { font-size: 48px; margin-bottom: var(--space-3, 12px); }
+
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3, 12px);
+    padding: 40px;
+    color: var(--text-muted);
+}
+.loading .material-icons { animation: admin-spin 1s linear infinite; }
+
+.alert {
+    padding: var(--space-3, 12px) var(--space-4, 16px);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-4, 16px);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2, 8px);
+}
+.alert-info {
+    background: var(--color-info-muted);
+    border: 1px solid var(--color-info);
+    color: var(--color-info);
+}
+.alert-error {
+    background: var(--color-danger-muted);
+    border: 1px solid var(--color-danger);
+    color: var(--color-danger);
+}
+
+.access-denied {
+    text-align: center;
+    padding: 60px 20px;
+}
+.access-denied .material-icons {
+    font-size: 64px;
+    color: var(--color-danger);
+    margin-bottom: var(--space-4, 16px);
+}
+.access-denied h2 {
+    color: var(--text-primary);
+    margin: 0 0 var(--space-2, 8px) 0;
+}
+.access-denied p {
+    color: var(--text-muted);
+    margin: 0;
+}
+
+/* ========================================
+   Modal de Senha Provisória
+   ======================================== */
+.gestao-modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: var(--surface-overlay, rgba(0,0,0,0.8));
+    z-index: var(--z-modal, 9999);
+    align-items: center;
+    justify-content: center;
+}
+.gestao-modal-overlay.show {
+    display: flex;
+}
+.gestao-modal-content {
+    background: var(--surface-card, #1a1a1a);
+    border-radius: var(--radius-lg, 12px);
+    padding: var(--space-6, 24px);
+    max-width: 500px;
+    width: 90%;
+    border: 2px solid var(--color-success, #10b981);
+}
+.gestao-modal-title {
+    color: var(--color-success, #10b981);
+    margin: 0 0 var(--space-4, 16px) 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2, 8px);
+}
+.gestao-modal-desc {
+    color: var(--text-muted, #9ca3af);
+    margin: 0 0 var(--space-4, 16px) 0;
+}
+.gestao-modal-senha-box {
+    background: var(--surface-card-elevated, #252525);
+    padding: var(--space-4, 16px);
+    border-radius: var(--radius-md, 8px);
+    text-align: center;
+    margin-bottom: var(--space-4, 16px);
+}
+.gestao-modal-senha-text {
+    color: var(--text-primary, #fff);
+    font-size: 1.5rem;
+    font-family: var(--font-family-mono, monospace);
+    letter-spacing: 2px;
+}
+.gestao-modal-copy-btn {
+    margin-left: var(--space-3, 12px);
+    background: var(--surface-card-hover, #333);
+    border: none;
+    color: var(--text-primary, #fff);
+    padding: var(--space-2, 8px) var(--space-3, 12px);
+    border-radius: var(--radius-sm, 4px);
+    cursor: pointer;
+}
+.gestao-modal-copy-btn .material-icons {
+    font-size: 16px;
+    vertical-align: middle;
+}
+.gestao-modal-warning {
+    color: var(--color-warning, #f59e0b);
+    font-size: 0.85rem;
+    margin: 0 0 var(--space-4, 16px) 0;
+}
+.gestao-modal-warning .material-icons {
+    font-size: 16px;
+    vertical-align: middle;
+}
+.gestao-modal-confirm-btn {
+    width: 100%;
+    background: var(--color-success, #10b981);
+    border: none;
+    color: var(--text-primary, #fff);
+    padding: var(--space-3, 12px);
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.gestao-modal-confirm-btn:hover {
+    opacity: 0.9;
+}
