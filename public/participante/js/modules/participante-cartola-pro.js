@@ -1,12 +1,12 @@
 // =====================================================================
-// PARTICIPANTE-CARTOLA-PRO.JS - v2.0 (OAuth + Interface 4 Abas)
+// PARTICIPANTE-CARTOLA-PRO.JS - v3.0 (Assistente Multi-Fonte)
 // =====================================================================
 // ⚠️ RECURSO PREMIUM: Integração OAuth com API Globo
 // =====================================================================
-// ✅ v2.2: Deteccao automatica de dominio
-//          - OAuth disponivel apenas em dominios registrados (replit.dev, localhost)
-//          - Dominios customizados vao direto para login email/senha
-//          - Interface com 4 abas: Sugerido | Escalar | Nao Escalaram | Meu Time
+// ✅ v3.0: Aba Assistente com cenarios multi-fonte (GatoMestre, confrontos)
+//          - 5 abas: Assistente | Sugerido | Escalar | Nao Escalaram | Meu Time
+//          - 3 cenarios simultaneos (Mitar/Equilibrado/Valorizar)
+//          - Badges de fonte por atleta
 // =====================================================================
 
 if (window.Log) Log.info("CARTOLA-PRO", "🔄 Carregando módulo v2.0...");
@@ -14,7 +14,9 @@ if (window.Log) Log.info("CARTOLA-PRO", "🔄 Carregando módulo v2.0...");
 // Estado do módulo
 let globoAutenticado = false;
 let globoEmail = null;
-let abaAtiva = 'sugerido'; // sugerido | escalar | nao-escalaram | meu-time
+let abaAtiva = 'assistente'; // assistente | sugerido | escalar | nao-escalaram | meu-time
+let cenarioAtivo = 0; // Indice do cenario visivel (0=mitar, 1=equilibrado, 2=valorizar)
+let dadosCenarios = null; // Cache dos cenarios gerados
 let dadosTimeSugerido = null;
 let dadosMeuTime = null;
 let dadosNaoEscalaram = null;
@@ -492,6 +494,11 @@ async function mostrarInterfaceAbas() {
             <!-- Abas -->
             <div class="flex-shrink-0 px-2 pt-2 border-b border-white/10">
                 <div class="flex gap-1 overflow-x-auto pb-2 hide-scrollbar">
+                    <button onclick="window.CartolaProModule.trocarAba('assistente')"
+                            class="aba-btn flex-shrink-0 px-3 py-2 rounded-lg text-xs font-medium transition-all ${abaAtiva === 'assistente' ? 'bg-purple-500/20 text-purple-400 border border-purple-500/40' : 'text-white/50 hover:bg-white/5'}">
+                        <span class="material-icons text-sm mr-1 align-middle">auto_awesome</span>
+                        Assistente
+                    </button>
                     <button onclick="window.CartolaProModule.trocarAba('sugerido')"
                             class="aba-btn flex-shrink-0 px-3 py-2 rounded-lg text-xs font-medium transition-all ${abaAtiva === 'sugerido' ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/40' : 'text-white/50 hover:bg-white/5'}">
                         <span class="material-icons text-sm mr-1 align-middle">lightbulb</span>
@@ -538,7 +545,8 @@ export async function trocarAba(aba) {
     document.querySelectorAll('.aba-btn').forEach(btn => {
         const abaBtn = btn.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
         if (abaBtn === aba) {
-            btn.className = 'aba-btn flex-shrink-0 px-3 py-2 rounded-lg text-xs font-medium transition-all bg-yellow-500/20 text-yellow-400 border border-yellow-500/40';
+            const cor = aba === 'assistente' ? 'purple' : 'yellow';
+            btn.className = `aba-btn flex-shrink-0 px-3 py-2 rounded-lg text-xs font-medium transition-all bg-${cor}-500/20 text-${cor}-400 border border-${cor}-500/40`;
         } else {
             btn.className = 'aba-btn flex-shrink-0 px-3 py-2 rounded-lg text-xs font-medium transition-all text-white/50 hover:bg-white/5';
         }
@@ -563,6 +571,9 @@ async function carregarConteudoAba(aba) {
 
     try {
         switch (aba) {
+            case 'assistente':
+                await carregarAssistente(container);
+                break;
             case 'sugerido':
                 await carregarTimeSugerido(container);
                 break;
@@ -588,6 +599,253 @@ async function carregarConteudoAba(aba) {
                 </button>
             </div>
         `;
+    }
+}
+
+// =====================================================================
+// ABA: ASSISTENTE INTELIGENTE (Multi-Fonte)
+// =====================================================================
+async function carregarAssistente(container) {
+    container.innerHTML = `
+        <div class="p-4 space-y-4">
+            <!-- Header Assistente -->
+            <div class="p-3 rounded-xl" style="background: linear-gradient(135deg, rgba(168,85,247,0.1), rgba(236,72,153,0.1)); border: 1px solid rgba(168,85,247,0.3);">
+                <div class="flex items-center gap-3">
+                    <span class="material-icons text-purple-400">auto_awesome</span>
+                    <div>
+                        <p class="text-sm font-bold text-purple-300" style="font-family: 'Russo One', sans-serif;">Assistente Multi-Fonte</p>
+                        <p class="text-[10px] text-white/50">Analisa GatoMestre, confrontos e defesas vulneraveis</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Patrimonio + Esquema -->
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-[10px] text-white/40 block mb-1">Patrimonio (C$)</label>
+                    <input type="number" id="assist-patrimonio"
+                           class="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-purple-500/40"
+                           value="${patrimonioDisponivel || 100}" step="0.01" min="30">
+                </div>
+                <div>
+                    <label class="text-[10px] text-white/40 block mb-1">Formacao</label>
+                    <select id="assist-esquema"
+                            class="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm outline-none focus:border-purple-500/40">
+                        <option value="3" ${esquemaSelecionado === 3 ? 'selected' : ''}>4-3-3</option>
+                        <option value="4" ${esquemaSelecionado === 4 ? 'selected' : ''}>4-4-2</option>
+                        <option value="5" ${esquemaSelecionado === 5 ? 'selected' : ''}>4-5-1</option>
+                        <option value="1" ${esquemaSelecionado === 1 ? 'selected' : ''}>3-4-3</option>
+                        <option value="2" ${esquemaSelecionado === 2 ? 'selected' : ''}>3-5-2</option>
+                        <option value="6" ${esquemaSelecionado === 6 ? 'selected' : ''}>5-3-2</option>
+                        <option value="7" ${esquemaSelecionado === 7 ? 'selected' : ''}>5-4-1</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Botao Gerar Cenarios -->
+            <button id="assist-gerar-btn"
+                    class="w-full py-3 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                    style="background: linear-gradient(135deg, #a855f7, #ec4899);">
+                <span class="material-icons text-lg">auto_awesome</span>
+                Gerar 3 Cenarios
+            </button>
+
+            <!-- Fontes ativas -->
+            <div id="assist-fontes" class="flex flex-wrap gap-1.5"></div>
+
+            <!-- Cenarios -->
+            <div id="assist-cenarios-container"></div>
+        </div>
+    `;
+
+    // Events
+    document.getElementById('assist-gerar-btn')?.addEventListener('click', gerarCenariosAssistente);
+
+    // Carregar fontes
+    carregarFontesAssistente();
+}
+
+async function carregarFontesAssistente() {
+    const container = document.getElementById('assist-fontes');
+    if (!container) return;
+
+    try {
+        const resp = await fetch('/api/assistente/fontes', { credentials: 'include' });
+        const data = await resp.json();
+
+        if (!data.success) return;
+
+        container.innerHTML = data.fontes.map(f => {
+            const cor = f.status === 'ativa' ? 'green' : f.status === 'pendente' ? 'gray' : 'orange';
+            const icone = f.status === 'ativa' ? 'check_circle' : f.status === 'pendente' ? 'schedule' : 'warning';
+            return `
+                <div class="flex items-center gap-1 px-2 py-1 rounded-full text-[10px]"
+                     style="background: rgba(${cor === 'green' ? '34,197,94' : cor === 'orange' ? '249,115,22' : '156,163,175'},0.1);
+                            border: 1px solid rgba(${cor === 'green' ? '34,197,94' : cor === 'orange' ? '249,115,22' : '156,163,175'},0.3);
+                            color: rgba(${cor === 'green' ? '34,197,94' : cor === 'orange' ? '249,115,22' : '156,163,175'},0.8);">
+                    <span class="material-icons" style="font-size:10px;">${icone}</span>
+                    ${f.nome}
+                </div>
+            `;
+        }).join('');
+    } catch { /* silencioso */ }
+}
+
+async function gerarCenariosAssistente() {
+    const patrimonio = parseFloat(document.getElementById('assist-patrimonio')?.value) || 100;
+    const esquemaId = parseInt(document.getElementById('assist-esquema')?.value) || 3;
+    const container = document.getElementById('assist-cenarios-container');
+    const btn = document.getElementById('assist-gerar-btn');
+
+    if (patrimonio < 30) {
+        container.innerHTML = `<div class="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">Patrimonio minimo C$ 30.00</div>`;
+        return;
+    }
+
+    // Loading
+    btn.disabled = true;
+    btn.innerHTML = '<div class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>';
+    container.innerHTML = `
+        <div class="flex flex-col items-center py-8">
+            <div class="w-10 h-10 border-4 border-purple-500/30 border-t-purple-500 rounded-full animate-spin mb-3"></div>
+            <p class="text-xs text-white/50">Analisando mercado com multiplas fontes...</p>
+        </div>
+    `;
+
+    try {
+        const resp = await fetch(`/api/assistente/cenarios?patrimonio=${patrimonio}&esquema=${esquemaId}`, {
+            credentials: 'include',
+        });
+        const data = await resp.json();
+
+        if (!data.success) throw new Error(data.error || 'Erro ao gerar cenarios');
+
+        dadosCenarios = data;
+        patrimonioDisponivel = patrimonio;
+
+        renderizarCenarios(container, data);
+    } catch (error) {
+        container.innerHTML = `<div class="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">${error.message}</div>`;
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-icons text-lg">auto_awesome</span> Gerar 3 Cenarios';
+    }
+}
+
+function renderizarCenarios(container, data) {
+    const { cenarios, modoSugerido, fontesAtivas, rodada } = data;
+
+    // Tabs dos cenarios
+    const tabsCenarios = cenarios.map((c, idx) => {
+        const cfg = c.modoConfig || {};
+        const ativo = idx === cenarioAtivo;
+        const recomendado = c.modo === modoSugerido?.modo;
+        return `
+            <button class="cenario-tab flex-1 py-2 px-2 rounded-lg text-center transition-all ${ativo ? 'ring-1' : 'opacity-60 hover:opacity-80'}"
+                    style="background: ${ativo ? cfg.cor + '20' : 'transparent'}; ${ativo ? 'ring-color:' + cfg.cor + '60;' : ''}"
+                    onclick="window.CartolaProModule.trocarCenario(${idx})">
+                <span class="material-icons block mx-auto mb-0.5" style="font-size:16px; color:${cfg.cor};">${cfg.icone}</span>
+                <span class="text-[10px] font-bold text-white block">${cfg.nome}</span>
+                ${recomendado ? '<span class="text-[8px] text-purple-400 block">Sugerido</span>' : ''}
+            </button>
+        `;
+    }).join('');
+
+    // Cenario ativo
+    const cenario = cenarios[cenarioAtivo];
+    const atletasHTML = cenario.escalacao.map(a => renderizarCardAtletaAssistente(a)).join('');
+
+    container.innerHTML = `
+        <!-- Rodada + Fontes -->
+        <div class="flex items-center justify-between mb-3">
+            <span class="text-[10px] text-white/40">Rodada ${rodada || '--'}</span>
+            <div class="flex gap-1">
+                ${fontesAtivas.map(f => `
+                    <span class="px-1.5 py-0.5 rounded text-[8px] bg-purple-500/10 text-purple-300 border border-purple-500/20">${f}</span>
+                `).join('')}
+            </div>
+        </div>
+
+        <!-- Tabs Cenarios (3 modos) -->
+        <div class="grid grid-cols-3 gap-2 mb-4">${tabsCenarios}</div>
+
+        <!-- Info do Cenario Ativo -->
+        <div class="grid grid-cols-3 gap-2 mb-3">
+            <div class="p-2 rounded-lg bg-white/5 text-center">
+                <p class="text-xs text-white/40">Formacao</p>
+                <p class="text-sm font-bold text-white">${cenario.formacao}</p>
+            </div>
+            <div class="p-2 rounded-lg bg-white/5 text-center">
+                <p class="text-xs text-white/40">Custo</p>
+                <p class="text-sm font-bold text-green-400">C$ ${cenario.gastoTotal.toFixed(2)}</p>
+            </div>
+            <div class="p-2 rounded-lg bg-white/5 text-center">
+                <p class="text-xs text-white/40">Pts Esperados</p>
+                <p class="text-sm font-bold text-purple-400">${cenario.pontuacaoEsperada.min}-${cenario.pontuacaoEsperada.max}</p>
+            </div>
+        </div>
+
+        <!-- Sobra -->
+        <div class="flex items-center justify-between px-2 py-1.5 rounded-lg bg-white/5 mb-3">
+            <span class="text-[10px] text-white/40">Sobra</span>
+            <span class="text-xs font-bold ${cenario.sobra >= 0 ? 'text-green-400' : 'text-red-400'}">C$ ${cenario.sobra.toFixed(2)}</span>
+        </div>
+
+        <!-- Lista de Atletas -->
+        <div class="space-y-2">${atletasHTML}</div>
+
+        <!-- Footer -->
+        <p class="text-[8px] text-white/20 text-center mt-3">
+            Fontes: ${fontesAtivas.join(' + ')} | ${data.geradoEm ? new Date(data.geradoEm).toLocaleTimeString('pt-BR') : ''}
+        </p>
+    `;
+}
+
+function renderizarCardAtletaAssistente(atleta) {
+    const fonteBadges = (atleta.fontes || []).filter(f => f !== 'cartola-api').map(f => {
+        const cores = {
+            'gato-mestre': { bg: 'rgba(234,179,8,0.1)', border: 'rgba(234,179,8,0.3)', text: 'rgba(234,179,8,0.8)' },
+            'confronto': { bg: 'rgba(59,130,246,0.1)', border: 'rgba(59,130,246,0.3)', text: 'rgba(59,130,246,0.8)' },
+        };
+        const c = cores[f] || { bg: 'rgba(156,163,175,0.1)', border: 'rgba(156,163,175,0.3)', text: 'rgba(156,163,175,0.8)' };
+        return `<span class="px-1 py-0.5 rounded text-[7px]" style="background:${c.bg};border:1px solid ${c.border};color:${c.text};">${f}</span>`;
+    }).join('');
+
+    const mandanteIcon = atleta.mandante === true ? '🏠' : atleta.mandante === false ? '✈️' : '';
+    const adversarioLabel = atleta.adversario ? `vs ${atleta.adversario}` : '';
+    const detalhes = atleta.detalhes || {};
+
+    return `
+        <div class="flex items-center gap-3 p-3 rounded-xl bg-white/5 ${atleta.capitao ? 'border border-yellow-500/40' : ''}">
+            <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center overflow-hidden flex-shrink-0">
+                ${atleta.foto ? `<img src="${atleta.foto}" class="w-full h-full object-cover" onerror="this.parentElement.innerHTML='<span class=\\'material-icons text-white/30\\'>person</span>'">` : '<span class="material-icons text-white/30">person</span>'}
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-1.5">
+                    <p class="text-sm font-medium text-white truncate">${atleta.nome}</p>
+                    ${atleta.capitao ? '<span class="text-[10px] px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-400 flex-shrink-0">C</span>' : ''}
+                </div>
+                <div class="flex items-center gap-1.5 mt-0.5">
+                    <span class="text-[10px] text-white/40">${atleta.posicao} • ${atleta.clubeAbrev}</span>
+                    ${mandanteIcon ? `<span class="text-[10px]">${mandanteIcon}</span>` : ''}
+                    ${adversarioLabel ? `<span class="text-[10px] text-white/30">${adversarioLabel}</span>` : ''}
+                </div>
+                <div class="flex gap-1 mt-1">${fonteBadges}</div>
+            </div>
+            <div class="text-right flex-shrink-0">
+                <p class="text-sm font-bold text-white">${(detalhes.mediaContextual || atleta.media)?.toFixed(1) || '0.0'}</p>
+                <p class="text-[10px] text-white/40">C$ ${atleta.preco?.toFixed(2) || '0.00'}</p>
+                <p class="text-[8px] text-purple-400/60">s: ${atleta.scoreFinal?.toFixed(1) || '0'}</p>
+            </div>
+        </div>
+    `;
+}
+
+export function trocarCenario(idx) {
+    cenarioAtivo = idx;
+    const container = document.getElementById('assist-cenarios-container');
+    if (container && dadosCenarios) {
+        renderizarCenarios(container, dadosCenarios);
     }
 }
 
@@ -1013,6 +1271,7 @@ window.CartolaProModule = {
     iniciarOAuth,
     fazerLogin,
     trocarAba,
+    trocarCenario,
     colarTimeSugerido,
     desconectar,
     mostrarFormularioEmail,
@@ -1050,4 +1309,4 @@ window.abrirCartolaPro = abrirModal;
     document.head.appendChild(style);
 })();
 
-if (window.Log) Log.info("CARTOLA-PRO", "Modulo v2.3 carregado (modos de estrategia)");
+if (window.Log) Log.info("CARTOLA-PRO", "Modulo v3.0 carregado (assistente multi-fonte)");

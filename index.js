@@ -162,6 +162,9 @@ import { verificarENotificarEscalacao, limparCacheNotificacoes } from "./service
 // 🎯 Dicas Premium
 import dicasPremiumRoutes from "./routes/dicas-premium-routes.js";
 
+// 🤖 Assistente Inteligente de Escalação (Multi-Fonte)
+import assistenteEscalacaoRoutes from "./routes/assistente-escalacao-routes.js";
+
 // 📰 Notícias personalizadas do time do coração
 import noticiasTimeRoutes from "./routes/noticias-time-routes.js";
 
@@ -574,6 +577,10 @@ console.log("[SERVER] 🤖 Rotas de Análises IA registradas em /api/admin/ia-an
 // 🎯 Dicas Premium
 app.use("/api/dicas-premium", dicasPremiumRoutes);
 console.log("[SERVER] 🎯 Rotas de Dicas Premium registradas em /api/dicas-premium");
+
+// 🤖 Assistente Inteligente de Escalação
+app.use("/api/assistente", assistenteEscalacaoRoutes);
+console.log("[SERVER] 🤖 Rotas do Assistente de Escalação registradas em /api/assistente");
 
 // 📰 Notícias do Time do Coração
 app.use("/api/noticias", noticiasTimeRoutes);
