@@ -59,7 +59,7 @@ class LayoutSystem {
                     <li><a href="painel.html" data-nav="dashboard"><span class="icon material-symbols-outlined">bar_chart</span>Dashboard</a></li>
                     <li><a href="criar-liga.html" data-nav="criar-liga"><span class="icon material-symbols-outlined">add</span>Criar Liga</a></li>
                     <li><a href="buscar-times.html" data-nav="buscar-times"><span class="icon material-symbols-outlined">search</span>Buscar Times</a></li>
-                    <li><a href="admin.html" data-nav="admin"><span class="icon material-symbols-outlined">settings</span>Administração</a></li>
+                    <li><a href="painel.html" data-nav="admin"><span class="icon material-symbols-outlined">settings</span>Administração</a></li>
                 </ul>
             </div>
 
@@ -105,7 +105,7 @@ class LayoutSystem {
                 <div class="liga-actions">
                     <a href="detalhe-liga.html?id=${liga._id}"><span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">visibility</span> Ver</a>
                     <a href="editar-liga.html?id=${liga._id}"><span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">edit</span> Editar</a>
-                    <a href="admin.html?id=${liga._id}"><span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">settings</span> Admin</a>
+                    <a href="ferramentas-rodadas.html?id=${liga._id}"><span class="material-symbols-outlined" style="font-size: 14px; vertical-align: middle;">settings</span> Rodadas</a>
                 </div>
             </div>
         `).join('');

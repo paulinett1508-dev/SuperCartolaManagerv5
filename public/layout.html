@@ -162,6 +162,35 @@
                 </div>
 
                 <!-- ========================================
+                     FINANCEIRO
+                     ======================================== -->
+                <div class="sidebar-accordion" data-accordion="financeiro">
+                    <div class="sidebar-accordion-header" data-tooltip="Financeiro">
+                        <div class="sidebar-accordion-title">
+                            <span class="material-icons">account_balance_wallet</span>
+                            <span>Financeiro</span>
+                        </div>
+                        <span class="material-icons sidebar-accordion-arrow">expand_more</span>
+                    </div>
+                    <div class="sidebar-accordion-content">
+                        <ul class="sidebar-accordion-menu">
+                            <li>
+                                <a href="fluxo-financeiro.html" class="sidebar-accordion-item" data-page="fluxo-financeiro.html">
+                                    <span class="material-icons">payments</span>
+                                    <span>Fluxo Financeiro</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="auditoria-extratos.html" class="sidebar-accordion-item" data-page="auditoria-extratos.html">
+                                    <span class="material-icons">fact_check</span>
+                                    <span>Auditoria Extratos</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- ========================================
                      OPERAÇÕES
                      ======================================== -->
                 <div class="sidebar-accordion" data-accordion="operacoes">
@@ -181,15 +210,33 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="gerenciar.html" class="sidebar-accordion-item" data-page="gerenciar.html">
+                                <a href="gerenciar-modulos.html" class="sidebar-accordion-item" data-page="gerenciar-modulos.html">
                                     <span class="material-icons">widgets</span>
                                     <span>Gerenciar Módulos</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="admin-consolidacao.html" class="sidebar-accordion-item" data-page="admin-consolidacao.html">
+                                    <span class="material-icons">checklist</span>
+                                    <span>Consolidação</span>
                                 </a>
                             </li>
                             <li>
                                 <a href="#" class="sidebar-accordion-item" id="sidebarModoManutencao" onclick="abrirModoManutencaoSidebar(event)">
                                     <span class="material-icons">engineering</span>
                                     <span>Modo Manutenção</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="modo-manutencao.html" class="sidebar-accordion-item" data-page="modo-manutencao.html">
+                                    <span class="material-icons">build_circle</span>
+                                    <span>Manutenção Participante</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="modo-manutencao-avancado.html" class="sidebar-accordion-item" data-page="modo-manutencao-avancado.html">
+                                    <span class="material-icons">settings_suggest</span>
+                                    <span>Manutenção Avançada</span>
                                 </a>
                             </li>
                             <li>
@@ -251,6 +298,12 @@
                                     <span>Atividade App</span>
                                 </a>
                             </li>
+                            <li>
+                                <a href="admin-analises-ia.html" class="sidebar-accordion-item" data-page="admin-analises-ia.html">
+                                    <span class="material-icons">psychology</span>
+                                    <span>Análises IA</span>
+                                </a>
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -272,6 +325,18 @@
                                 <a href="admin-gestao.html" class="sidebar-accordion-item" data-page="admin-gestao.html">
                                     <span class="material-icons">shield</span>
                                     <span>Gestão de Admins</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="admin-validacao-migracao.html" class="sidebar-accordion-item" data-page="admin-validacao-migracao.html">
+                                    <span class="material-icons">verified</span>
+                                    <span>Validação Migração</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="migrar-localstorage-mongodb.html" class="sidebar-accordion-item" data-page="migrar-localstorage-mongodb.html">
+                                    <span class="material-icons">storage</span>
+                                    <span>Migrar Dados</span>
                                 </a>
                             </li>
                         </ul>
@@ -636,20 +701,29 @@
                         'preencher-liga.html': 'ligas',
                         'criar-liga.html': 'ligas',
                         'gerenciar.html': 'ligas',
-                        'gerenciar-modulos.html': 'ligas',
-                        'admin.html': 'ligas',
+                        // Financeiro
+                        'fluxo-financeiro.html': 'financeiro',
+                        'auditoria-extratos.html': 'financeiro',
                         // Participantes
                         'analisar-participantes.html': 'participantes',
-                        'historico-acessos.html': 'analytics',
                         // Operações
                         'ferramentas-rodadas.html': 'operacoes',
+                        'gerenciar-modulos.html': 'operacoes',
+                        'admin-consolidacao.html': 'operacoes',
+                        'modo-manutencao.html': 'operacoes',
+                        'modo-manutencao-avancado.html': 'operacoes',
+                        'notificador.html': 'operacoes',
                         'admin-orchestrator.html': 'operacoes',
                         // Analytics
                         'github-analytics-unified.html': 'analytics',
                         'dashboard-saude.html': 'analytics',
                         'api-football-analytics.html': 'analytics',
+                        'historico-acessos.html': 'analytics',
+                        'admin-analises-ia.html': 'analytics',
                         // Administração
-                        'admin-gestao.html': 'administracao'
+                        'admin-gestao.html': 'administracao',
+                        'admin-validacao-migracao.html': 'administracao',
+                        'migrar-localstorage-mongodb.html': 'administracao'
                     };
 
                     const accordionKey = pageToAccordion[currentPage];
@@ -878,7 +952,7 @@
                         "criar-liga.html": { title: "Nova Liga", subtitle: "Criar Nova Liga" },
                         "preencher-liga.html": { title: "Nova Liga", subtitle: "Criar Nova Liga" },
                         "buscar-times.html": { title: "Buscar Times", subtitle: "Adicionar Times do Cartola FC" },
-                        "admin.html": { title: "Admin", subtitle: "Popular Rodadas" },
+                        "gerenciar-modulos.html": { title: "Módulos", subtitle: "Gerenciar Módulos das Ligas" },
                         "ferramentas-rodadas.html": { title: "Rodadas", subtitle: "Popular e Gerenciar Rodadas" },
                         "detalhe-liga.html": { title: "Detalhes da Liga", subtitle: "Visualizacao Completa" },
                         "editar-liga.html": { title: "Editar Liga", subtitle: "Modificar Times da Liga" },
@@ -888,6 +962,17 @@
                         "historico-acessos.html": { title: "Historico de Acessos", subtitle: "Monitorar Acessos ao App" },
                         "analisar-participantes.html": { title: "Analisar Participantes", subtitle: "Gestao Unificada de Participantes" },
                         "admin-orchestrator.html": { title: "Orchestrator", subtitle: "Round-Market Orchestrator" },
+                        // Fase 1 - Páginas integradas ao orquestrador
+                        "github-analytics-unified.html": { title: "Repositório", subtitle: "Analytics do GitHub" },
+                        "notificador.html": { title: "Notificador", subtitle: "Sistema de Avisos In-App" },
+                        "admin-consolidacao.html": { title: "Consolidação", subtitle: "Dashboard de Consolidação" },
+                        "admin-analises-ia.html": { title: "Análises IA", subtitle: "Análises Inteligentes" },
+                        "admin-validacao-migracao.html": { title: "Validação", subtitle: "Validação de Migração" },
+                        "migrar-localstorage-mongodb.html": { title: "Migrar Dados", subtitle: "LocalStorage para MongoDB" },
+                        "modo-manutencao.html": { title: "Manutenção", subtitle: "Manutenção do Participante" },
+                        "modo-manutencao-avancado.html": { title: "Manutenção Avançada", subtitle: "Configurações Avançadas" },
+                        "dashboard-saude.html": { title: "Saúde do Sistema", subtitle: "Monitoramento e Diagnóstico" },
+                        "api-football-analytics.html": { title: "API Football", subtitle: "Monitoramento de APIs" },
                     };
 
                     const pageInfo = titles[currentPage] || {
@@ -956,7 +1041,16 @@
                     'api-football-analytics.html',
                     'dashboard-analytics.html',
                     'dashboard-saude.html',
-                    'admin-orchestrator.html'
+                    'admin-orchestrator.html',
+                    // Fase 1 - Páginas integradas ao orquestrador
+                    'github-analytics-unified.html',
+                    'notificador.html',
+                    'admin-consolidacao.html',
+                    'admin-analises-ia.html',
+                    'admin-validacao-migracao.html',
+                    'migrar-localstorage-mongodb.html',
+                    'modo-manutencao.html',
+                    'modo-manutencao-avancado.html'
                 ],
 
                 init() {

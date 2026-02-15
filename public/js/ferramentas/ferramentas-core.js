@@ -298,9 +298,9 @@ export class FerramentasManager {
 // Funções globais para compatibilidade
 window.popularRodadas = async function (ligaId) {
     try {
-        window.location.href = `admin.html?id=${ligaId}`;
+        window.location.href = `ferramentas-rodadas.html?id=${ligaId}`;
     } catch (error) {
-        console.error("Erro ao navegar para admin:", error);
+        console.error("Erro ao navegar para rodadas:", error);
     }
 };
 
